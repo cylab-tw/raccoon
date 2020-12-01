@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html ng-app="UserManagerApp">
+<head>
+	<meta charset="UTF-8">
+	<title>Micala | 開通</title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="../css/login/view.css">
+</head>
+
+<body ng-controller="UserManagerCtrl">
+	<div>
+		<ng-include src="'/navbar.html'"></ng-include>
+	</div>
+	<div class="container-fluid" style="margin-top: 60px;">
+		<div style="float:right;width:130px"><label>清單總筆數：{{DataListSize-1}}</label></div>
+		<div dw-loading="DataList" dw-loading-options="{text: '載入清單...'}"
+			class="scrollable-area table-responsive scrollColor" style="float:left;width:100%;margin:5px">
+			<table id="setting" class="data_table">
+				<thead>
+					<tr>
+						<th colspan="8">
+							使用者清單
+						</th>
+					</tr>
+					<tr>
+						<th>No.</th>
+						<th>Account</th>
+						<th>Email</th>
+						<th>Firstname</th>
+						<th>Lastname</th>
+						<th>Usertype</th>
+						<th>Status</th>
+						<th>Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr name="DataList" ng-repeat="DataItem in DataList | orderBy:orderColMtss:reverseList" ng-if="DataItem.account !=loggedUser">
+						<td>{{($index)+"."}}</td>
+						<td>{{DataItem.account}}</td>
+						<td>{{DataItem.email}}</td>
+						<td>{{DataItem.firstname}}</td>
+						<td>{{DataItem.lastname}}</td>
+						<td>{{DataItem.usertype}}</td>
+						<td><div style="color:chartreuse;font-weight:bold;" ng-if="DataItem.status">已開通</div><div style="color:red;font-weight:bold;" ng-if="!DataItem.status">未核可</div></td>
+						<td>
+							<button ng-click="Approve_User(DataItem._id);" ng-if="!DataItem.status" >開通</button><button ng-click="Block_User(DataItem._id);" ng-if="DataItem.status">封鎖</button>
+							<button ng-click="Delete_User(DataItem._id);">刪除</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<div class="col-sm-12" ng-show="resultCount">
+				<span style="font-weight:bold;">顯示資料 第{{(resultPerPage*(resultCurPage-1))+1 }}筆~第{{resultCurPage*resultPerPage}}筆</span>
+				<ul uib-pagination total-items="resultCount" ng-model="resultCurPage" boundary-link-numbers="true" rotate="true" max-size="3" boundary-links="true"  class="pagination-sm"></ul>
+			</div>
+		</div>
+	</div>
+</body>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.9/angular.min.js"></script>
+<script src="../scripts/external/angularjs/ui-bootstrap-tpls-3.0.6.min.js"></script>
+<script src="../scripts/common.js"></script>
+<script src="../scripts/ngCommon.js"></script>
+<script src="../scripts/user/manager.js"></script>
+</html>

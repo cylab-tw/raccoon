@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html ng-app="RegisterApp">
+	<head>
+		<meta charset="UTF-8">
+		<title>Micala | 註冊</title>
+		<link rel="stylesheet" type="text/css" href="../scripts/external/bootstrap/bootstrap.min.css">
+		<link rel="stylesheet" type="text/css" href="../css/login/view.css">
+	</head>
+	<body ng-controller="RegisterCtrl">		
+		<div class="wrapper fadeInDown">
+			<div id="formContent">
+				<!-- Tabs Titles -->
+				<h2 class="fadeIn first">註冊帳號</h2><br/>		
+				<form ng-submit="Register();">
+					<input type="text" id="firstname" class="fadeIn second" name="firstname" placeholder="請輸入姓氏" required="required" style="width: 35%;" ng-model="firstname">
+					<input type="text" id="lastname" class="fadeIn second" name="lastname" placeholder="請輸入名字" required="required" style="width: 46%;" ng-model="lastname">
+					<p ng-show="!Havelastname">請輸入名字</p>
+					<select id="gender" class="fadeIn third" name="gender" required="required" ng-model="gender">
+						<option value="" disabled selected hidden required="required">請選擇性別</option>
+						<option value="male">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;男性&#8195;</option>
+						<option value="female">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;女姓</option>
+						<option value="other">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;其他</option>
+					</select>
+					<input type="text" id="username" class="fadeIn fourth" name="username" placeholder="請輸入帳號" required="required" ng-model = "username" ng-focus="removeErrorOnFocus($event);"><br />
+					<small ng-show="isAccError" style="color:red;">帳號長度為3到100，且僅能使用大小寫英文及數字。</small>
+					<input type="password" id="password" class="fadeIn fifth" name="password" autocomplete="off" placeholder="請輸入密碼" required="required" ng-model="password" ng-focus="removeErrorOnFocus($event);"><br />
+					<small ng-show="isPasswordError" style="font:bold;color: red;">密碼長度須為 8 到 30 個字，且包含小寫英文字母及數字。</small>
+					<input type="password" id="passwordMatch" class="fadeIn fifth" name="passwordMatch" autocomplete="off" placeholder="請再次輸入密碼" required="required" ng-focus="removeErrorOnFocus($event);" ng-model="passwordConfirm"> <br />
+					<small ng-show="isPasswordNotMatch" style="font:bold;color: red;">密碼不相符</small>
+					<input type="email" id="email" class="fadeIn sixth" name="email" placeholder="請輸入電子郵件" required="required" ng-model="email"><br/><br/>
+
+					<input type="submit" class="fadeIn seventh" value="註冊">
+				</form>
+			</div>
+		</div>		
+	</body>
+</html>
+
+<script type="text/javascript" src="../scripts/external/jquery.js"></script>
+<script type="text/javascript" src="../scripts/external/bootstrap/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.9/angular.min.js"></script>
+<script src="../scripts/common.js"></script>
+<script src="../scripts/register/register.js"></script>

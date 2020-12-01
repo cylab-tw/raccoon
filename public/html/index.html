@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html ng-app="HomePageApp">
+	<head>
+		<meta charset="UTF-8">
+		<title>Micala | 管理介面</title>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+		<link rel="stylesheet" type="text/css" href="../css/login/view.css">
+	</head>
+	<body ng-controller="HomePageCtrl">
+		<ng-include src="'/navbar.html'"></ng-include>
+		<div class="wrapper fadeInDown">
+			<div id="formContent">
+				<!-- Tabs Titles -->
+				<h2 class="fadeIn first">歡迎，<span ng-if="loggedUser">{{loggedUser}}</span><span ng-if="!loggedUser">訪客</span>
+				</h2><br/>
+				<img style="height: 200px;padding-bottom: 20px;" src="../images/logo.svg" />
+				<br />
+			</div>
+		</div>		
+	</body>
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.9/angular.min.js"></script>
+	<script src="../scripts/common.js"></script>
+	<script src="../scripts/ngCommon.js"></script>
+	<script src="../scripts/user/home.js"></script>
+</html>

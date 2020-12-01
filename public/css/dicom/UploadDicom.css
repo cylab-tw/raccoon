@@ -1,0 +1,16 @@
+#progressBar{
+    position: relative;        
+    height: 30px;
+    background-color: white;
+    margin: auto;           
+  }
+  #dragArea{
+    position: relative;
+    width:500px;
+    margin: auto;
+    border-style:ridge;
+    border-width: 3px;
+    background-color: #C0C0C0;
+    padding-top:10px;
+    padding-bottom:10px;        
+  }

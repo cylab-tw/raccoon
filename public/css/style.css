@@ -1,0 +1,65 @@
+html {
+  overflow: hidden;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+body {
+  overflow: auto;
+  position: relative;
+  box-sizing: border-box;
+  margin: 0;
+  height: 100%;
+}
+.check-box
+{
+    width: 15px;
+    height: 15px;
+    border: 1px solid #bbb;
+    margin-right: 5px;
+}
+#search_bar .form-control
+{
+  border: none;
+  letter-spacing: 1px;
+  border-top-right-radius: 30px;
+  border-bottom-right-radius: 30px;
+  padding-left: 0px;
+}
+#search_bar > .input-group-prepend button
+{
+  width: 100px;
+}
+#search_bar .dropdown-menu
+{
+  min-width: 0px;
+  width: 100px;
+  margin-top: .5em;
+}
+#search_bar .dropdown-item
+{
+  padding: .2em .5em;
+}
+#search_bar .form-control input
+{
+  width: calc(100% - .2em);
+  line-height: 100%;
+  border: 0px;
+  box-shadow: -1px 0px 0px rgba(0,0,0,.3);
+  padding-left: 1em;
+}
+#search_bar .form-control input:focus
+{
+  outline: none;
+}
+#search_bar .dropdown-item:active
+{
+  background-color: transparent;
+  color: #707070;
+}
+#search_bar .check-box.checked
+{
+  background-color: #707070;
+}
+

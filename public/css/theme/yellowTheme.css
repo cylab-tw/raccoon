@@ -1,0 +1,34 @@
+.query_table>tbody>tr>td {
+  border: 3px #fc0 solid;
+  background-color: #f1db92;
+}
+
+.query_table>tbody>tr>td>button {
+  background-color: #e2b31c;
+}
+
+.data_table {
+  border: 3px #eaf2da solid;
+}
+
+.data_table>thead>tr>th {
+  border: 1px #fff solid;
+  background-color: #e2c31c;
+  font-weight: normal;
+}
+
+.data_table>tbody>tr:nth-child(even) {
+  background-color: #fff;
+}
+
+.data_table>tbody>tr:nth-child(odd) {
+  background-color: #ededed;
+}
+
+.data_table>tbody>tr>td {
+  border: 1px #ededed solid;
+}
+
+.selected {
+  border: 3px #c18b4e solid;
+}

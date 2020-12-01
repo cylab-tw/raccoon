@@ -1,0 +1,342 @@
+dsr2html(1)                       OFFIS DCMTK                      dsr2html(1)
+
+
+
+NAME
+       dsr2html - Render DICOM SR file and data set to HTML/XHTML
+
+
+SYNOPSIS
+       dsr2html [options] dsrfile-in [htmlfile-out]
+
+DESCRIPTION
+       The  dsr2html  utility  renders  the  contents  of  a  DICOM Structured
+       Reporting (SR) document (file format or raw data set)  to  HTML  (Hyper
+       Text  Markup  Language)  version  3.2  or  4.01  as  well  as  to XHTML
+       (Extensible Hyper Text Markup Language) version 1.1.
+
+       If dsr2html reads a raw data set (DICOM  data  without  a  file  format
+       meta-header)  it will attempt to guess the transfer syntax by examining
+       the first few bytes of the file. It is not always possible to correctly
+       guess  the  transfer syntax and it is better to convert a data set to a
+       file format whenever possible (using the dcmconv utility). It  is  also
+       possible  to use the -f and -t[ieb] options to force dsr2html to read a
+       dataset with a particular transfer syntax.
+
+PARAMETERS
+       dsrfile-in    DICOM SR input filename to be rendered
+
+       htmlfile-out  HTML/XHTML output filename (default: stdout)
+
+OPTIONS
+   general options
+         -h   --help
+                print this help text and exit
+
+              --version
+                print version information and exit
+
+              --arguments
+                print expanded command line arguments
+
+         -q   --quiet
+                quiet mode, print no warnings and errors
+
+         -v   --verbose
+                verbose mode, print processing details
+
+         -d   --debug
+                debug mode, print debug information
+
+         -ll  --log-level  [l]evel: string constant
+                (fatal, error, warn, info, debug, trace)
+                use level l for the logger
+
+         -lc  --log-config  [f]ilename: string
+                use config file f for the logger
+
+   input options
+       input file format:
+
+         +f   --read-file
+                read file format or data set (default)
+
+         +fo  --read-file-only
+                read file format only
+
+         -f   --read-dataset
+                read data set without file meta information
+
+       input transfer syntax:
+
+         -t=  --read-xfer-auto
+                use TS recognition (default)
+
+         -td  --read-xfer-detect
+                ignore TS specified in the file meta header
+
+         -te  --read-xfer-little
+                read with explicit VR little endian TS
+
+         -tb  --read-xfer-big
+                read with explicit VR big endian TS
+
+         -ti  --read-xfer-implicit
+                read with implicit VR little endian TS
+
+   processing options
+       additional information:
+
+         -Ip  --processing-details
+                show currently processed content item
+
+       error handling:
+
+         -Er  --unknown-relationship
+                accept unknown/missing relationship type
+
+         -Ev  --invalid-item-value
+                accept invalid content item value
+                (e.g. violation of VR or VM definition)
+
+         -Ec  --ignore-constraints
+                ignore relationship content constraints
+
+         -Ee  --ignore-item-errors
+                do not abort on content item errors, just warn
+                (e.g. missing value type specific attributes)
+
+         -Ei  --skip-invalid-items
+                skip invalid content items (incl. sub-tree)
+
+         -Dv  --disable-vr-checker
+                disable check for VR-conformant string values
+
+       specific character set:
+
+         +Cr  --charset-require
+                require declaration of extended charset (default)
+
+         +Ca  --charset-assume  [c]harset: string
+                assume charset c if no extended charset declared
+
+              --charset-check-all
+                check all data elements with string values
+                (default: only PN, LO, LT, SH, ST, UC and UT)
+
+                # this option is only used for the mapping to an appropriate
+                # HTML/XHTML character encoding, but not for the conversion
+                # to UTF-8
+
+         +U8  --convert-to-utf8
+                convert all element values that are affected
+                by Specific Character Set (0008,0005) to UTF-8
+
+                # requires support from an underlying character encoding library
+                # (see output of --version on which one is available)
+
+   output options
+       HTML/XHTML compatibility:
+
+         +H3  --html-3.2
+                use only HTML version 3.2 compatible features
+
+         +H4  --html-4.0
+                allow all HTML version 4.01 features (default)
+
+         +X1  --xhtml-1.1
+                comply with XHTML version 1.1 specification
+
+         +Hd  --add-document-type
+                add reference to SGML document type definition
+
+       cascading style sheet (CSS), not with HTML 3.2:
+
+         +Sr  --css-reference  URL: string
+                add reference to specified CSS to document
+
+         +Sf  --css-file  [f]ilename: string
+                embed content of specified CSS into document
+
+       general rendering:
+
+         +Ri  --expand-inline
+                expand short content items inline (default)
+
+         -Ri  --never-expand-inline
+                never expand content items inline
+
+         +Ra  --always-expand-inline
+                always expand content items inline
+
+         +Rd  --render-full-data
+                render full data of content items
+
+         +Rt  --section-title-inline
+                render section titles inline, not separately
+
+       document rendering:
+
+         +Dt  --document-type-title
+                use document type as document title (default)
+
+         +Dp  --patient-info-title
+                use patient information as document title
+
+         -Dh  --no-document-header
+                do not render general document information
+
+       code rendering:
+
+         +Ci  --render-inline-codes
+                render codes in continuous text blocks
+
+         +Cn  --concept-name-codes
+                render code of concept names
+
+         +Cu  --numeric-unit-codes
+                render code of numeric measurement units
+
+         +Cv  --code-value-unit
+                use code value as measurement unit (default)
+
+         +Cm  --code-meaning-unit
+                use code meaning as measurement unit
+
+         +Cc  --render-all-codes
+                render all codes (implies +Ci, +Cn and +Cu)
+
+         +Ct  --code-details-tooltip
+                render code details as a tooltip (implies +Cc)
+
+NOTES
+   DICOM Conformance
+       The dsr2html utility supports the following SOP Classes:
+
+       SpectaclePrescriptionReportStorage           1.2.840.10008.5.1.4.1.1.78.6
+       MacularGridThicknessAndVolumeReportStorage   1.2.840.10008.5.1.4.1.1.79.1
+       BasicTextSRStorage                           1.2.840.10008.5.1.4.1.1.88.11
+       EnhancedSRStorage                            1.2.840.10008.5.1.4.1.1.88.22
+       ComprehensiveSRStorage                       1.2.840.10008.5.1.4.1.1.88.33
+       Comprehensive3DSRStorage                     1.2.840.10008.5.1.4.1.1.88.34
+       ProcedureLogStorage                          1.2.840.10008.5.1.4.1.1.88.40
+       MammographyCADSRStorage                      1.2.840.10008.5.1.4.1.1.88.50
+       KeyObjectSelectionDocumentStorage            1.2.840.10008.5.1.4.1.1.88.59
+       ChestCADSRStorage                            1.2.840.10008.5.1.4.1.1.88.65
+       XRayRadiationDoseSRStorage                   1.2.840.10008.5.1.4.1.1.88.67
+       RadiopharmaceuticalRadiationDoseSRStorage    1.2.840.10008.5.1.4.1.1.88.68
+       ColonCADSRStorage                            1.2.840.10008.5.1.4.1.1.88.69
+       ImplantationPlanSRDocumentStorage            1.2.840.10008.5.1.4.1.1.88.70
+       AcquisitionContextSRStorage                  1.2.840.10008.5.1.4.1.1.88.71
+       SimplifiedAdultEchoSRStorage                 1.2.840.10008.5.1.4.1.1.88.72
+       PatientRadiationDoseSRStorage                1.2.840.10008.5.1.4.1.1.88.73
+       PlannedImagingAgentAdministrationSRStorage   1.2.840.10008.5.1.4.1.1.88.74
+       PerformedImagingAgentAdministrationSRStorage 1.2.840.10008.5.1.4.1.1.88.75
+
+   Character Encoding
+       The HTML/XHTML encoding is  determined  automatically  from  the  DICOM
+       attribute  (0008,0005)  'Specific  Character  Set'  using the following
+       mapping:
+
+       ASCII         (ISO_IR 6)                       =>  (none)
+       UTF-8         "ISO_IR 192"                     =>  "UTF-8"
+       ISO Latin 1   "ISO_IR 100"                     =>  "ISO-8859-1"
+       ISO Latin 2   "ISO_IR 101"                     =>  "ISO-8859-2"
+       ISO Latin 3   "ISO_IR 109"                     =>  "ISO-8859-3"
+       ISO Latin 4   "ISO_IR 110"                     =>  "ISO-8859-4"
+       ISO Latin 5   "ISO_IR 148"                     =>  "ISO-8859-9"
+       Cyrillic      "ISO_IR 144"                     =>  "ISO-8859-5"
+       Arabic        "ISO_IR 127"                     =>  "ISO-8859-6"
+       Greek         "ISO_IR 126"                     =>  "ISO-8859-7"
+       Hebrew        "ISO_IR 138"                     =>  "ISO-8859-8"
+       Thai          "ISO_IR 166"                     =>  "TIS-620"
+       Japanese      "ISO 2022 IR 13ISO 2022 IR 87"  =>  "ISO-2022-JP"
+       Korean        "ISO 2022 IR 6ISO 2022 IR 149"  =>  "ISO-2022-KR"
+       Chinese       "ISO 2022 IR 6ISO 2022 IR 58"   =>  "ISO-2022-CN"
+       Chinese       "GB18030"                        =>  "GB18030"
+       Chinese       "GBK"                            =>  "GBK"
+
+       If this DICOM attribute is missing in the input file, although  needed,
+       option --charset-assume can be used to specify an appropriate character
+       set manually (using one of the DICOM defined  terms).  For  reasons  of
+       backward  compatibility  with  previous  versions  of  this  tool,  the
+       following terms are also supported  and  mapped  automatically  to  the
+       associated  DICOM  defined  terms:  latin-1, latin-2, latin-3, latin-4,
+       latin-5, cyrillic, arabic, greek, hebrew.
+
+       Option --convert-to-utf8 can be used to convert the DICOM file or  data
+       set to UTF-8 encoding prior to the rendering to HTML/XHTML format.
+
+LOGGING
+       The  level  of  logging  output  of  the various command line tools and
+       underlying libraries can be specified by the  user.  By  default,  only
+       errors  and  warnings  are  written to the standard error stream. Using
+       option --verbose also informational messages  like  processing  details
+       are  reported.  Option  --debug  can be used to get more details on the
+       internal activity, e.g. for debugging purposes.  Other  logging  levels
+       can  be  selected  using option --log-level. In --quiet mode only fatal
+       errors are reported. In such very severe error events, the  application
+       will  usually  terminate.  For  more  details  on the different logging
+       levels, see documentation of module 'oflog'.
+
+       In case the logging output should be written to file  (optionally  with
+       logfile  rotation),  to syslog (Unix) or the event log (Windows) option
+       --log-config can be used.  This  configuration  file  also  allows  for
+       directing  only  certain messages to a particular output stream and for
+       filtering certain messages based on the  module  or  application  where
+       they  are  generated.  An  example  configuration  file  is provided in
+       <etcdir>/logger.cfg.
+
+COMMAND LINE
+       All command line tools  use  the  following  notation  for  parameters:
+       square  brackets  enclose  optional  values  (0-1), three trailing dots
+       indicate that multiple values are allowed (1-n), a combination of  both
+       means 0 to n values.
+
+       Command line options are distinguished from parameters by a leading '+'
+       or '-' sign, respectively. Usually, order and position of command  line
+       options  are  arbitrary  (i.e.  they  can appear anywhere). However, if
+       options are mutually exclusive the rightmost appearance is  used.  This
+       behavior  conforms  to  the  standard  evaluation  rules of common Unix
+       shells.
+
+       In addition, one or more command files can be specified  using  an  '@'
+       sign  as  a  prefix to the filename (e.g. @command.txt). Such a command
+       argument is replaced by the content  of  the  corresponding  text  file
+       (multiple  whitespaces  are  treated  as a single separator unless they
+       appear between two quotation marks) prior to  any  further  evaluation.
+       Please  note  that  a command file cannot contain another command file.
+       This simple but effective  approach  allows  one  to  summarize  common
+       combinations  of  options/parameters  and  avoids longish and confusing
+       command lines (an example is provided in file <datadir>/dumppat.txt).
+
+ENVIRONMENT
+       The dsr2html utility will  attempt  to  load  DICOM  data  dictionaries
+       specified  in the DCMDICTPATH environment variable. By default, i.e. if
+       the  DCMDICTPATH  environment   variable   is   not   set,   the   file
+       <datadir>/dicom.dic  will be loaded unless the dictionary is built into
+       the application (default for Windows).
+
+       The  default  behavior  should  be  preferred   and   the   DCMDICTPATH
+       environment  variable  only used when alternative data dictionaries are
+       required. The DCMDICTPATH environment variable has the same  format  as
+       the  Unix  shell PATH variable in that a colon (':') separates entries.
+       On Windows systems, a semicolon (';') is used as a separator. The  data
+       dictionary  code  will  attempt  to  load  each  file  specified in the
+       DCMDICTPATH environment variable. It is an error if no data  dictionary
+       can be loaded.
+
+FILES
+       <datadir>/report.css  -  Sample  Cascading  Stylesheet  file  for  HTML
+       <datadir>/reportx.css - Sample Cascading Stylesheet file for XHTML
+
+SEE ALSO
+       dcmconv(1)
+
+COPYRIGHT
+       Copyright (C) 2000-2019 by OFFIS e.V., Escherweg  2,  26121  Oldenburg,
+       Germany.
+
+
+
+Version 3.6.5                   Mon Oct 28 2019                    dsr2html(1)

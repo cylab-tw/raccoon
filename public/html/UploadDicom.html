@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html ng-app="UploadApp" ng-controller="UploadCtrl">
+
+<head>
+    <title>Micala | Dicom Upload</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../css/file/UploadDicom.css">
+</head>
+
+<body>
+    <div ng-include="'/navbar.html'"></div>
+    <div class="container-fluid h-100" ondragover="angular.element(this).scope().dragoverHandler(event);angular.element(this).scope().dragEnter()" ondrop="angular.element(this).scope().dragoverHandler(event);angular.element(this).scope().dragLeave()" ondragleave="angular.element(this).scope().dragLeave()">
+        <div class="row h-100">
+            <div id="col-t" class="col-12">
+                <div id="consoleTable">
+                    <h4 class="text-info">- DICOM UPLOAD -</h4>
+                    <h5>
+                        <span>
+                            <strong>上傳進度：{{systemStatus}}</strong>
+                        </span>
+                    </h5>
+                    <div class="progress w-75 m-auto">
+                        <div class="progress-bar progress-bar-striped bg-success progress-bar-animated" style="width: {{uploadProgres}}%"></div>
+                    </div><br />
+                    <h6><strong id="dragTips">拖曳檔案或點擊"選擇檔案"</strong></h6>
+                    <h6>檔案列表：{{fileList.length}} Files</h6>
+                    <input type="button" class="btn btn-sm btn-success" value="開始上傳" onclick="angular.element(this).scope().uploadFiles()">&nbsp;&nbsp;
+                    <input type="button" class="btn btn-sm btn-primary" value="選擇檔案" onclick="file.click()">&nbsp;&nbsp;
+                    <input type="button" class="btn btn-sm btn-danger" value="重置上傳" onclick="angular.element(this).scope().resetUpload()">
+                    <input id="file" type="file" style="display: none" onchange="angular.element(this).scope().appendFiles(this.files)" multiple="multiple" />
+                </div>
+            </div>
+            <div id="col-b" class="col-12">
+                <div id="infoTable" ondrop="angular.element(this).scope().dropHandler(event);angular.element(this).scope().dragLeave()">
+                    <table class="table table-sm table-striped table-bordered table-hover text-center text-nowrap bg-light">
+                        <thead>
+                            <tr>
+                                <th style="width: 5%;">No.</th>
+                                <th ng-click="orderCol='fileName'; reverseList=!reverseList;" style="width: 15%;">檔案名稱</th>
+                                <th ng-click="orderCol='Status'; reverseList=!reverseList;" style="width: 10%;">狀態</th>
+                                <th ng-click="orderCol='Result'; reverseList=!reverseList;" style="width: 65%;">處理結果</th>
+                                <th style="width: 5%;">刪除</th>
+                            </tr>
+                        </thead>
+                        <tbody ng-init="textColor={success:'success',warning:'warning',fail:'danger',ready:'primary'}">
+                            <tr ng-repeat="fileItem in fileList | orderBy:orderCol:reverseList" ng-click="uploadCompleted && selectResultInit(fileItem.fileName);selectFileName=fileItem.fileName">
+                                <th>{{ $index + 1 }}</th>
+                                <td>{{fileItem.fileName}}</td>
+                                <td><strong class="text-{{textColor[fileItem.Status]}} text-uppercase">{{fileItem.Status}}</strong></td>
+                                <td class="text-{{textColor[fileItem.Status]}}"><strong>{{fileItem.Result}}</strong></td>
+                                <td>
+                                    <button class="btn-sm btn-danger" ng-click="cancelFile(fileItem.fileName)">刪除</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script src="../scripts/external/angularjs/angular.min.js"></script>
+<script src="../scripts/ngCommon.js"></script>
+<script src="../scripts/dicom/UploadDicom.js"></script>

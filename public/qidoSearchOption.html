@@ -1,0 +1,78 @@
+<div class="searchDiv">
+    <div class="row" style="padding-top: 10px;">
+        <div class="col-md-12 col-sm-12 col-12 form-group">
+            <div class="form-row">
+                <label class="col-md-2 col-sm-12 col-12 col-form-label">PatientId</label>
+                <input type="text" class="form-control col-md-10 col-sm-12 col-12" id="txt_PatientId" name="txt_PatientId" ng-model="$parent.PatientID">
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-12 form-group">
+            <div class="form-row">
+                <label class="col-md-3 col-sm-12 col-12 col-form-label">PatientName</label>
+                <input type="text" class="form-control col-md-9 col-sm-12 col-12" id="txt_PatientName" name="txt_PatientName" ng-model="$parent.PatientName">
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <fieldset class="border p-2" style="width: 100%;">
+                <legend class="w-auto">StudyDate</legend>
+                <div class='row'>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <div class="date form-row" id="from_date" data-target-input="nearest">
+                                <label for='start_time' class="col-md-3 col-sm-12 col-12">From Date</label>
+                                <input type="text" class="col-md-9 col-sm-12 col-12 form-control datetimepicker-input" data-target="#from_date" data-toggle="datetimepicker" id="start_time" ng-model="$parent.fromDate" placeholder="選擇開始日期" />
+                                <div class="input-group-append" data-target="#from_date" data-toggle="datetimepicker">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <div class="date form-row" id="end_date" data-target-input="nearest">
+                                <label for='end_time' class="col-md-3 col-sm-12 col-12">End Date</label>
+                                <input type="text" class="col-md-9 col-sm-12 col-12 form-control datetimepicker-input" data-target="#end_date" data-toggle="datetimepicker" id="end_time" ng-model="$parent.endDate" placeholder="選擇結束日期" />
+                                <div class="input-group-append" data-target="#end_date" data-toggle="datetimepicker">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-12 form-group">
+            <div class="form-row">
+                <label class="col-md-2 col-sm-12 col-12 col-form-label">Modality</label>
+                <input type="text" class="col-md-10 col-sm-12 col-12 form-control" id="txt_Modality" ng-model="$parent.Modality">
+            </div>
+        </div>
+    </div>
+    <div class="row" >
+        <div class="col-12 form-group">
+            <div class="form-row">
+                    <label class="col-md-2 col-sm-12 col-12 col-form-label">Identifier</label>
+                    <input type="text" class="col-md-10 col-sm-12 col-12 form-control" id="txt_StudyUID" ng-model="$parent.StudyInstanceUID">
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(function()
+    {
+        $('#from_date').datetimepicker({format:'YYYYMMDD' , locale : 'zh-tw' , useCurrent : false});
+        $('#end_date').datetimepicker({format: 'YYYYMMDD' , locale: 'zh-tw',useCurrent : false});
+        $('#from_date').on('change.datetimepicker' , function (e) {
+            $('#end_date').datetimepicker('minDate' , e.date);
+        });
+        $('#end_date').on('change.datetimepicker' , function (e) {
+            console.log(e);
+            $('#from_date').datetimepicker('maxDate' , e.date);
+        });
+    });
+</script>

@@ -1,0 +1,7 @@
+es
+lib
+dist
+docs
+
+.eslintrc
+node_modules

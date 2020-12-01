@@ -1,0 +1,271 @@
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  padding: 5px;
+}
+
+strong {
+  color: #930;
+}
+
+input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+}
+
+input[type="radio"] {
+  width: 15px;
+  height: 15px;
+}
+
+.title_div {
+  width: 100%;
+  text-align: center;
+}
+
+.databox_div {
+  border: 1px solid black;
+  padding: 5px;
+}
+
+.footer {
+  width: 100%;
+  float: left;
+}
+/*80-20 layout*/
+
+.left80 {
+  float: left;
+  width: 80%;
+}
+
+.right20 {
+  float: right;
+  width: 20%;
+  padding-left: 10px;
+}
+/*70-30 layout*/
+
+.left70 {
+  float: left;
+  width: 70%;
+}
+
+.right30 {
+  float: right;
+  width: 30%;
+  padding-left: 10px;
+}
+/*60-40 layout*/
+
+.left60 {
+  float: left;
+  width: 60%;
+}
+
+.right40 {
+  float: right;
+  width: 40%;
+  padding-left: 10px;
+}
+/*50-50 layout*/
+
+.left50 {
+  float: left;
+  width: 50%;
+}
+
+.right50 {
+  float: right;
+  width: 50%;
+  padding-left: 10px;
+}
+/*40-60 layout*/
+
+.left40 {
+  float: left;
+  width: 40%;
+}
+
+.right60 {
+  float: right;
+  width: 60%;
+  padding-left: 10px;
+}
+/*30-70 layout*/
+
+.left30 {
+  float: left;
+  width: 30%;
+}
+
+.right70 {
+  float: right;
+  width: 70%;
+  padding-left: 10px;
+}
+/*20-80 layout*/
+
+.left20 {
+  float: left;
+  width: 20%;
+}
+
+.right80 {
+  float: right;
+  width: 80%;
+  padding-left: 10px;
+}
+
+table,
+textarea {
+  width: 100%;
+}
+
+input:focus {
+  background-color: #ffc;
+}
+
+label {
+  font-weight: normal;
+}
+
+.data_table>thead>tr>th,
+.data_table>tbody>tr>td {
+  padding: 0 2px 0 2px;
+}
+
+.data_table>thead>tr>th {
+  font-weight: bold !important;
+  cursor: pointer;
+}
+
+.data_table>thead>tr>th:hover {
+  color: brown;
+}
+
+.query_table>tbody>tr>td>button {
+  margin: 0;
+  padding: 0;
+  width: 100px;
+}
+
+.query_table>tbody>tr>td>button:disabled {
+  color: gray;
+  background-color: #d8d8d8;
+}
+
+.long-table {
+  overflow-x: scroll;
+}
+
+.long-table th,
+td {
+  white-space: nowrap;
+}
+
+.table_yellowBorder{
+    border: 2px solid #FFC234;
+	overflow: auto;
+	-webkit-box-shadow: 2px 2px 10px rgba(50, 50, 50, 0.9);
+	-moz-box-shadow: 2px 2px 10px rgba(50, 50, 50, 0.9);
+	box-shadow: 2px 2px 10px rgba(50, 50, 50, 0.9);
+}
+
+
+.btn-sm {
+  width: 80px !important;
+}
+
+.overone_table {
+  position: absolute;
+  left: 10px;
+  top: 70px;
+  width: 400px;
+  z-index: 999;
+  background-color: #e2c31c;
+  border: 3px orange solid;
+}
+
+.overone_table th,
+.overone_table td {
+  border: 3px orange solid;
+}
+
+.overone_table> tbody> tr:hover {
+  background-color: #eaf2da;
+}
+
+.bordered-row {
+  border: 3px solid #1b1b1c !important;
+}
+
+.red-row {
+  background-color: #f30 !important;
+  color: white;
+}
+
+.pink-row {
+  background-color: #fcf !important;
+}
+
+.green-row {
+  background-color: #9fc !important;
+}
+
+.palecyan-row {
+  background-color: #0fc !important;
+}
+
+.yellow-row {
+  background-color: #ff9 !important;
+}
+
+.blue-row {
+  background-color: #6cf !important;
+}
+/*tab*/
+
+.tab-pane>li {
+  margin-bottom: 10px;
+}
+
+.nav>li>a {
+  padding: 0 5px 0 5px;
+  font-weight: bold;
+}
+
+.nav-tabs>li.active>a:focus {
+  color: gray;
+}
+
+.ui-dialog-titlebar-close {
+  visibility: hidden;
+}
+
+.modal {
+  display: none;
+}
+
+.modal>.close {
+  display: none;
+  float: right;
+  font-weight: bold;
+  font-size: large;
+  position: absolute;
+  right: 15px;
+  top: 0;
+  cursor: pointer;
+}
+
+.scrollable-area {
+	height: 30em;
+	border: 2px solid #FFC234;
+	overflow: auto;
+	-webkit-box-shadow: 2px 2px 10px rgba(50, 50, 50, 0.9);
+	-moz-box-shadow: 2px 2px 10px rgba(50, 50, 50, 0.9);
+	box-shadow: 2px 2px 10px rgba(50, 50, 50, 0.9);
+}

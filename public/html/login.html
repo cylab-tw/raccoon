@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html ng-app="loginApp">
+	<head>
+		<meta charset="UTF-8">
+		<title>Micala | 登入</title>
+		<link rel="stylesheet" type="text/css" href="../scripts/external/bootstrap/bootstrap.min.css">
+		<link rel="stylesheet" type="text/css" href="../css/login/view.css">
+		
+		<script type="text/javascript" src="../scripts/external/jquery.js"></script>
+		<script type="text/javascript" src="../scripts/external/bootstrap/bootstrap.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.9/angular.min.js"></script>
+
+
+	</head>
+	<body ng-controller="loginCtrl">		
+		<div class="wrapper fadeInDown">
+			<div id="formContent">
+				<!-- Tabs Titles -->
+				<h2 class="fadeIn first">Micala MS Login</h2><br/>		
+				<!-- Login Form -->
+				<form ng-submit="login();">
+					<input type="text" id="username" class="fadeIn second" name="username" placeholder="請輸入帳號" ng-model="username" required="required">
+					<input type="password" id="password" class="fadeIn third" name="password" autocomplete="off" placeholder="請輸入密碼" ng-model="password" required="required"><br/><br/>
+					<p id="pError" style="color: red;font:bold;"></p>
+					<input type="submit" class="fadeIn fourth" value="登入">
+				</form>
+			
+				<!-- registered -->
+				<div id="formFooter">
+					<a class="underlineHover fadeIn fifth" href="/register">註冊帳號</a>
+				</div>
+			
+			</div>
+		</div>		
+	</body>
+</html>
+<script src="../scripts/common.js"></script>
+<script src="../scripts/ngCommon.js"></script>
+<script src="../scripts/login/login.js"></script>
+<script type="text/javascript">
+    var error = '<%= messages %>';
+    if (error != null && error != "" && typeof(error) != "undefined") {
+        let pError = document.getElementById('pError');
+        pError.style.display = 'block';
+        pError.innerText = error;
+    }
+</script>

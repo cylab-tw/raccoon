@@ -1,0 +1,38 @@
+dcmftest(1)                       OFFIS DCMTK                      dcmftest(1)
+
+
+
+NAME
+       dcmftest - Test if file uses DICOM part 10 format
+
+
+SYNOPSIS
+       dcmftest file...
+
+DESCRIPTION
+       The  dcmftest utility checks whether the files specified on the command
+       line are DICOM files in part 10 format (with meta-header).
+
+PARAMETERS
+       dcmfile-in  DICOM input filename to be dumped
+
+NOTES
+       All files specified on the command line are checked for the presence of
+       the  DICOM 'magic word' 'DICM' at byte position 128. No attempt is made
+       to parse the complete data set.  For  each  file  the  test  result  is
+       printed   to   stdout   in   the   form  'yes:  <filename>\n'  or  'no:
+       <filename>\n'. The utility terminates with a return code  corresponding
+       to the number of files found to be non-DICOM, i.e. if all files pass as
+       DICOM files, the return value is 0. This behavior is intended  for  use
+       in shell script programming.
+
+SEE ALSO
+       dcmgpdir(1), dcmmkdir(1)
+
+COPYRIGHT
+       Copyright  (C)  1997-2014  by OFFIS e.V., Escherweg 2, 26121 Oldenburg,
+       Germany.
+
+
+
+Version 3.6.5                   Mon Oct 28 2019                    dcmftest(1)

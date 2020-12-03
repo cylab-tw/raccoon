@@ -41,3 +41,6 @@
 ## Related toolkits
 * <a href="https://www.npmjs.com/package/fhir-mongoose-schema-generator/">fhir-mongoose-schema-generator</a>. It can generate the collection's schema in MongoDB from mapping to FHIR resources used in Raccoon automatically.
 * Raccoon provides a tool to convert DICOM objects included in a study to a FHIR ImagingStudy resources stored as a MononDB document.
+
+## Acknowledgement
+* This project is supported by a grant from the Ministry of Science and Technology Taiwan.

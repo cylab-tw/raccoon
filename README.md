@@ -1,5 +1,4 @@
-# Raccoon
-<h1>Raccoon Web-based DICOMWeb Server (Raccoon)</h1>
+<h1>Raccoon - Web-based DICOMWeb & FHIR ImagingStudy Server</h1>
 <p><strong>Raccoon</strong> is a noSQL-based medical image archive for managing the DICOM images is primarily maintained by the <a href="https://cylab.dicom.tw/">Imaging Informatics Labs</a>. It uses the MongoDB to manage the DICOM images and provide RESTful API, supported both <a href="https://www.dicomstandard.org/dicomweb/">DICOMweb</a> and <a href="https://www.hl7.org/fhir/imagingstudy.html/">FHIR ImagingStudy</a> to store, query/retrieve, and manage DICOM images.
 
 ## Install

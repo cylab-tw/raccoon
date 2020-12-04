@@ -52,35 +52,22 @@ function dcm2json(filename) {
 }
 
 async function dcm2jpeg (imageFile) {
-    return new Promise((resolve)=> {
-        
-        if (process.env.ENV == "windows") {
-            exec(`${condaPath} run -n ${condaEnvName} python DICOM2JPEG.py ${store_Path}` , {
-                cwd : process.cwd()
-            } , function (err , stdout , stderr) {
-                if (err) {
-                    console.log(err);
-                    return resolve(false);
-                }
-                //console.log(result);
-                fs.createReadStream(jpgFile).pipe(res);
-            })
-        } else if (process.env.ENV == "linux"){
-            console.log(store_Path);
-            exec(`python3 DICOM2JPEG.py ${store_Path}` , {
-                cwd : process.cwd()
-            } , function (err , stdout , stderr) {
-                if (err) {
-                    console.log(err);
-                    return resolve(false);
-                }
-                console.log(stdout);
-                console.log(stderr);
-                fs.createReadStream(jpgFile).pipe(res);
-                return resolve(true);
-            })
-        }
-    });
+    return new Promise((resolve , reject)=> {
+        exec(`dcmj2pnm --write-jpeg ${store_Path} ${store_Path.replace('.dcm' ,'.jpg')}` , {
+            cwd : process.cwd() 
+        } , function (err , stdout , stderr) {
+            if (err) {
+                console.error(err);
+                theError = err;
+                return reject(new Error(err));
+            } else if (stderr) {
+                console.error(stderr);
+                theError = stderr;
+                return reject(new Error(stderr));
+            }
+            return resolve(true);
+        });
+    }) 
 }
 
 module.exports = {

@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "pm2 start ecosystem.config.js",
-    "windev": "set NODE_ENV=development && set PORT=8089 && nodemon server.js"
+    "windev": "set NODE_ENV=development && set PORT=8089 && nodemon server.js" ,
+    "build" : "node build/index"
   },
   "keywords": [
     "DICOMWeb",
@@ -16,6 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "@asymmetrik/node-fhir-server-core": "^2.0.10",
+    "adm-zip": "^0.5.1",
     "archiver": "^4.0.1",
     "bcrypt": "^5.0.0",
     "bluebird": "^3.5.3",
@@ -37,6 +39,7 @@
     "express-session": "^1.16.2",
     "express-validator": "^5.3.0",
     "fhir": "^4.7.10",
+    "glob": "^7.1.6",
     "joi": "^17.2.1",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.20",

@@ -19,3 +19,4 @@ models/FHIR/ImagingStudyInsertReport.js
 .vscode/
 models/FHIR/test.js
 *.ffs_db
+models/dcmtk/dcmtk-3.6.5-win64-dynamic

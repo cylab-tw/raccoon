@@ -62,6 +62,7 @@ app.use((req, res, next) => {
   res.header("Vary" , "Origin");
   res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE");
   res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Expose-Headers" ,"Content-Disposition");
   next();
 });
 //require('routes')(app);

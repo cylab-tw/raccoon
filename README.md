@@ -1,5 +1,8 @@
-<h1>Raccoon - Web-based DICOMWeb & FHIR ImagingStudy Server</h1>
-<p><strong>Raccoon</strong> is a noSQL-based medical image archive for managing the DICOM images is primarily maintained by the <a href="https://cylab.dicom.tw/">Imaging Informatics Labs</a>. It uses the MongoDB to manage the DICOM images and provide RESTful API, supported both <a href="https://www.dicomstandard.org/dicomweb/">DICOMweb</a> and <a href="https://www.hl7.org/fhir/imagingstudy.html/">FHIR ImagingStudy</a> to store, query/retrieve, and manage DICOM images.
+<div> 
+  <div style="float: left;width: 15%;"><img src="https://repository-images.githubusercontent.com/314441601/8e680180-33da-11eb-8da5-266f5636f213" width="90px"></div>
+ <h1>Raccoon - Web-based DICOMWeb & FHIR ImagingStudy Server</h1>
+  <strong>Raccoon</strong> is a noSQL-based medical image archive for managing the DICOM images is primarily maintained by the <a href="https://cylab.dicom.tw/">Imaging Informatics Labs</a>. It uses the MongoDB to manage the DICOM images and provide RESTful API, supported both <a href="https://www.dicomstandard.org/dicomweb/">DICOMweb</a> and <a href="https://www.hl7.org/fhir/imagingstudy.html/">FHIR ImagingStudy</a> to store, query/retrieve, and manage DICOM images.</div>
+</div> 
 
 ## Install
 * before start Raccoon, MongoDB must be installed.
@@ -64,6 +67,10 @@ run `node server.js`
 * 通過台灣醫學資訊聯測 MI-TW 2020 - 項目: WG4 - 影像DICOMWeb Query/Retrieve Source
 
 ## Key Features
+### Cybersecurity
+* JSON Web Token(JWT) authentication
+* ID/Password login
+
 ### DICOMWeb capabilities
 * Raccoon supports the following DICOMWeb API
   - metadata (JSON)
@@ -82,8 +89,9 @@ run `node server.js`
 ## Supported library
 * Raccoon DICOM Server uses several open source libraries as following:
   - <a href="https://github.com/cornerstonejs/dicomParser">dicomParser</a> for parsing DICOM tags.
-  - <a href="https://github.com/DCMTK/dcmtk">dcmtk</a> use dcm2json to generating DICOM json
-  - <a href="https://pydicom.github.io">pydicom</a> convert DICOM object to jpeg for the retrieve option of the WADO-URI service
+  - <a href="https://github.com/DCMTK/dcmtk">dcmtk</a> use dcm2json to generating DICOM json and use dcmj2pnm to create jpeg image.
+  - <a href="http://gdcm.sourceforge.net/">gdcm</a> and <a href="https://pydicom.github.io">pydicom</a> convert DICOM JPEG2000 to jpeg for the retrieve option of the WADO-URI service
+
 ## Related toolkits
 * <a href="https://www.npmjs.com/package/fhir-mongoose-schema-generator/">fhir-mongoose-schema-generator</a>. It can generate the collection's schema in MongoDB from mapping to FHIR resources used in Raccoon automatically.
 * Raccoon provides a tool to convert DICOM objects included in a study to a FHIR ImagingStudy resources stored as a MononDB document.

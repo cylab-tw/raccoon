@@ -85,7 +85,7 @@ module.exports = function(mongodb) {
     }
     return result;
   })
-  fs.writeFileSync("./data/patient.json" ,JSON.stringify (patientsSchema.jsonSchema() , null ,4) , {flag: "w+"});
+  //fs.writeFileSync("./data/patient.json" ,JSON.stringify (patientsSchema.jsonSchema() , null ,4) , {flag: "w+"});
   const patients = mongodb.model('patients', patientsSchema);
   return patients;
 };

@@ -61,7 +61,7 @@ module.exports = function (mongodb) {
         }
         return result;
     })
-    fs.writeFileSync("./data/organization.json", JSON.stringify(organizationSchema.jsonSchema(), null, 4), { flag: "w+" });
+    //fs.writeFileSync("./data/organization.json", JSON.stringify(organizationSchema.jsonSchema(), null, 4), { flag: "w+" });
     const organization = mongodb.model('organization', organizationSchema, 'organization');
     return organization;
 };

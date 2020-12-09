@@ -218,7 +218,7 @@ module.exports = function (mongodb) {
         }
         next();
     });
-    fs.writeFileSync("./data/imagingstudySchema.json" ,JSON.stringify (ImagingStudySchema.jsonSchema() , null ,4) , {flag: "w+"});
+   // fs.writeFileSync("./data/imagingstudySchema.json" ,JSON.stringify (ImagingStudySchema.jsonSchema() , null ,4) , {flag: "w+"});
     const ImagingStudy = mongodb.model('ImagingStudy', ImagingStudySchema);
     return ImagingStudy;
 }

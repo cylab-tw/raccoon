@@ -63,6 +63,9 @@
                                     <a class="btn  btn-secondary btn-block-sm" href="#" ng-click="openFHIRJson(item)">
                                         FHIR JSON
                                     </a>
+                                    <a class="btn  btn-secondary btn-block-sm" ng-href="/html/BL/bluelight/html/start.html?StudyInstanceUID={{item.dicomJson['0020000D'].Value[0]}}" ng-click="openFHIRJson(item)">
+                                        View in BlueLight DICOM Viwer
+                                    </a>
                                 </td>
                             </tr>
                         </tbody>

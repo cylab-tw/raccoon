@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "pm2 start ecosystem.config.js",
-    "windev": "set NODE_ENV=development && set PORT=8089 && nodemon server.js" ,
-    "build" : "node build/index"
+    "windev": "set NODE_ENV=development && set PORT=8089 && nodemon server.js",
+    "build": "node build/index"
   },
   "keywords": [
     "DICOMWeb",

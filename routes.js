@@ -110,9 +110,11 @@ module.exports = function (app, passport) {
   app.use('/dicom-web', require('api/dicom-web'));
   app.use('/dicom-web', require('./api/dicom-web/stow'));
 
-  //web
+  //#region WEB
   app.use('/dicom', require('web/dicom'));
   app.use('/', require('web/index'));
+  //#endregion
+  
   app.route('/:url(api|auth|web)/*').get((req, res) => {
     res.status(404).json({
       status: 404,

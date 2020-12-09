@@ -6,6 +6,8 @@
 
 ## Install
 * before start Raccoon, MongoDB must be installed.
+After installation and configure. 
+run `node server.js`
 ### Windows
 #### Test OS
 - Windows 10 64bits
@@ -55,9 +57,35 @@ FHIR_NEED_PARSE_PATIENT = true #STOW will generate Patient data using DICOMTag. 
 CONDA_PATH = "C:\\Users\\chinHPlaptop\\anaconda3\\Scripts\\conda.exe"
 CONDA_GDCM_ENV_NAME = "gdcm"
 ```
-After installation and configure. 
-run `node server.js`
+
 ## Client Configuration
+Config path : `public/scripts/config.js`
+Change all hostname and port with your server config.
+```javascript
+var envConfig = {
+    mainHostName : '127.0.0.1', 
+    port : '9090',
+    QIDO : {
+        hostName :'127.0.0.1' , 
+        port : '9090' , 
+        api : 'dicom-web' , 
+        http : "http" //http or https
+    } , 
+    WADO : {
+        hostName : '127.0.0.1' ,
+        port : '9090' , 
+        api : 'dicom-web' ,
+        http : "http"
+    } , 
+    FHIR : {
+        hostName : '127.0.0.1' , 
+        port : '9090' , 
+        api : 'api/fhir' , 
+        http : "http"
+    } ,
+    FHIRHostName : '127.0.0.1' 
+}
+```
 * A simple web-based user interface is provided to manage the DICOM objects in Raccoon.
 * For DICOMWeb client, Raccoon can integrate with <a href="https://github.com/cylab-tw/bluelight/">BlueLight</a>, a lightweight Web-based DICOM Viewer.
   

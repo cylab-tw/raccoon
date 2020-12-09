@@ -154,6 +154,10 @@
                         <p>Patient id : {{clickStudy.patient[0].id}}</p>
                         <p>Patient Name : {{clickStudy.patient[0].name[0].text}}</p>
                         <p>Accession number : {{clickStudy.identifier.value}}</p>
+                        <div class="form-group">
+                          <label for="deleteStudyConfirmInput">Please type <span style="font-weight: bold;">Delete Confirm</span>to accept deletion</label>
+                          <input type="text" class="form-control" name="deleteStudyConfirmInput" id="deleteStudyConfirmInput" placeholder="confirm">
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-danger" ng-click="deleteItem('Study',clickStudy);">YES</button>
@@ -179,6 +183,10 @@
                         <p>Series id : {{clickSeries.uid}}</p>
                         <p>Modality : {{clickSeries.modality.code}}</p>
                         <p>number : {{clickSeries.number}}</p>
+                        <div class="form-group">
+                            <label for="deleteSeriesConfirmInput">Please type <span style="font-weight: bold;">Delete Confirm</span>to accept deletion</label>
+                            <input type="text" class="form-control" name="deleteSeriesConfirmInput" id="deleteSeriesConfirmInput" placeholder="confirm">
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-danger" ng-click="deleteItem('Series',clickSeries);">YES</button>
@@ -204,6 +212,10 @@
                         <p>Instance id : {{clickInstance.uid}}</p>
                         <p>title : {{clickInstance.title}}</p>
                         <p>sopClass : {{clickInstance.sopClass.code.substr(8)}}</p>
+                        <div class="form-group">
+                            <label for="deleteInstanceConfirmInput">Please type <span style="font-weight: bold;">Delete Confirm</span>to accept deletion</label>
+                            <input type="text" class="form-control" name="deleteInstanceConfirmInput" id="deleteInstanceConfirmInput" placeholder="confirm">
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-danger" ng-click="deleteItem('Instance',clickInstance);">YES</button>

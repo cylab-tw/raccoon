@@ -104,19 +104,14 @@ imageMSApp.controller('imageMSCtrl' , function ($scope , imageMSService , common
         });
     }
     $scope.deleteItem = function (iName , iItem) {
-        let getDelteStudyUrl = ($scope) => {
+        let getDelteStudyUrl = () => {
             let studyID = iItem.studyID;
-            /* (let i  = 0  ; i<iItem.oldIdentifier.length ; i++ ) {
-                if (iItem.oldIdentifier[i].use == "official") {
-                    studyID = iItem.oldIdentifier[i].value.substring(8);
-                }
-            }*/
             return `/api/fhir/ImagingStudy/${studyID}`;
         }
         let getDeletSeriesUrl = () => {
             return `/api/fhir/ImagingStudy/${$scope.openSeries.studyID}/series/${iItem.uid}`;
         }
-        let getDeletInstanceUrl = ($scope) => {
+        let getDeletInstanceUrl = () => {
             return `/api/fhir/ImagingStudy/${$scope.openInstance.studyID}/series/${$scope.openInstance.seriesID}/instances/${iItem.uid}`;
         }
         let url = {
@@ -124,7 +119,20 @@ imageMSApp.controller('imageMSCtrl' , function ($scope , imageMSService , common
             "Series" : getDeletSeriesUrl , 
             "Instance" : getDeletInstanceUrl
         }
-        imageMSService.deleteItem(url[iName]($scope)).then(function (res) {
+        let checkIsConfirm = (iText) => {
+            return iText === "Delete Confirm";
+        }
+        if (iName == "Study") {
+            let confirmText = $("#deleteStudyConfirmInput").val();
+            if (!checkIsConfirm(confirmText)) return;
+        } else if (iName == "Series") {
+            let confirmText = $("#deleteSeriesConfirmInput").val();
+            if (!checkIsConfirm(confirmText)) return;
+        } else if (iName == "Instance") {
+            let confirmText = $("#deleteInstanceConfirmInput").val();
+            if (!checkIsConfirm(confirmText)) return;
+        }
+        imageMSService.deleteItem(url[iName]()).then(function (res) {
             $(`#btnClosedeletion${iName}Modal`).click();
             let resMessage = {"204" : "delete success" , "500" : "delete failure"}
             if (res.status == 204) {
@@ -331,4 +339,15 @@ imageMSApp.service('imageMSService' , function ($http) {
     function handleError(res) {
         return res
     }
+});
+$(function () {
+    $("#deletionStudyModal").on("show.bs.modal" , function () {
+        $("#deleteStudyConfirmInput").val("");
+    });
+    $("#deletionSeriesModal").on("show.bs.modal" , function () {
+        $("#deleteSeriesConfirmInput").val("");
+    });
+    $("#deletionInstanceModal").on("show.bs.modal" , function () {
+        $("#deleteInstanceConfirmInput").val("");
+    });
 });

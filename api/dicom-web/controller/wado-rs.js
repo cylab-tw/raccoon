@@ -19,7 +19,7 @@ module.exports = async function (req , res) {
             res.end();
             return;
         }
-        notFoundMessage(req ,res , paramsStr);
+        sendNotFoundMessage(req ,res , paramsStr);
     } else if (req.headers.accept.includes("multipart/related")) {
         let typeSplit = req.headers.accept.split(',');
         let acceptTypes=  [];

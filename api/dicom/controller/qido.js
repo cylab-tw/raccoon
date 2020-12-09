@@ -4,6 +4,7 @@ const mongoFunc = require("../../../models/mongodb/func");
 const {ToRegex} = require("../../Api_function");
 const {textSpaceToOrCond} = require("../../Api_function");
 const _ = require('lodash');
+const mongodb = require("../../../models/mongodb");
 
 module.exports = async function (req ,res)
 {
@@ -104,8 +105,8 @@ async function getCount (image_Query) {
                 $count : "count"
             }
         ];
-        let count = await mongoFunc.aggregate_Func("ImagingStudy" , aggregate_Query);
-        return resolve(count.length ? count[0].count : 0);
+        let count = await mongodb.ImagingStudy.find(image_Query).count();
+        return resolve(count);
     });
 }
 

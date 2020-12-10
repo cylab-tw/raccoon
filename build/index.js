@@ -37,7 +37,9 @@ async function main() {
     } else if (userOS.includes("linux")) {
         await genDCMTK("linux");
     }
-    fs.writeFileSync(".env" , envText);
+    if (!fs.existsSync(".env")) {
+        fs.writeFileSync(".env" , envText);
+    }
 }
 const osFunc = {
     linux : {

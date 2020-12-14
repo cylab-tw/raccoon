@@ -2,12 +2,10 @@ const api_func = require('../../Api_function.js');
 const mongodb = require('models/mongodb');
 const fs = require('fs');
 const path = require('path');
-const fileFunc = require('../../../models/file/file_Func');
 const { exec } = require('child_process');
-const PythonShell = require('python-shell').PythonShell;
 let condaPath = "H:\\ProgramData\\Anaconda3\\Scripts\\conda.exe";
 let condaEnvName =  "gdcm";
-let theError = {};
+
 module.exports = async(req, res) => 
 {
     try {
@@ -25,6 +23,11 @@ module.exports = async(req, res) =>
             return;
         }
         let store_Path = `${disk}${ori_Path}`;
+        if (!fs.existsSync(store_Path)) {
+            res.setHeader('Content-Type' , 'text/*');
+            sendNotFoundMessage(req , res);
+            return;
+        }
         if (param.contentType == 'image/jpeg') {
             let jpgFile = store_Path.replace('.dcm' , '.jpg');
             //let isExist =await fileFunc.checkExist(jpgFile);
@@ -120,6 +123,7 @@ async function get_Instance_StorePath(i_Param)
     } catch (e) {
         console.log("error\r\n"+ JSON.stringify(aggregate_Query , null ,4));
         //console.log(aggregate_Query);
+        return false;
     }
     
 }

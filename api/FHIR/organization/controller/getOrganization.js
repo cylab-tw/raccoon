@@ -32,7 +32,6 @@ module.exports = async function (req, res) {
         delete queryParameter["$and"];
     }
     try {
-        //let docs = await mongoFunc.findFilterFields('patients', queryParameter, FHIRFilter, paginationLimit, paginationSkip);
         let docs = await mongodb.organization.find(queryParameter ,FHIRFilter).
         limit(realLimit).
         skip(paginationSkip).

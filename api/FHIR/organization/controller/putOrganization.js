@@ -1,14 +1,7 @@
-const { VERSIONS } = require('@asymmetrik/node-fhir-server-core').constants;
-const { resolveSchema } = require('@asymmetrik/node-fhir-server-core');
+
 const mongodb = require('models/mongodb');
-const _ = require("lodash");
-const base_version  ="4_0_0";
-const mongoose = require("mongoose");
 const { handleError } = require('../../../../models/FHIR/httpMessage');
 
-let getOrganization = base_version => {
-    return require(resolveSchema(base_version, 'Organization'));
-};
   
 const errorMessage = {
     code : "" ,
@@ -37,38 +30,6 @@ module.exports = async function (req ,res) {
     }
     let [ status , result] =await  dataFuncAfterCheckExist[dataExist](req);
     return resFunc[status](result);
-}
-
-async function updateOrganization (req) {
-    return new Promise (async (resolve , reject) => {
-        const id = req.params.id;
-        mongodb["organization"].findOne ({id : id} , function (err ,doc) {
-            if (err) {
-                errorMessage.message = err;
-                return resolve (["false" , err]);
-            }
-            let organizationClass = getOrganization(base_version);
-            let organization = new organizationClass(req.body);
-
-            let cloneOrganization = _.cloneDeep(organization);
-            let updateDoc = Object.assign(cloneOrganization , {_id :new mongoose.Types.ObjectId});
-            if (doc) {
-                delete updateDoc._id;
-            }
-            mongodb["organization"].findOneAndUpdate({id : id }  ,{$set : updateDoc} , {upsert : true  , new : true , rawResult: true} , function (err , newDoc) {
-                if (err) {
-                    errorMessage.code = 500;
-                    errorMessage.message = err;
-                    return resolve (["false" , err]);
-                }
-                return resolve(["true", {
-                    id: id,
-                    doc: newDoc.getFHIRField() , 
-                    code : (newDoc.lastErrorObject.updatedExisting)? 200 : 201
-                }]);
-            });
-        });
-    });
 }
 
 function isDocExist (id) {

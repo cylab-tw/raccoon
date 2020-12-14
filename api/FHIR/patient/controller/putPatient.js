@@ -1,14 +1,6 @@
-const { VERSIONS } = require('@asymmetrik/node-fhir-server-core').constants;
-const { resolveSchema } = require('@asymmetrik/node-fhir-server-core');
 const mongodb = require('models/mongodb');
-const _ = require("lodash");
-const base_version  ="4_0_0";
-const mongoose = require("mongoose");
-let getPatient = base_version => {
-    return require(resolveSchema(base_version, 'Patient'));
-};
+const { handleError } = require('../../../../models/FHIR/httpMessage');
 
-  
 const errorMessage = {
     message : ""
 }
@@ -20,11 +12,14 @@ module.exports = async function (req ,res) {
             return res.status(data.code).send(data.doc);
         } , 
         "false" : (error) => {
-            return res.status(500).send(errorMessage);
+            return res.status(500).send(handleError.exception(errorMessage.message));
         }
     }
     //let [updateStatus , doc]  = await updatePatient(req);
     let dataExist = await isDocExist(req.params.id);
+    if (dataExist == 0) {
+        return res.status(500).json(handleError.exception(errorMessage.message));
+    }
     let dataFuncAfterCheckExist = {
         0 : () => {
             return ["false" , ""];
@@ -35,38 +30,6 @@ module.exports = async function (req ,res) {
     let [status , result] = await dataFuncAfterCheckExist[dataExist](req);
     return resFunc[status](result);
 }
-
-async function updatePatient (req) {
-    return new Promise (async (resolve , reject) => {
-        const id = req.params.id;
-        mongodb["patients"].findOne ({id : id} , function (err ,doc) {
-            if (err) {
-                errorMessage.message = err;
-                return resolve (["false" , err]);
-            }
-            let patientClass = getPatient(base_version);
-            let patient = new patientClass(req.body);
-
-            let clonePatient = _.cloneDeep(patient);
-            let updateDoc = Object.assign(clonePatient , {_id :new mongoose.Types.ObjectId});
-            if (doc) {
-                delete updateDoc._id;
-            }
-            mongodb["patients"].findOneAndUpdate({id : id }  ,{$set : updateDoc} , {upsert : true  , new : true , rawResult: true} , function (err , newDoc) {
-                if (err) {
-                    errorMessage.message = err;
-                    return resolve (["false" , err]);
-                }
-                return resolve(["true", {
-                    id: id,
-                    doc: newDoc.value.getFHIRField() , 
-                    code : (newDoc.lastErrorObject.updatedExisting)? 200 : 201
-                }]);
-            });
-        });
-    });
-}
-
 
 function isDocExist (id) {
     return new Promise (async (resolve , reject) => {

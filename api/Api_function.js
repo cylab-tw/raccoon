@@ -46,11 +46,11 @@ module.exports.textSpaceToOrCond = async function (str) {
         return resolve(undefined);
     });
 }
-
+//#region loging auth api
 module.exports.isLogin = async function (req, res, next) {
     console.log(req.isAuthenticated() + " " + req.user + " Is LoggedIn");
     let isNormalLogin = req.isAuthenticated();
-    let isTokenLogin =await exports.isTokenLogin(req);
+    let isTokenLogin = await exports.isTokenLogin(req);
     let isAuthenticated = (isNormalLogin || isTokenLogin);
     if (isAuthenticated) {
         return next();
@@ -104,6 +104,8 @@ module.exports.isTokenLogin = async function (req, res, next) {
         })
     })
 }
+//#endregion
+
 //#region  moment compare function 
 module.exports.momentDateFunc = {
     ">": (value, date) => {

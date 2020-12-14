@@ -75,45 +75,21 @@ function bufferToStream(buffer) {
     return readstream;
 }
 async function stowMultipartRelated(req) {
-    req.body= req.body.toString('binary');
-    let multipartMessage = req.body;
+    //req.body= req.body.toString('binary');
+    let multipartMessage = req.body.toString('binary');
     //let boundary = req.headers["content-type"].split("boundary=")[1];
-    let boundary = req.body.split("\r\n")[0].substring(2);
-    let startBoundary = `--${boundary}`;
-    let endBoundary = `--${boundary}--`;
-    let matches = req.body.matchAll(new RegExp(startBoundary , "gi"));
+    let startBoundary = multipartMessage.split("\r\n")[0];
+    //let startBoundary = `--${boundary}`;
+    let matches = multipartMessage.matchAll(new RegExp(startBoundary , "gi"));
     let fileEndIndex = [];
     let fileStartIndex = [];
     for (let match of matches) {
         fileEndIndex.push(match.index-2);
     }
-    let regex = new RegExp(`Content-Disposition|Content-Type`);
+    fileEndIndex = fileEndIndex.slice(1);
     let data = multipartMessage.split("\r\n");
-    let fileLength = 0;
-    let file = {
-        buffer : [] , 
-        text : "" 
-    }
     let filename = [];
     let files = [];
-    /*for (let i in data) {
-        let text = data[i];
-        if ((text == startBoundary || text== endBoundary) && file.text) {
-            console.log(Buffer.from(file.text , 'binary'));
-            files.push(bufferToStream(Buffer.from(file.text , 'binary')));
-            file = {
-                buffer : [] , 
-                text : "" ,
-                contentType : "" , 
-            contentDisposition : ""
-            }
-        } else if (text.includes("Content-Disposition")) {
-            let textSplitFileName = text.split("filename=")
-            filename.push(textSplitFileName[textSplitFileName.length-1].replace(/"/gm , ""));
-        } else if (text && !text.match(regex) && text != endBoundary && text != startBoundary) {
-            file.text += text;
-        } 
-    }*/
     let contentDispositionList = [];
     let contentTypeList = [];
     for (let i in data) {
@@ -129,13 +105,13 @@ async function stowMultipartRelated(req) {
     contentDispositionList = _.uniq(contentDispositionList);
     contentTypeList = _.uniq(contentTypeList);
     for (let type of contentTypeList) {
-        let contentTypeMatches = req.body.matchAll(new RegExp(type , "gi"));    for (let match of contentTypeMatches) {
-            fileStartIndex.push(match.index +match['0'].length + 4);
+        let contentTypeMatches = multipartMessage.matchAll(new RegExp(type , "gi"));
+        for (let match of contentTypeMatches) {
+            fileStartIndex.push(match.index +match['0'].length + 4); //+4 because have \r\n
         }
     }
-    fileEndIndex = fileEndIndex.slice(1);
     for (let i in fileEndIndex) {
-        let fileData = req.body.substring(fileStartIndex[i] , fileEndIndex[i]);
+        let fileData = multipartMessage.substring(fileStartIndex[i] , fileEndIndex[i]);
         files.push(bufferToStream(Buffer.from(fileData , 'binary')));
     }
     console.log("Upload Files complete");
@@ -143,54 +119,23 @@ async function stowMultipartRelated(req) {
 }
 
 async function dicom2mongodb(data) {
-    //let test = await FHIR_Imagingstudy_model.DCM2FHIR(dirname);
     return new Promise(async (resolve)=>
     {
        let result = await require('../../../FHIR/ImagingStudy/controller/putImagingStudy').putWithoutReq(data.id , data);
        if (result) return resolve(true);
        return resolve(false);
-       
-        let options =
-        {
-            method: "PUT",
-            url: `http://${process.env.FHIRSERVER_HOST}:${process.env.SERVER_PORT}/api/fhir/ImagingStudy/${data.id}`,
-            json: true,
-            body: data
-        }
-        request(options, function (err, response, body) {
-            if (err) {
-                return reject(new Error(err));
-            }
-            resolve(true);
-        });
     });
 }
 
 async function dicom2FHIR(data) {
-    //let test = await FHIR_Imagingstudy_model.DCM2FHIR(dirname);
     return new Promise(async (resolve , reject)=>
     {
         let resData =await require('../../../FHIR/ImagingStudy/controller/post_convertFHIR').getData( data.id , data);
         return resolve(resData);
-        let options =
-        {
-            method: "POST",
-            url: `http://${process.env.FHIRSERVER_HOST}:${process.env.SERVER_PORT}/api/fhir/ImagingStudy/convertFHIR/${data.id}`,
-            json: true ,
-            body: data
-        }
-        
-        request(options, function (err, response, body) {
-            if (err) {
-                return reject(new Error(err));
-            }
-            return resolve(body);
-        });
     });
 }
 
 async function dicomEndpoint2MongoDB(data) {
-    //let test = await FHIR_Imagingstudy_model.DCM2FHIR(dirname);
     return new Promise((resolve , reject)=>
     {
         let options =
@@ -239,11 +184,17 @@ async function saveDicom (filestream , filename) {
             }
             return Buffer.concat(buffers);
         });
-        let fhirData = await FHIR_Imagingstudy_model.DCM2FHIR(temp_buffer);
+        let fhirData = await FHIR_Imagingstudy_model.DCM2FHIR(temp_buffer).catch((err) => {
+            console.error(err);
+            return resolve(false);
+        });
         if (!fhirData) {
             return resolve(false);
         }
        // let fhirData = fhirDataList[0];
+        if (!fhirData.started) {
+            return resolve(false);
+        }
         let started_date = new Date(fhirData.started).toISOString(); 
         let started_date_split = started_date.split('-');
         let year = started_date_split[0];

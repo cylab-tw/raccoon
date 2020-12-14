@@ -3,6 +3,7 @@ const {mongoDateQuery} = require("../../../models/mongodb/func");
 const mongoFunc = require("../../../models/mongodb/func");
 const {ToRegex} = require("../../Api_function");
 const _ = require('lodash');
+const mongodb = require("../../../models/mongodb/index.js");
 
 module.exports = async function (req ,res)
 {
@@ -95,100 +96,7 @@ async function useImageSearch (image_Query , limit , skip) {
 
 async function getCount (image_Query) {
     return new Promise (async (resolve) => {
-        let aggregate_Query = [
-            {
-                $match : image_Query
-            } ,
-            {
-                $count : "count"
-            }
-        ];
-        let count = await mongoFunc.aggregate_Func("ImagingStudy" , aggregate_Query);
-        return resolve(count.length ? count[0].count : 0);
-    });
-}
-
-
-
-
-function useReportSearch (image_Query,patient_Query,record_Query) {
-    return new Promise (async (resolve) => {
-        record_Query["Records.FULLTEXT"] = record_Query["Records.Records.FULLTEXT"];
-        delete record_Query["Records.Records.FULLTEXT"];
-        let aggregate_Query = [
-            {
-                $match : record_Query
-            } ,
-            {
-                $lookup :
-                {
-                    from : "patients" ,
-					let : {"pID" : "$pID"} , 
-					pipeline : [
-						{$match : {"$expr" : {"$eq" : [{$concat:["p" ,"$id"]} , {$concat:["$$pID"]}]}}}
-					] , 
-                    as : "patient"
-                }
-            },
-            {
-                $match : patient_Query
-            },
-            {
-                $lookup :
-                {
-                    from : "imagingstudies" ,
-                    let : {"sID" : "$sID"} ,
-                    pipeline : [
-                        {
-                            $addFields : {
-                                "newIden" : "$identifier"
-                            }
-                        },
-                        {
-                            $unwind : "$identifier"
-                        } ,
-                        {
-                            $match : {
-                                "$expr" : {
-                                    "$eq" : ["$identifier.value" , "$$sID"]
-                                }
-                            }
-                        } ,
-                        {
-                            $project : {
-                                subject : 1 , 
-                                started : 1 ,
-                                series : 1 ,
-                                dicomJson : 1 ,
-                                id : 1 ,
-                                identifier : "$newIden"
-                            }
-                        }
-                    ] ,
-                    as : "ImagingStudy"
-                }
-            },
-            {
-                $unwind: {
-                    "path" : "$ImagingStudy" , 
-                    "preserveNullAndEmptyArrays" : true
-                }
-            },
-            {
-                $match : image_Query
-            } ,
-            {
-                $addFields : {
-                    "Records" : "$$ROOT"
-                }
-            },
-            {
-                $replaceRoot: {
-                    newRoot : {$mergeObjects:["$$ROOT","$ImagingStudy"]}
-                } 
-            } 
-        ];
-        let report = await mongoFunc.aggregate_Func("Records" , aggregate_Query);
-        return resolve(report);
+        let count = await mongodb.find("ImagingStudy" , image_Query).count();
+        return resolve(count);
     });
 }

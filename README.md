@@ -5,9 +5,12 @@
 </div> 
 
 ## Install
-* before start Raccoon, MongoDB must be installed.
+* Before starting Raccoon, MongoDB must be installed.
+* This project uses the submodule with <a href="https://github.com/cylab-tw/bluelight/">BlueLight</a>. If you want to use it, run `git submodule init` and `git submodule update` when the first time.
+
 After installation and configure. 
 run `node server.js`
+
 ### Windows
 #### Test OS
 - Windows 10 64bits

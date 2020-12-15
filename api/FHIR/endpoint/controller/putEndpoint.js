@@ -1,14 +1,10 @@
-const { VERSIONS } = require('@asymmetrik/node-fhir-server-core').constants;
-const { resolveSchema } = require('@asymmetrik/node-fhir-server-core');
 const mongodb = require('models/mongodb');
 const _ = require("lodash");
 const mongoose = require("mongoose");
 const base_version  ="4_0_0";
 const {cleanDoc}  =require("api/Api_function")
 
-let getEndpoint = base_version => {
-    return require(resolveSchema(base_version, 'Endpoint'));
-}
+
 
 const errorMessage = {
     message : ""

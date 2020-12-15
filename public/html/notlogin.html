@@ -2,17 +2,17 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>Micala | 401</title>
+		<title>Raccoon | 401</title>
 		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 		<link rel="stylesheet" type="text/css" href="../css/login/view.css">
 	</head>
 	<body>
 		<div class="wrapper fadeInDown">
 			<div id="formContent">
-                <h1 class="fadeIn first">未登入</h1>
-                <h2 id="redirectSec">3秒後跳轉</h2>
+                <h1 class="fadeIn first">Unauthorized</h1>
+                <h2 id="redirectSec">navigator after 3 second</h2>
                 <br />
-                <a href="/login">立即跳轉</a>
+                <a href="/login">Navigator immediately</a>
 			</div>
 		</div>		
 	</body>
@@ -24,7 +24,7 @@
         $(async function (){
             for(let i =  2 ; i >= 0 ; i--) {
 				await sleep(1000);
-				$("#redirectSec").text(`${i}秒後跳轉`);
+				$("#redirectSec").text(`navigator after ${i} second`);
 			}
             window.location.href = "/login";
         });

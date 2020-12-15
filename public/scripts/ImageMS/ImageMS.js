@@ -9,6 +9,7 @@ imageMSApp.controller('imageMSCtrl' , function ($scope , imageMSService , common
     $scope.wadoUrlList = [];
     $scope.isOpenSeries = false;
     $scope.isOpenInstance = false;
+    $scope.isSearched = false;
     $scope.curStudyPage = 1; //table
     $scope.numStudyPerPage = 10; //table
     $scope.totalItem = 0;
@@ -73,6 +74,7 @@ imageMSApp.controller('imageMSCtrl' , function ($scope , imageMSService , common
                 if (!check_Date(dates[0]))
                 {
                     alert('Invalid StudyDate');
+                    return;
                 }
             }
             else if (dates.length ==2)
@@ -80,15 +82,18 @@ imageMSApp.controller('imageMSCtrl' , function ($scope , imageMSService , common
                 if (!check_Date(dates[0]) || !check_Date(dates[1]))
                 {
                     alert('Invalid StudyDate');
+                    return;
                 }
             }
         }
-        $scope.curStudyPage = 1;
+        if ($scope.isSearched) {
+            $scope.curStudyPage = 1;
+        }
         imageMSService.QIDO($scope).then(async function(res)
         {
             $scope.dataList = res.data[0];
             $scope.totalItem = res.data[1];
-            console.log($scope.dataList);
+            //console.log($scope.dataList);
             if ($scope.dataList == null ||$scope.dataList.length <=0 ) {
                 alert('no data');
                 return;
@@ -144,11 +149,12 @@ imageMSApp.controller('imageMSCtrl' , function ($scope , imageMSService , common
                 alert(resMessage[res.status]);
             }
         });
-        $scope.$watch("curStudyPage",function(newValue,oldValue){
-            // your code goes here...
-            $scope.QIDO();
-        });
     }
+    $scope.$watch("curStudyPage",function(newValue,oldValue){
+        // your code goes here...
+        $scope.isSearched = false;
+        $scope.QIDO();
+    });
 //#region dowload file function
     $scope.downloadStudy = function (iItem) {
         let url = `${envConfig.WADO.http}://${envConfig.WADO.hostName}:${envConfig.WADO.port}/${envConfig.WADO.api}/studies/${iItem.studyID}`;
@@ -272,13 +278,13 @@ imageMSApp.controller('imageMSCtrl' , function ($scope , imageMSService , common
         $scope[element] = val ;
     }
     //????
-    $scope.studyTablePaginate = function(value) {
+   /* $scope.studyTablePaginate = function(value) {
         let start , end  , index ;
         start = ($scope.curStudyPage -1 ) * $scope.numStudyPerPage;
         end = start + $scope.numStudyPerPage;
         index = $scope.dataList.indexOf(value);
         return (start <= index && index < end);
-    }
+    }*/
 
     $scope.isObject = function (iItem) {
         return iItem !== undefined && iItem !== null && iItem.constructor == Object;
@@ -305,7 +311,9 @@ imageMSApp.service('imageMSService' , function ($http) {
                 ModalitiesInStudy : $scope.Modality,
                 PatientName : $scope.PatientName,
                 PatientID : $scope.PatientID,
-                StudyInstanceUID : $scope.StudyInstanceUID
+                StudyInstanceUID : $scope.StudyInstanceUID ,
+                limit : 10 , 
+                offset : ($scope.curStudyPage-1) * 10
             } 
         });
         return (request.then(handleSuccess , handleError));

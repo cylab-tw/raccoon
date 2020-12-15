@@ -21,7 +21,7 @@
             <br />
             <div class="row">
                 <div class="col-sm-12">
-                    <button class="btn btn-success" ng-click="QIDO();">Search</button>
+                    <button class="btn btn-success" ng-click="isSearched=true;QIDO();">Search</button>
                 </div>
             </div>
             <hr style>
@@ -43,7 +43,7 @@
                             <th class="text-center" style="width: 40%;">Operate</th>
                         </thead>
                         <tbody>
-                            <tr ng-repeat="item in dataList|orderBy:orderStudyCol:orderStudyReverse|filter : studyTablePaginate" ng-click="">
+                            <tr ng-repeat="item in dataList|orderBy:orderStudyCol:orderStudyReverse" ng-click="">
                                 <td class="text-center" style="width: 10%;">{{item.patient[0].id}}</td>
                                 <td class="text-center" style="width: 60%;">{{item.patient[0].name[0].text}}</td>
                                 <td class="text-center" style="width: 10%;">{{item.started | date:'yyyyMMdd'}}</td>

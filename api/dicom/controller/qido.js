@@ -96,7 +96,7 @@ async function useImageSearch (image_Query , limit , skip) {
 
 async function getCount (image_Query) {
     return new Promise (async (resolve) => {
-        let count = await mongodb.find("ImagingStudy" , image_Query).count();
+        let count = await mongodb.ImagingStudy.find(image_Query).count();
         return resolve(count);
     });
 }

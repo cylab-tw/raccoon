@@ -60,6 +60,7 @@ async function mongoUpdate(query, data) {
     return new Promise((resolve , reject) => {
         mongodb.ImagingStudy.findOneAndUpdate(query, { $set: data } , {new:true  ,upsert: true , rawResult : true}, function (err, doc) {
             if (err) {
+                console.error(err);
                 return reject([false , err]);
             }
             return resolve([true, doc]);

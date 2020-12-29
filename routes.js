@@ -109,7 +109,7 @@ module.exports = function (app, passport) {
 
   app.use('/dicom-web', require('api/dicom-web'));
   app.use('/dicom-web', require('./api/dicom-web/stow'));
-
+  app.use('/' , require('./api/dicom-xml'));
   //#region WEB
   app.use('/dicom', require('web/dicom'));
   app.use('/', require('web/index'));

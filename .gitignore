@@ -20,3 +20,4 @@ models/FHIR/ImagingStudyInsertReport.js
 models/FHIR/test.js
 *.ffs_db
 models/dcmtk/dcmtk-3.6.5-win64-dynamic
+api/dicom-xml/upload_xml/*.*

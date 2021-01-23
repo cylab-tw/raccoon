@@ -1,7 +1,7 @@
 <div> 
   <div style="float: left;width: 15%;"><img src="https://repository-images.githubusercontent.com/314441601/8e680180-33da-11eb-8da5-266f5636f213" width="90px"></div>
  <h1>Raccoon - Web-based DICOMWeb & FHIR ImagingStudy Server</h1>
-  <strong>Raccoon</strong> is a noSQL-based medical image archive for managing the DICOM images is primarily maintained by the <a href="https://cylab.dicom.tw/">Imaging Informatics Labs</a>. It uses the MongoDB to manage the DICOM images and provide RESTful API, supported both <a href="https://www.dicomstandard.org/dicomweb/">DICOMweb</a> and <a href="https://www.hl7.org/fhir/imagingstudy.html/">FHIR ImagingStudy</a> to store, query/retrieve, and manage DICOM images.</div>
+  <strong>Raccoon</strong> is a noSQL-based medical image archive for managing the DICOM images is primarily maintained by the <a href="https://cylab.dicom.tw/">Imaging Informatics Labs</a>. It uses the MongoDB to manage the DICOM images and provide RESTful API, supported both <a href="https://www.dicomstandard.org/dicomweb/">DICOMweb</a> and <a href="https://www.hl7.org/fhir/imagingstudy.html/">FHIR ImagingStudy</a> to store, query/retrieve, and manage DICOM images. Raccoon is bulit on the top of the [Simple-Express-FHIR-Server](https://github.com/Chinlinlee/Simple-Express-FHIR-Server) to manage the FHIR resourcs related to medical images</div>
 </div> 
 
 ## Install
@@ -116,6 +116,7 @@ var envConfig = {
   - **organization**
   - **ImagingStudy**
   - **endpoint**
+* **Note**: Raccoon is focused on medical imaging-related resources, not all FHIR resources, bulit on the top of the [Simple-Express-FHIR-Server](https://github.com/Chinlinlee/Simple-Express-FHIR-Server). If you are interesting in FHIR soultion, please visit [Simple-Express-FHIR-Server](https://github.com/Chinlinlee/Simple-Express-FHIR-Server).
 
 ## Supported library
 * Raccoon DICOM Server uses several open source libraries as following:
@@ -126,6 +127,12 @@ var envConfig = {
 ## Related toolkits
 * <a href="https://www.npmjs.com/package/fhir-mongoose-schema-generator/">fhir-mongoose-schema-generator</a>. It can generate the collection's schema in MongoDB from mapping to FHIR resources used in Raccoon automatically.
 * Raccoon provides a tool to convert DICOM objects included in a study to a FHIR ImagingStudy resources stored as a MononDB document.
+* We hava another [FHIR Server](https://github.com/cylien/Simple-Express-FHIR-Server), is designed to creating a tiny FHIR server supported specified FHIR resources.
 
-## Acknowledgement
+# To do list
+* DICOM Whole Slide Image. Referenced standard: [DICOM WSI](http://dicom.nema.org/Dicom/DICOMWSI/)
+* IHE Invoke Image Display (IID) Profile [RAD-106]
+* DICOM Supplement 219 - JSON Representation of DICOM Structured Reports. Referenced standard: [DICOM Sup 219](https://www.dicomstandard.org/News-dir/ftsup/docs/sups/Sup219.pdf)
+
+# Acknowledgement
 * This project is supported by a grant from the Ministry of Science and Technology Taiwan.

@@ -3,8 +3,8 @@ const mongodb = require('models/mongodb');
 const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
-let condaPath = "H:\\ProgramData\\Anaconda3\\Scripts\\conda.exe";
-let condaEnvName =  "gdcm";
+let condaPath = process.env.CONDA_PATH;
+let condaEnvName =  process.env.CONDA_GDCM_ENV_NAME;
 
 module.exports = async(req, res) => 
 {

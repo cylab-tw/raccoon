@@ -21,10 +21,11 @@ RUN apt-get install 'ffmpeg'\
 RUN apt-get update && apt-get install -y dcmtk \
 cmake \
 make \
-swig
+swig \
+netcat
 
 
-RUN curl https://netix.dl.sourceforge.net/project/gdcm/gdcm%202.x/GDCM%202.8.9/gdcm-2.8.9.tar.gz --output gdcm.tar.gz
+RUN curl https://altushost-swe.dl.sourceforge.net/project/gdcm/gdcm%202.x/GDCM%202.8.9/gdcm-2.8.9.tar.gz --output gdcm.tar.gz
 RUN tar xzvf gdcm.tar.gz
 RUN cd /
 RUN mkdir gdcm-build
@@ -34,11 +35,11 @@ RUN make -j8 && make install
 WORKDIR /gdcm-build/bin
 RUN cp gdcm.py gdcmswig.py _gdcmswig.so /usr/local/lib/python3.7/dist-packages 
 WORKDIR /
-RUN mkdir -p /nodejs/MIcala/
-WORKDIR /nodejs/MIcala/
+RUN mkdir -p /nodejs/raccoon/
+WORKDIR /nodejs/raccoon/
 
-COPY package*.json /nodejs/MIcala/
-COPY . /nodejs/MIcala/
+COPY package*.json /nodejs/raccoon/
+COPY . /nodejs/raccoon/
 RUN npm rebuild
 RUN npm install pm2@latest -g
 RUN npm install

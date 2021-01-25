@@ -1,6 +1,6 @@
 module.exports = {
   apps : [{
-    name : 'Micala' , 
+    name : 'raccoon' , 
     script: 'server.js',
     node_args : ["--inspect"] ,
     watch: false , 

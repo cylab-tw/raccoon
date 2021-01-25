@@ -193,6 +193,41 @@ module.exports = function (mongodb) {
             'series.instance.dicomJson.00080018.Value' : 1
         }
     );
+    ImagingStudySchema.index(
+        {
+            "dicomJson.00100010.Value.Alphabetic" : 1 ,
+        }
+    );
+    ImagingStudySchema.index(
+        {
+            "dicomJson.00100010.Value.familyName" : 1 ,
+        }
+    );
+    ImagingStudySchema.index(
+        {
+            "dicomJson.00100010.Value.givenName" : 1 ,
+            
+        }
+    );
+    ImagingStudySchema.index(
+        {
+            "dicomJson.00100010.Value.middleName" : 1 ,
+            
+        }
+    );
+    ImagingStudySchema.index(
+        {
+            "dicomJson.00100010.Value.prefix" : 1 ,
+            
+        }
+    );
+    ImagingStudySchema.index(
+        {
+            "dicomJson.00100010.Value.suffix" : 1 ,
+            
+        }
+    );
+
     ImagingStudySchema.plugin(arrayUniquePlugin);
     ImagingStudySchema.methods.getFHIRField = function () {
         let result =  this.toObject();

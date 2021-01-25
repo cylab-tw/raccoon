@@ -394,6 +394,78 @@ module.exports = async (req, res) => {
     } catch (err) { 
         err = err.message || err;
         console.log('/dicom-web/studies "STOW Api" err, ', err);
+        console.log(successFiles);
         return res.status(500).send(err)
+    }
+}
+
+
+module.exports.STOWWithoutRoute = async (filename) => {
+    //store the successFiles;
+    let successFiles = [];
+    let successFHIR = [];
+    let successFilesStorePath =  [];
+    let STOWMessage = {
+        "00081190" : {  //Study retrive URL
+            "vr" : "UT" ,
+            "Value" : []
+        } ,
+        "00081198" : {  //Failed SOP Sequence
+            "vr" : "SQ" ,
+            "Value" : [] // Use SOPSeq
+        } ,
+        "00081199" : { //ReferencedSOPSequence
+            "vr" : "SQ" ,
+            "Value" : [] // Use SOPSeq
+        }
+    }
+    try {
+        let readstream = fs.createReadStream(filename);
+        //if env FHIR_NEED_PARSE_PATIENT is true then post the patient data
+        let isNeedParsePatient = process.env.FHIR_NEED_PARSE_PATIENT == "true";
+        let FHIRData = await saveDicom(readstream ,  path.basename(filename));
+        if (!FHIRData) {
+            return false;
+        }
+        let sopClass = FHIRData.series[0].instance[0].sopClass.code.substring(8);
+        let sopInstanceUID = FHIRData.series[0].instance[0].uid;
+        let sopSeq = getSOPSeq(sopClass , sopInstanceUID);
+        let port = process.env.DICOMWEB_PORT || "";
+        port = (port) ? `:${port}` : "";
+        STOWMessage["00081190"].Value.push(...FHIRData.dicomJson["00081190"].Value);
+        STOWMessage["00081190"].Value = _.uniq(STOWMessage["00081190"].Value);
+        let retriveInstanceUrl = {
+            "00081190" : FHIRData.series[0].instance[0].dicomJson["00081190"]
+        }
+        Object.assign(sopSeq , retriveInstanceUrl);
+        STOWMessage["00081199"]["Value"].push(sopSeq);
+        let endPoint = await DCM2Endpoint_imagingStudy(FHIRData);
+        await dicomEndpoint2MongoDB(endPoint);
+        if (isNeedParsePatient) {
+            await dicomPatient2MongoDB(path.join(process.env.DICOM_STORE_ROOTPATH
+                , FHIRData.series[0].instance[0].store_path));
+        }
+        FHIRData.endpoint = {
+            reference : `Endpoint/${endPoint.id}` ,
+            type : "Endpoint"
+        }
+        let FHIRmerge = await dicom2FHIR(FHIRData);
+
+        await dicom2mongodb(FHIRmerge);
+        let baseFileName = path.basename(filename);
+        successFHIR.push(baseFileName);
+        successFiles.push(baseFileName);
+        successFilesStorePath.push(FHIRData.series[0].instance[0].store_path);
+        let resMessage = {
+            result : successFiles ,
+            //storePath : successFilesStorePath ,
+            successFHIR : successFHIR
+        }
+        Object.assign(resMessage , STOWMessage);
+        return resMessage;
+    } catch (err) {
+        err = err.message || err;
+        console.log('/dicom-web/studies "STOW Api" err, ', err);
+        return false;
     }
 }

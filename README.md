@@ -18,7 +18,7 @@ run `node server.js`
 #### requirement
 - **MongoDB**
 - **Anaconda**
-- **GDCM enviroment in Anaconda**
+- **GDCM enviroment in Anaconda** (Use pydicom==1.1.0)
 ```bash
 npm install
 npm run build #This will download dcmtk executable binaries to ./models/dcmtk and generate example dotenv file.
@@ -28,7 +28,7 @@ npm run build #This will download dcmtk executable binaries to ./models/dcmtk an
 - Ubuntu v20.4
 #### requirement
 - **MongoDB**
-- **GDCM**
+- **GDCM** (Use pydicom==1.1.0)
 ```bash
 npm install
 npm run build #This will download dcmtk using apt-get install and generate example dotenv file.

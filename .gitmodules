@@ -2,3 +2,4 @@
 	path = public/html/BL
 	url = https://github.com/cylab-tw/bluelight.git
 	ignore = dirty
+	branch = master

@@ -5,10 +5,9 @@ const {handleError} = require('../models/FHIR/httpMessage');
 /** 
  * @param {Object} paramSchema the valid scheama
  * @param {string} item body , query , param
- * @param {Object} option Joi option
+ * @param {Object} options Joi option
+ * @param {Boolean} options.allowUnknown
 */
-
-
 const validateParams = function (paramSchema , item , options) {
     return async (req, res, next) => {
         const schema = Joi.object().keys(paramSchema);
@@ -21,10 +20,12 @@ const validateParams = function (paramSchema , item , options) {
             let value = await schema.validateAsync(requestParamObj , options);
             req[item] = value;
         } catch (err) {
-            return res.status(400).send({
-                status: 400,
-                result: err.details[0].message
-            });
+            let message = {
+                "Details" : err.details[0].message, 
+                "HttpStatus" : 400,
+                "Message" : "Bad request",
+            }
+            return res.status(400).send(message);
         }
         next();
     }

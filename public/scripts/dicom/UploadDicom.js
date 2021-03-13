@@ -1,5 +1,8 @@
+
+
+
 var UploadApp = angular.module("UploadApp", ["commonApp"]);
-UploadApp.controller("UploadCtrl", function ($scope, $location, $window, UploadService  , commonService) {
+UploadApp.controller("UploadCtrl", function ($scope, $location, $window, UploadService, commonService) {
     $scope.fileList = [];
     $scope.selectFileName = '';
     $scope.selectQueryKey = [];
@@ -80,56 +83,51 @@ UploadApp.controller("UploadCtrl", function ($scope, $location, $window, UploadS
         $scope.showFiles();
     }
 
-    $scope.uploadFiles = function () {
-        let xhr = new XMLHttpRequest();
-        
-        xhr.open('POST', uploadApiUrl , true);
-        xhr.setRequestHeader("Accept" , "*/*");
-        xhr.setRequestHeader("Content-Type", `multipart/related; boundary=------------------------${makeid(16)}`);
-        //xhr.setRequestHeader("Content-Type" , `multipart/form-data`);
-        xhr.onload = function () {
-            $scope.uploadCompleted = true;
-            $scope.uploadProgres = 0;
-            if (xhr.status === 200) {
-                alert("上傳成功");
-                $scope.systemStatus = "已完成上傳";
-                UploadResult = JSON.parse(xhr.responseText).result;
-                $scope.fileList.forEach(item => {
-                    if (UploadResult.indexOf(item.fileName) != -1) {
-                        item.Status = "success";
-                        item.Result = "上傳完成";
-                    } else {
-                        item.Status = "fail";
-                        item.Result = "上傳失敗";
-                    }
-                })
-                $scope.$applyAsync();
-            } else {
-                // upload error
-                alert("伺服器發生錯誤");
-                $scope.systemStatus = "伺服器發生錯誤";
-                $scope.fileList.forEach(item => {
-                    item.Status = "fail";
-                    item.Result = "上傳失敗";
-                })
-            }
-            $scope.$applyAsync();
-        };
-        xhr.upload.onprogress = function (evt) {
-            if (evt.lengthComputable) {
-                $scope.uploadProgres = (evt.loaded / evt.total * 100 | 0);
-                $scope.systemStatus = $scope.uploadProgres + "%";
-                ($scope.uploadProgres == 100) && ($scope.systemStatus = "正在儲存至資料庫...");
-                $scope.$applyAsync();
-            }
-        }
+    $scope.uploadFiles = async function () {
+        const BOUNDORY = `------------------------${makeid(16)}`;
+
         if (FD.getAll('Files[]').length > 0) {
             if (confirm("確認要上傳嗎？")) {
-                console.log(FD.getAll("Files[]"));
-                /*fermata.json(uploadApiUrl).post({'Content-Type':`multipart/form-data`}, {fileField: FD.getAll("Files[]")}, function () {
-                    console.log("test");
-                })*/
-                xhr.send(FD);
+                axios.post(uploadApiUrl, FD, {
+                    headers: {
+                        "Content-Type": `multipart/related; boundary=${BOUNDORY}`
+                    },
+                    onUploadProgress: (evt) => {
+                        if (evt.lengthComputable) {
+                            $scope.uploadProgres = (evt.loaded / evt.total * 100 | 0);
+                            $scope.systemStatus = $scope.uploadProgres + "%";
+                            ($scope.uploadProgres == 100) && ($scope.systemStatus = "正在儲存至資料庫...");
+                            $scope.$applyAsync();
+                        }
+                    }
+                })
+                .then(function (res) {
+                    if (res.status == 200) {
+                        alert("上傳成功");
+                        $scope.systemStatus = "已完成上傳";
+                        UploadResult = res.data.result;
+                        $scope.fileList.forEach(item => {
+                            if (UploadResult.indexOf(item.fileName) != -1) {
+                                item.Status = "success";
+                                item.Result = "上傳完成";
+                            } else {
+                                item.Status = "fail";
+                                item.Result = "上傳失敗";
+                            }
+                        })
+                        $scope.$applyAsync();
+                    }
+                    $scope.$applyAsync();
+                })
+                .catch(function (error) {
+                    console.log(error)
+                    alert("伺服器發生錯誤");
+                    $scope.systemStatus = "伺服器發生錯誤";
+                    $scope.fileList.forEach(item => {
+                        item.Status = "fail";
+                        item.Result = "上傳失敗";
+                    })
+                });
             } else {
                 alert("已取消上傳作業。");
             }
@@ -138,14 +136,14 @@ UploadApp.controller("UploadCtrl", function ($scope, $location, $window, UploadS
         }
     }
     function makeid(length) {
-        var result           = '';
-        var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        var result = '';
+        var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         var charactersLength = characters.length;
-        for ( var i = 0; i < length; i++ ) {
-           result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        for (var i = 0; i < length; i++) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
         }
         return result;
-     }
+    }
 });
 
 UploadApp.service('UploadService', function ($http, $q, $location) {

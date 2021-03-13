@@ -2,7 +2,10 @@ const api_func = require('../../Api_function.js');
 const mongodb = require('models/mongodb');
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
+const { exec, execFile } = require('child_process');
+const _ = require('lodash');
+const dicomParser = require('dicom-parser');
+let DICOMWebHandleError = require('../../../models/DICOMWeb/httpMessage.js');
 let condaPath = process.env.CONDA_PATH;
 let condaEnvName =  process.env.CONDA_GDCM_ENV_NAME;
 
@@ -14,23 +17,33 @@ module.exports = async(req, res) =>
         if (!param.contentType) {
             param.contentType = 'image/jpeg';
         }
+        if (param.requestType != "WADO") {
+            return DICOMWebHandleError.sendBadRequestMessage(res , "Parameter error : requestType only allow WADO");
+        } else if (param.contentType!= "image/jpeg" && param.contentType != "application/dicom") {
+            return DICOMWebHandleError.sendBadRequestMessage(res , "Parameter error : contentType only allow image/jpeg or application/dicom");
+        }
         res.setHeader('Content-Type' , param.contentType);
         let disk = process.env.DICOM_STORE_ROOTPATH;
         let ori_Path = await get_Instance_StorePath(param);
         if (!ori_Path) {
-            res.setHeader('Content-Type' , 'text/*');
-            sendNotFoundMessage(req , res);
-            return;
+            return DICOMWebHandleError.sendNotFoundMessage(req , res);
         }
         let store_Path = `${disk}${ori_Path}`;
         if (!fs.existsSync(store_Path)) {
-            res.setHeader('Content-Type' , 'text/*');
-            sendNotFoundMessage(req , res);
-            return;
+            return DICOMWebHandleError.sendNotFoundMessage(req , res);
+        }
+        let dicomFileStream = fs.readFileSync(store_Path);
+        let dicomDataSet = dicomParser.parseDicom(dicomFileStream);
+        let inputDicomFrameNumber = parseInt(dicomDataSet.intString("x00280008"));
+        if (param.frameNumber) {
+            return handleFrameNumber(param , res , store_Path);
+        }
+        if (inputDicomFrameNumber > 1) {
+            param.frameNumber = 1;
+            return handleFrameNumber(param , res , store_Path);
         }
         if (param.contentType == 'image/jpeg') {
             let jpgFile = store_Path.replace('.dcm' , '.jpg');
-            //let isExist =await fileFunc.checkExist(jpgFile);
             let isExist = fs.existsSync(jpgFile);
             if (isExist) {
                 fs.createReadStream(jpgFile).pipe(res);
@@ -72,9 +85,31 @@ module.exports = async(req, res) =>
             fs.createReadStream(store_Path).pipe(res);
         }
     } catch (e) {
-        console.log(e);
-        res.status(500).json({message:"server wrong"});
+        console.error(e);
+        if (e.message) {
+            return DICOMWebHandleError.sendServerWrongMessage(res , e.message);    
+        }
+        return DICOMWebHandleError.sendServerWrongMessage(res , e);
     }
+}
+
+function handleFrameNumber (param , res , dicomFile) {
+    if (!_.isNumber(param.frameNumber)) {
+        return DICOMWebHandleError.sendBadRequestMessage(res, "Parameter error : frameNumber must be Number");
+    } 
+    if (param.contentType != "image/jpeg") {
+        return DICOMWebHandleError.sendBadRequestMessage(res, "Parameter error : contentType only support image/jpeg with frameNumber");
+    }
+    let newFileName = dicomFile.replace(/(\.dcm)/gi , `.${param.frameNumber}.jpg`);
+    execFile('models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe', [dicomFile, "--write-jpeg", "--frame" , param.frameNumber , newFileName], function (err, stdout, stderr) {
+        if (err) {
+            return res.sendServerWrongMessage(res , `dcmtk Convert frame error ${err}`);
+        }
+        if (stderr) {
+            return res.sendServerWrongMessage(res , `dcmtk Convert frame error ${stderr}`);
+        }
+        return fs.createReadStream(newFileName).pipe(res);
+    });
 }
 
 async function get_Instance_StorePath(i_Param)
@@ -121,26 +156,11 @@ async function get_Instance_StorePath(i_Param)
     try {
         return (instance[0].instance[0].store_path);
     } catch (e) {
-        console.log("error\r\n"+ JSON.stringify(aggregate_Query , null ,4));
+        console.log("getInstancePath error\r\n"+ JSON.stringify(aggregate_Query , null ,4));
         //console.log(aggregate_Query);
         return false;
     }
     
-}
-function sendNotFoundMessage (req , res){
-    let message = {
-        "Details" : "Accessing an inexistent", 
-        "HttpStatus" : 404,
-        "Message" : "Bad request",
-        "Method" : "GET",
-    }
-    let notFoundStr = []
-    for (let i in req.query) {
-        notFoundStr.push(`${i}:${req.query[i]}`);
-    }
-    message.Details += notFoundStr.join(',');
-    res.status(404).send(JSON.stringify(message , null , 4));
-    res.end();  
 }
 
 const getJpeg = {
@@ -183,14 +203,19 @@ const getJpeg = {
                     }
                     return resolve(true);
                 });
-            }) 
-            
+            })
         }
     }
 }
 async function getJpegByDCMTK (store_Path) {
     return new Promise((resolve , reject)=> {
-        exec(`dcmj2pnm --write-jpeg ${store_Path} ${store_Path.replace('.dcm' ,'.jpg')}` , {
+        let execCmd = "";
+        if (process.env.ENV == "windows") {
+            execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${store_Path} ${store_Path.replace('.dcm' ,'.jpg')}`;
+        } else if (process.env.ENV == "linux") {
+            execCmd = `dcmj2pnm --write-jpeg ${store_Path} ${store_Path.replace('.dcm' ,'.jpg')}`;
+        }
+        execFile(execCmd , {
             cwd : process.cwd() 
         } , function (err , stdout , stderr) {
             if (err) {

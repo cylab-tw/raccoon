@@ -1,3 +1,4 @@
+//http://dicom.nema.org/medical/dicom/2019a/output/chtml/part18/sect_6.5.html
 const mongoFunc = require('../../../models/mongodb/func');
 const archiver = require('archiver');
 const crypto = require('crypto');
@@ -5,6 +6,8 @@ const fs = require('fs');
 const path= require('path');
 const uuid = require('uuid');
 const _ = require('lodash');
+const DICOMWebHandleError = require('../../../models/DICOMWeb/httpMessage');
+const { writeImageMultipart } = require('../../../models/DICOMWeb')
 module.exports = async function (req , res) {
     let keys = Object.keys(req.params);
     console.log(req.headers.accept);
@@ -19,38 +22,58 @@ module.exports = async function (req , res) {
             res.end();
             return;
         }
-        sendNotFoundMessage(req ,res , paramsStr);
+        return DICOMWebHandleError.sendNotFoundMessage(req , res);
     } else if (req.headers.accept.includes("multipart/related")) {
         let typeSplit = req.headers.accept.split(',');
         let acceptTypes=  [];
         for (let accept of typeSplit) {
-            let matchType =accept.match(/type=(.*)/gi)[0];
+            let matchType = accept.match(/type=(.*)/gi)[0];
             let cleanType = matchType.split(/[,;]/)[0];
             let finalType = cleanType.substring(5).replace(/"/g , "");
-            acceptTypes.push(finalType);
+            let transferSyntax = "";
+            if (finalType.includes('image')) {
+                if (accept.includes("transfer")) {
+                    let matchTransferSyntax = accept.match(/transfer-syntax=(.*)\b/gim)[0];
+                    let cleanTransferSyntax = matchTransferSyntax.split(/[,;]/)[0];
+                    transferSyntax = cleanTransferSyntax.substring(16).replace(/"/g , "");
+                } else {
+                    transferSyntax = "1.2.840.10008.1.2.4.50";
+                }
+                console.log(transferSyntax);
+            } else {
+                if (accept.includes("transfer")) { 
+                    let matchTransferSyntax = accept.match(/transfer-syntax=(.*)\b/gim)[0];
+                    let cleanTransferSyntax = matchTransferSyntax.split(/[,;]/)[0];
+                    transferSyntax = cleanTransferSyntax.substring(16).replace(/"/g , "");
+                } else {
+                    transferSyntax = "1.2.840.10008.1.2.1";
+                }
+                console.log(transferSyntax);
+            }
+            let acceptObj = {
+                type : finalType , 
+                transferSyntax : transferSyntax
+            }
+            acceptTypes.push(acceptObj);
         }
+        console.log(acceptTypes);
         let type = req.headers.accept.match(/type=(.*)/gi)[0].split(/[,;]/)[0].substring(5).replace(/"/g  ,"");
         WADOFunc = {"studyID" :"getStudyDicom", "studyIDseriesID": "getSeriesDicom" , "studyIDseriesIDinstanceID": "getInstance"};
         let getFunc = WADOFunc[paramsStr];
         if (!multipartFunc[type]) {
-            sendNotSupportMessage(req ,res);
-            return;
+            return  sendNotSupportMessage(req ,res);
         }
-        let resWriteStatus =  await multipartFunc[type][getFunc](req.params , res , type);
-        if (resWriteStatus) {
-            res.end();
-            return;
+        try {
+            let resWriteStatus =  await multipartFunc[type][getFunc](req.params , res , type);
+            if (resWriteStatus) {
+                res.end();
+                return;
+            }
+        } catch (e) {
+            return sendNotSupportMessage(req ,res);
         }
-        sendNotFoundMessage(req ,res , paramsStr);
-    } else {
-        let typeSplit = req.headers.accept.split(',');
-        let acceptTypes=  [];
-        /*for (let accept of typeSplit) {
-            let matchType =accept.match(/type=(.*)/gi)[0];
-            let cleanType = matchType.split(/[,;]/)[0];
-            let finalType = cleanType.substring(5).replace(/"/g , "");
-            acceptTypes.push(finalType);
-        }*/
+        return DICOMWebHandleError.sendNotFoundMessage(req , res);
+    } else if (req.headers.accept.includes("*/*")) {
         WADOFunc = {"studyID" :"getStudyDicom", "studyIDseriesID": "getSeriesDicom" , "studyIDseriesIDinstanceID": "getInstance"};
         let getFunc = WADOFunc[paramsStr];
         let resWriteStatus =  await multipartFunc["application/dicom"][getFunc](req.params , res , "application/dicom");
@@ -58,9 +81,9 @@ module.exports = async function (req , res) {
             res.end();
             return;
         }
-        sendNotFoundMessage(req ,res , paramsStr);
-        //sendNotSupportMessage(req , res);
+        return DICOMWebHandleError.sendNotFoundMessage(req , res);
     }
+    return sendNotSupportMessage(req , res);
 }
 
 function sendNotSupportMessage(req ,res) {
@@ -77,7 +100,7 @@ function sendNotSupportMessage(req ,res) {
         "Message" : "Bad request",
         "Method" : "GET",
     }
-    res.status(400).write(`<pre>${nl2br(JSON.stringify(message , null , 4))}</pre>`);
+    res.status(400).send(message);
     res.end();  
 }
 
@@ -243,7 +266,7 @@ let multipartFunc = {
                 return resolve(false);
             });
         }
-    } 
+    } ,
 }
 multipartFunc["application/octet-stream"] = {
     getStudyDicom : multipartFunc["application/dicom"].getStudyDicom ,
@@ -251,23 +274,20 @@ multipartFunc["application/octet-stream"] = {
     getInstance : multipartFunc["application/dicom"].getInstance
 }
 multipartFunc["image/jpeg"] = {
-    
+    getInstance:  async function (iParam , res , type) {
+        return new Promise (async (resolve)=> {
+            let imagesPath = await mongoFunc.getInstanceImagePath(iParam);
+            if (imagesPath) {
+                await writeImageMultipart(res , imagesPath , type)
+                return resolve(true);    
+            }
+            return resolve(false);
+        });
+    }
 }
 
 function nl2br (str) {
     return str.replace(/\\r|\\n|\\r\\n/gi , "<br/>");
 }
 
-function sendNotFoundMessage (req , res , paramsStr){
-    let getName =  {"studyID" :"study", "studyIDseriesID": "series" , "studyIDseriesIDinstanceID": "instance"};
-    let getUID = {"studyID" :req.params.studyID, "studyIDseriesID": req.params.seriesID , "studyIDseriesIDinstanceID": req.params.instanceID};
-    let message = {
-        "Details" : `Accessing an inexistent ${getName[paramsStr]} : ${getUID[paramsStr]}`, 
-        "HttpStatus" : 404,
-        "Message" : "Bad request",
-        "Method" : "GET",
-    }
-    res.write((JSON.stringify(message , null , 4)));
-    res.status(404);
-    res.end();  
-}
+module.exports.multipartFunc = multipartFunc;

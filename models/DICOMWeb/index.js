@@ -1,3 +1,9 @@
+
+const {dcm2jpeg, dcm2jpegCustomCmd} = require('../dcmtk');
+const uuid = require('uuid');
+const fs = require('fs');
+const dicomParser = require('dicom-parser');
+const _ = require('lodash');
 function getBasicURL () {
     let port = `:${process.env.DICOMWEB_PORT}`;
     if (port == ":443" || port == ":80") port = "";
@@ -11,7 +17,6 @@ function getBasicURL () {
  * @param {Number} level  0=Study , 1=Series , 2=instance
  */
 function setRetrieveURL (items , level) {
-    console.log(level);
     for (let item of items) {
         if (level == 0) {
             item  = setStudyRetrieveURL(item);
@@ -46,11 +51,6 @@ function setSeriesRetrieveURL (series) {
         console.log(series);
         return series;
     }
-    for (let i in study.series) {
-        let series = study.series[i];
-        console.log(series.dicomJson["00081190"]);
-        series = setInstancesRetrieveURL(series);
-    }
 }
 
 function setInstancesRetrieveURL (instance) {
@@ -63,13 +63,80 @@ function setInstancesRetrieveURL (instance) {
         Value : [url]
     };
     return instance;
-    for (let i in series.instance) {
-        let instance = series.instance[i];
-        console.log(instance.dicomJson["00081190"]);
+}
+
+function writeDICOMMultipart (res , imagesPath , type) {
+    const BOUNDORY = `${uuid.v4()}-${uuid.v4()}`;
+    for (let i= 0 ; i < imagesPath.length ; i++) {
+        let image = `${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`
+        let fileBuffer = fs.readFileSync(image);
+        res.write(`${i==0? "":"\r\n\r\n"}--${BOUNDORY}\r\n`);
+        res.write(`Content-Type: ${type}\r\n`);
+        res.write('Content-length: ' + fileBuffer.length + '\r\n\r\n');
+        res.write(fileBuffer);
     }
+    res.write(`\r\n--${BOUNDORY}--`);  
+}
+
+async function writeImageMultipart (res , imagesPath , type) {
+    const BOUNDORY = `${uuid.v4()}-${uuid.v4()}`;
+    for (let i= 0 ; i < imagesPath.length ; i++) {
+        let images = `${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`;
+        let jpegFile = images.replace(/\.dcm\b/gi , '.jpg');
+        let dcm2jpegStatu = await dcm2jpeg(images);
+        if (dcm2jpegStatu) {
+            let fileBuffer = fs.readFileSync(jpegFile);
+            let dicomFileBuffer = fs.readFileSync(images);
+            let dicomDataSet = dicomParser.parseDicom(dicomFileBuffer); 
+            let transferSyntax = dicomDataSet.string('x00020010');
+            res.write(`${i==0? "":"\r\n\r\n"}--${BOUNDORY}\r\n`);
+            res.write(`Content-Type: ${type};transfer-syntax=${transferSyntax}\r\n`);
+            res.write('Content-length: ' + fileBuffer.length + '\r\n\r\n');
+            res.write(fileBuffer);
+        }
+    }
+    res.write(`\r\n--${BOUNDORY}--`);
+    Promise.resolve(true);
+}
+async function writeframesMultipart (req , res , imagesPath ,type , frameList) {
+    const BOUNDORY = `${uuid.v4()}-${uuid.v4()}`;
+    let images = `${process.env.DICOM_STORE_ROOTPATH}${imagesPath[0]}`;
+    let jpegFile = images.replace(/\.dcm\b/gi , "");
+    let minFrameNumber = _.min(frameList);
+    let maxFrameNumber = _.max(frameList);
+    let frameNumberCount= maxFrameNumber - minFrameNumber + 1;
+    if (minFrameNumber == maxFrameNumber) {
+        frameNumberCount = 1;
+    }
+    if (process.env.ENV == "windows") {
+        execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${images} ${jpegFile} --frame-range ${minFrameNumber} ${frameNumberCount}`;
+    } else if (process.env.ENV == "linux") {
+        execCmd = `dcmj2pnm --write-jpeg ${images} ${jpegFile} --frame-range ${minFrameNumber} ${frameNumberCount}`;
+    }
+    let dcm2jpegStatu = await dcm2jpegCustomCmd(execCmd);
+    if (dcm2jpegStatu) {
+        for (let x=  0 ;x < frameList.length ; x++) {
+            let frameJpegFile = images.replace(/\.dcm\b/gi , `.${frameList[x]-1}.jpg`);
+            let fileBuffer = fs.readFileSync(frameJpegFile);
+            let dicomFileBuffer = fs.readFileSync(images);
+            let dicomDataSet = dicomParser.parseDicom(dicomFileBuffer); 
+            let transferSyntax = dicomDataSet.string('x00020010');
+            res.write(`${x==0? "":"\r\n\r\n"}--${BOUNDORY}\r\n`);
+            res.write(`Content-Type: ${type};transfer-syntax=${transferSyntax}\r\n`);
+            res.write(`Content-Location : http://${req.headers.host}${req.originalUrl}\r\n`);
+            res.write('Content-length: ' + fileBuffer.length + '\r\n\r\n');
+            res.write(fileBuffer);
+        }
+    }
+
+    res.write(`\r\n--${BOUNDORY}--`);
+    Promise.resolve(true);
 }
 
 
 module.exports = {
-    setRetrieveURL : setRetrieveURL
+    setRetrieveURL : setRetrieveURL , 
+    writeDICOMMultipart : writeDICOMMultipart ,
+    writeImageMultipart : writeImageMultipart ,
+    writeframesMultipart : writeframesMultipart 
 }

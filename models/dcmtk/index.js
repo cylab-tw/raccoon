@@ -1,8 +1,7 @@
 const child_process = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const condaPath = process.env.CONDA_PATH
-const condaEnvName =  process.env.CONDA_GDCM_ENV_NAME;
+const _ = require('lodash');
 const iconv = require('iconv-lite')
 function dcm2json(filename) {
     function readGenJson (outFilename) {
@@ -67,9 +66,18 @@ function dcm2json(filename) {
     });
 }
 
-async function dcm2jpeg (imageFile) {
+
+async function dcm2jpeg (dicomFile) {
     return new Promise((resolve , reject)=> {
-        exec(`dcmj2pnm --write-jpeg ${store_Path} ${store_Path.replace('.dcm' ,'.jpg')}` , {
+        let execCmd = "";
+        let jpegFile = dicomFile.replace('.dcm' ,'.jpg');
+        if (process.env.ENV == "windows") {
+            execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${dicomFile} ${jpegFile}`;
+        } else if (process.env.ENV == "linux") {
+            execCmd = `dcmj2pnm --write-jpeg ${dicomFile} ${jpegFile}`;
+        }
+        let [dcmtk , ...cmd] = execCmd.split(" ");
+        child_process.execFile(dcmtk , cmd , {
             cwd : process.cwd() 
         } , function (err , stdout , stderr) {
             if (err) {
@@ -86,12 +94,60 @@ async function dcm2jpeg (imageFile) {
     }) 
 }
 
+async function dcm2jpegCustomCmd (execCmd) {
+    return new Promise((resolve , reject)=> {
+        let [dcmtk , ...cmd] = execCmd.split(" ");
+        child_process.execFile(dcmtk , cmd , {
+            cwd : process.cwd() 
+        } , function (err , stdout , stderr) {
+            if (err) {
+                console.error(err);
+                return reject(new Error(err));
+            } else if (stderr) {
+                console.error(stderr);
+                return reject(new Error(stderr));
+            }
+            return resolve(true);
+        });
+    }) 
+}
+
+async function jpeg2dcmFromDataset (filename , dcmFilename , outputFilename) {
+    return new Promise((resolve , reject)=> {
+        filename = path.normalize(filename);
+        outputFilename = path.normalize(outputFilename);
+        if (process.env.ENV == "windows") {
+            execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/img2dcm.exe ${filename} ${outputFilename} -df ${dcmFilename}`;
+        } else if (process.env.ENV == "linux") {
+            execCmd = `img2dcm ${filename} ${outputFilename} -df ${dcmFilename}`;
+        }
+        let [dcmtk , ...cmd] = execCmd.split(" ");
+        child_process.execFile(dcmtk , cmd , {
+            cwd : process.cwd()
+        } , function (error, stdout, stderr) {
+            if (stderr) {
+                console.error("stderr: " , stderr);
+                return reject(new Error(stderr));
+            } else if (error) {
+                console.error("error:" , error );
+                return reject(new Error(error));
+            }
+            return resolve(true);
+        });
+    })
+}
+
 async function xml2dcm (filename , outputFilename) {
     return new Promise((resolve , reject)=> {
         filename = path.normalize(filename);
         outputFilename = path.normalize(outputFilename);
-        console.log(`models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/xml2dcm.exe ${filename} ${outputFilename}`);
-        child_process.execFile(`models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/xml2dcm.exe` , [filename , outputFilename] ,{encoding : 'buffer'} , function (error, stdout, stderr) {
+        if (process.env.ENV == "windows") {
+            execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/xml2dcm.exe ${filename} ${outputFilename}`;
+        } else if (process.env.ENV == "linux") {
+            execCmd = `xml2dcm ${filename} ${outputFilename}`;
+        }
+        let [dcmtk , ...cmd] = execCmd.split(" ");
+        child_process.execFile(dcmtk , cmd ,{encoding : 'buffer'} , function (error, stdout, stderr) {
             stderr = iconv.decode(stderr , 'cp950');
             if (stderr) {
                 console.error("stderr: " , );
@@ -103,11 +159,50 @@ async function xml2dcm (filename , outputFilename) {
             return resolve(true);
         });
     })
+}
 
+
+/**
+ * 
+ * @param {String} imagesPath 
+ * @param {int} frameNumber 
+ * 
+ */
+
+async function getFrameImage (imagesPath , frameNumber) {
+    let images = `${process.env.DICOM_STORE_ROOTPATH}${imagesPath}`;
+    let jpegFile = images.replace(/\.dcm\b/gi , `.${frameNumber}.jpg`);
+    if (fs.existsSync(jpegFile)) {
+        let rs = fs.createReadStream(jpegFile);
+        return {
+            statu : true , 
+            imageStream : rs
+        };
+    }
+    if (process.env.ENV == "windows") {
+        execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${images} ${jpegFile} --frame ${frameNumber}`;
+    } else if (process.env.ENV == "linux") {
+        execCmd = `dcmj2pnm --write-jpeg ${images} ${jpegFile} --frame ${frameNumber}`;
+    }
+    let dcm2jpegStatu = await dcm2jpegCustomCmd(execCmd);
+    if (dcm2jpegStatu) {
+        let rs = fs.createReadStream(jpegFile);
+        return {
+            statu : true , 
+            imageStream : rs
+        };
+    } else {
+        return {
+            statu : false
+        };
+    }
 }
 
 module.exports = {
     dcm2json: dcm2json , 
     dcm2jpeg : dcm2jpeg , 
-    xml2dcm : xml2dcm
+    dcm2jpegCustomCmd : dcm2jpegCustomCmd ,
+    jpeg2dcmFromDataset : jpeg2dcmFromDataset ,
+    xml2dcm : xml2dcm , 
+    getFrameImage : getFrameImage
 }

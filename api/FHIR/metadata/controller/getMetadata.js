@@ -9,11 +9,11 @@ module.exports = async function (req ,res) {
         "publisher": "Not provided",
         "kind": "instance",
         "software": {
-          "name": "HAPI FHIR Server",
-          "version": "5.1.0"
+          "name": "raccoon FHIR Server",
+          "version": "1.0.0"
         },
         "implementation": {
-          "description": "HAPI FHIR R4 Server",
+          "description": "raccoon FHIR R4 Server",
           "url": "https://fhir.dicom.tw/fhir/"
         },
         "fhirVersion": "4.0.1",

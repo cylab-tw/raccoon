@@ -67,6 +67,30 @@ function dcm2json(filename) {
 }
 
 
+const dcm2jsonV8 = {
+    exec : function (dcmfile) {
+        return new Promise((resolve) => {
+            const dcm2jsonC = require('bindings')('dcm2json');
+            try {
+                dcm2jsonC(dcmfile, function (data) {
+                    let obj = JSON.parse(data);
+                    return resolve(obj);
+                })
+            } catch (e) {
+                console.error(e);
+                return resolve(false);
+            }
+        })
+    } , 
+    dcmString : function (json , tag) {
+        let data = _.get(json, tag);
+        //console.log("d" , data);
+        let value = _.get(data, "Value.0");
+        console.log(value);
+        return value;
+    }
+}
+
 async function dcm2jpeg (dicomFile) {
     return new Promise((resolve , reject)=> {
         let execCmd = "";
@@ -200,6 +224,7 @@ async function getFrameImage (imagesPath , frameNumber) {
 
 module.exports = {
     dcm2json: dcm2json , 
+    dcm2jsonV8 : dcm2jsonV8 ,
     dcm2jpeg : dcm2jpeg , 
     dcm2jpegCustomCmd : dcm2jpegCustomCmd ,
     jpeg2dcmFromDataset : jpeg2dcmFromDataset ,

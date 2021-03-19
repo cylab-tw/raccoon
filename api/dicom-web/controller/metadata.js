@@ -26,7 +26,7 @@ async function getStudyMetadata (params) {
     const query = [
         {
             $match : {
-                "dicomJson.0020000D": params.studyID
+                "dicomJson.0020000D.Value": params.studyID
             } 
         } , 
         {
@@ -56,7 +56,7 @@ async function getSeriesMetadata (params) {
     const query = [
         {
             $match : {
-                "dicomJson.0020000D": params.studyID
+                "dicomJson.0020000D.Value": params.studyID
             } 
         } , 
         {
@@ -86,7 +86,7 @@ async function getInstanceMetadata (params) {
     const query = [
         {
             $match : {
-                "dicomJson.0020000D" : params.studyID
+                "dicomJson.0020000D.Value" : params.studyID
             } ,
             $match : {
                 "series.uid" : params.seriesID

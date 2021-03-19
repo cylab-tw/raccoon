@@ -35,14 +35,14 @@ module.exports = async(req, res) =>
         let dicomFileStream = fs.readFileSync(store_Path);
         let dicomDataSet = dicomParser.parseDicom(dicomFileStream);
         let inputDicomFrameNumber = parseInt(dicomDataSet.intString("x00280008"));
-        if (param.frameNumber) {
-            return handleFrameNumber(param , res , store_Path);
-        }
-        if (inputDicomFrameNumber > 1) {
-            param.frameNumber = 1;
-            return handleFrameNumber(param , res , store_Path);
-        }
         if (param.contentType == 'image/jpeg') {
+            if (param.frameNumber) {
+                return handleFrameNumber(param , res , store_Path);
+            }
+            if (inputDicomFrameNumber > 1) {
+                param.frameNumber = 1;
+                return handleFrameNumber(param , res , store_Path);
+            }
             let jpgFile = store_Path.replace('.dcm' , '.jpg');
             let isExist = fs.existsSync(jpgFile);
             if (isExist) {
@@ -82,7 +82,7 @@ module.exports = async(req, res) =>
                 'Content-Type' : param.contentType ,
                 'Content-Disposition' :'attachment; filename=' + path.basename(store_Path)
             });
-            fs.createReadStream(store_Path).pipe(res);
+            return fs.createReadStream(store_Path).pipe(res);
         }
     } catch (e) {
         console.error(e);

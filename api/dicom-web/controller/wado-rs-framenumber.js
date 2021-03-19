@@ -1,11 +1,5 @@
 const mongoFunc = require('../../../models/mongodb/func');
-const archiver = require('archiver');
-const crypto = require('crypto');
-const fs = require('fs');
-const path= require('path');
-const uuid = require('uuid');
 const _ = require('lodash');
-const dicomParser = require('dicom-parser');
 const DICOMWebHandleError = require('../../../models/DICOMWeb/httpMessage');
 const { writeframesMultipart} = require('../../../models/DICOMWeb')
 
@@ -21,9 +15,29 @@ multipartFunc["image/jpeg"] = {
                     DICOMWebHandleError.sendBadRequestMessage(res , `Bad frame number , This instance NumberOfFrames is : ${dicomNumberOfFrames} , But request ${minFrameNumber}`);
                     return resolve(false);
                 }
-                let dicomFile = fs.readFileSync(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[0]}`);
-                let dicomDataset = dicomParser.parseDicom(dicomFile);
-                let dicomNumberOfFrames = dicomDataset.intString("x00280008") || 1;
+                let dicomJson = await mongodb.ImagingStudy.findOne({
+                    $and : [
+                        {
+                            "dicomJson.0020000D.Value" : req.params.studyID
+                        } ,
+                        {
+                            "series.uid" : req.params.seriesID
+                        } , 
+                        {
+                            "series.instance.uid" : req.params.instanceID
+                        }
+                    ]
+                } , {
+                    "dicomJson.0020000D" : 1 , 
+                    "series.uid" : 1 , 
+                    "series.instance.uid" : 1 ,
+                    "series.instance.dicomJson.00280008" : 1
+                });
+                let dataSeries = dicomJson.series;
+                let hitSeries = _.find(dataSeries , "uid" ,  req.params.seriesID);
+                let hitSeriesInstance = hitSeries.instance;
+                let hitInstance = _.find(hitSeriesInstance , {uid : req.params.instanceID});
+                let dicomNumberOfFrames = _.get(hitInstance , "dicomJson.00280008.Value.0") || 1;
                 dicomNumberOfFrames = parseInt(dicomNumberOfFrames);
                 if (maxFrameNumber > dicomNumberOfFrames) {
                     DICOMWebHandleError.sendBadRequestMessage(res , `Bad frame number , This instance NumberOfFrames is : ${dicomNumberOfFrames} , But request ${maxFrameNumber}`);

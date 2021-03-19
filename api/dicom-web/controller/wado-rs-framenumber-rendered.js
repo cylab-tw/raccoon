@@ -1,8 +1,8 @@
 const { sendBadRequestMessage } = require('../../../models/DICOMWeb/httpMessage');
 const { getFrameImage } = require('../../../models/dcmtk');
 const mongoFunc = require('../../../models/mongodb/func');
-const dicomParser = require('dicom-parser');
-const fs = require('fs');
+const mongodb = require('../../../models/mongodb');
+const _ = require("lodash");
 async function getInstance (iParam) {
     return new Promise (async (resolve)=> {
         let imagesPath = await mongoFunc.getInstanceImagePath(iParam);
@@ -20,15 +20,39 @@ async function getInstance (iParam) {
 
 module.exports = async function (req , res) {
     let headerAccept = req.headers.accept;
-    if (headerAccept != "*/*" && headerAccept != "image/jpeg") {
+    if (!headerAccept.includes("*/*")  && !headerAccept.includes("image/jpeg")) {
         return sendBadRequestMessage(res , `header accept only allow */* or image/jpeg , exception : ${headerAccept}`);
     }
     let getInstanceStatu = await getInstance(req.params);
     if (getInstanceStatu.statu) {
         let imagePath = getInstanceStatu.path;
-        let dicomRs = fs.readFileSync(`${process.env.DICOM_STORE_ROOTPATH}${imagePath}`);
-        let dicomDataset = dicomParser.parseDicom(dicomRs);
-        let dicomNumberOfFrames = dicomDataset.intString("x00280008") || 1;
+        /*let dicomRs = await streamToBuffer(fs.createReadStream(`${process.env.DICOM_STORE_ROOTPATH}${imagePath}`));
+        let dicomDataset = dicomParser.parseDicom(dicomRs);*/
+        /*let dicomJson = await dcmtk.dcm2jsonV8.exec(`${process.env.DICOM_STORE_ROOTPATH}${imagePath}`);
+        let dicomNumberOfFrames = dcmtk.dcm2jsonV8.dcmString(dicomJson , "00280008") || 1;*/
+        let dicomJson = await mongodb.ImagingStudy.findOne({
+            $and : [
+                {
+                    "dicomJson.0020000D.Value" : req.params.studyID
+                } ,
+                {
+                    "series.uid" : req.params.seriesID
+                } , 
+                {
+                    "series.instance.uid" : req.params.instanceID
+                }
+            ]
+        } , {
+            "dicomJson.0020000D" : 1 , 
+            "series.uid" : 1 , 
+            "series.instance.uid" : 1 ,
+            "series.instance.dicomJson.00280008" : 1
+        });
+        let dataSeries = dicomJson.series;
+        let hitSeries = _.find(dataSeries , "uid" ,  req.params.seriesID);
+        let hitSeriesInstance = hitSeries.instance;
+        let hitInstance = _.find(hitSeriesInstance , {uid : req.params.instanceID});
+        let dicomNumberOfFrames = _.get(hitInstance , "dicomJson.00280008.Value.0") || 1;
         dicomNumberOfFrames = parseInt(dicomNumberOfFrames);
         if (req.params.frameNumber > dicomNumberOfFrames) {
             return sendBadRequestMessage(res , `Bad frame number , This instance NumberOfFrames is : ${dicomNumberOfFrames} , But request ${req.params.frameNumber}`);

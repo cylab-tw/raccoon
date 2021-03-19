@@ -8,6 +8,7 @@ const uuid = require('uuid');
 const _ = require('lodash');
 const DICOMWebHandleError = require('../../../models/DICOMWeb/httpMessage');
 const { writeImageMultipart } = require('../../../models/DICOMWeb')
+const { streamToBuffer } = require('@jorgeferrero/stream-to-buffer');
 module.exports = async function (req , res) {
     let keys = Object.keys(req.params);
     console.log(req.headers.accept);
@@ -218,7 +219,7 @@ let multipartFunc = {
                     const BOUNDORY = `${uuid.v4()}-${uuid.v4()}`;
                     for (let i= 0 ; i < imagesPath.length ; i++) {
                         console.log(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`);
-                        let fileBuffer = fs.readFileSync(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`);
+                        let fileBuffer = await streamToBuffer(fs.createReadStream(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`));
                         res.write(`${i==0? "":"\n\n"}--${BOUNDORY}\n`);
                         res.write(`Content-Type: ${type}\n`);
                         res.write('Content-length: ' + fileBuffer.length + '\n\n');
@@ -237,7 +238,7 @@ let multipartFunc = {
                     const BOUNDORY = `${uuid.v4()}-${uuid.v4()}`;
                     for (let i= 0 ; i < imagesPath.length ; i++) {
                         console.log(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`);
-                        let fileBuffer = fs.readFileSync(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`);
+                        let fileBuffer = await streamToBuffer(fs.createReadStream(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`));
                         res.write(`${i==0? "":"\n\n"}--${BOUNDORY}\n`);
                         res.write(`Content-Type: ${type}\n`);
                         res.write('Content-length: ' + fileBuffer.length + '\n\n');
@@ -254,7 +255,7 @@ let multipartFunc = {
                 let imagesPath = await mongoFunc.getInstanceImagePath(iParam);
                 if (imagesPath) {
                     const BOUNDORY = `${uuid.v4()}-${uuid.v4()}`;
-                    let fileBuffer = fs.readFileSync(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[0]}`);
+                    let fileBuffer = await streamToBuffer(fs.createReadStream(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[0]}`));
                     console.log(imagesPath[0]);
                     res.write(`--${BOUNDORY}\n`);
                     res.write(`Content-Type: ${type}\n`);

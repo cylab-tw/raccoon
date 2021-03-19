@@ -17,6 +17,7 @@
   "license": "MIT",
   "dependencies": {
     "@asymmetrik/node-fhir-server-core": "^2.0.10",
+    "@jorgeferrero/stream-to-buffer": "^2.0.6",
     "adm-zip": "^0.5.1",
     "archiver": "^4.0.1",
     "bcrypt": "^5.0.0",

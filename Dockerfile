@@ -24,7 +24,7 @@ make \
 swig \
 netcat
 
-
+#Build gdcm
 RUN curl https://altushost-swe.dl.sourceforge.net/project/gdcm/gdcm%202.x/GDCM%202.8.9/gdcm-2.8.9.tar.gz --output gdcm.tar.gz
 RUN tar xzvf gdcm.tar.gz
 RUN cd /
@@ -34,6 +34,20 @@ RUN cmake ../gdcm-2.8.9 -DGDCM_BUILD_SHARED_LIBS=ON -DGDCM_WRAP_PYTHON=ON -DGDCM
 RUN make -j8 && make install 
 WORKDIR /gdcm-build/bin
 RUN cp gdcm.py gdcmswig.py _gdcmswig.so /usr/local/lib/python3.7/dist-packages 
+
+#Build dcmtk with modify dcm2json 
+WORKDIR /
+RUN git clone https://github.com/Chinlinlee/dcmtk.git
+RUN mkdir dcmtk-build
+RUN cmake -DDCMTK_MODULES:STRING="ofstd;oflog;dcmdata;" \
+-DBUILD_SINGLE_SHARED_LIBRARY:BOOL=1 \
+-DCMAKE_CXX_FLAGS:STRING="-fPIC" \
+-DCMAKE_C_FLAGS:STRING="-fPIC" ../dcmtk
+RUN make -j8
+RUN make DESTDIR=/nodejs/raccoon/models/dcmtk/linux-lib/ install
+
+
+#Set up node.js raccoon
 WORKDIR /
 RUN mkdir -p /nodejs/raccoon/
 WORKDIR /nodejs/raccoon/
@@ -42,7 +56,9 @@ COPY package*.json /nodejs/raccoon/
 COPY . /nodejs/raccoon/
 RUN npm rebuild
 RUN npm install pm2@latest -g
+RUN npm install node-gyp -g
 RUN npm install
+RUN node-gyp rebuild
 EXPOSE 8081
 CMD ["pm2-runtime" , "start" , "ecosystem.config.js"]
 

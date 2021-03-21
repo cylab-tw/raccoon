@@ -25,31 +25,25 @@
                     "libraries": [
                         "-loflog",
                         "-lofstd",
-                        "-ldcmdata",
+                        "-ldcmdata" , 
                         "-Wl,-rpath,<(module_root_dir)/models/dcmtk/win-dll/lib"
                     ]
                 }],
                 ['OS=="linux"', {
                     "include_dirs": [
-                        "models/dcmtk/linux-lib/include/",
-						"models/dcmtk/linux-lib/",
-                        "models/dcmtk/dcmdata/include",
-                        "models/dcmtk/oflog/include",
-                        "models/dcmtk/ofstd/include",
+                        "models/dcmtk/linux-lib/usr/include/"
                     ],
                     "library_dirs": [
-                        "<(module_root_dir)/models/dcmtk/linux-lib/lib"
+                        "<(module_root_dir)/models/dcmtk/linux-lib/usr/lib"
                     ] , 
                     "libraries" : [
-					    "-Wl,-rpath,<(module_root_dir)/models/dcmtk/linux-lib/lib" ,
-                        "-loflog",
-                        "-lofstd",
-                        "-ldcmdata"
+                        "-ldcmtk",
+                        "-Wl,-rpath,<(module_root_dir)/models/dcmtk/linux-lib/usr/lib"
                     ]
                 }]
             ],
             "target_name": "dcm2json",
-            "sources": ["./models/dcmtk/test/testjson.cc"],
+            "sources": ["./models/dcmtk/customV8/dcm2json.cc"],
         }
     ]
 }

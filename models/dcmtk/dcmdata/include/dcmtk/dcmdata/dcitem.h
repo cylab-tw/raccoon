@@ -298,7 +298,8 @@ class DCMTK_DCMDATA_EXPORT DcmItem
     virtual OFCondition writeJsonExt(STD_NAMESPACE ostream &out,
                                   DcmJsonFormat &format,
                                   OFBool printBraces,
-                                  OFBool printNewline);
+                                  OFBool printNewline,
+                                  OFBool isSkipBinary=OFFalse);
 
     /** special write method for creation of digital signatures
      *  @param outStream DICOM output stream

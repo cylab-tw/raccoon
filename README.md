@@ -92,7 +92,20 @@ var envConfig = {
 ```
 * A simple web-based user interface is provided to manage the DICOM objects in Raccoon.
 * For DICOMWeb client, Raccoon can integrate with <a href="https://github.com/cylab-tw/bluelight/">BlueLight</a>, a lightweight Web-based DICOM Viewer.
-  
+
+## usage
+
+### DICOMweb
+QIDO、WADO、STOW : `/api/dicom-web/studies`
+
+WADO-URI : `/api/dicom/wado`
+
+### FHIR
+
+base : `/api/fhir/{resource}`
+metadata : `/api/fhir/metadata`
+
+
 ## About
 * Raccoon支援DICOMWeb標準傳輸協定，包含QIDO-RS, WADO-RS, WADO-URI, STOW等。
 * 支援各種Transfer Syntax 以及SOP Class影像

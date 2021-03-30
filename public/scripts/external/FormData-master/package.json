@@ -1,0 +1,40 @@
+{
+  "name": "formdata-polyfill",
+  "version": "3.0.20",
+  "description": "HTML5 `FormData` polyfill for Browsers.",
+  "main": "formdata.min.js",
+  "scripts": {
+    "build": "node build",
+    "prepare": "npm run build && npm run test",
+    "test": "karma start --single-run --browsers ChromeHeadless karma.conf.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://jimmywarting@github.com/jimmywarting/FormData.git"
+  },
+  "files": [
+    "FormData.js",
+    "formdata.min.js",
+    "README.md"
+  ],
+  "keywords": [
+    "formdata",
+    "html5",
+    "browser",
+    "polyfill"
+  ],
+  "author": "Jimmy Wärting",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jimmywarting/FormData/issues"
+  },
+  "homepage": "https://github.com/jimmywarting/FormData#readme",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "karma": "^5.1.0",
+    "karma-chai": "^0.1.0",
+    "karma-chrome-launcher": "^3.1.0",
+    "karma-mocha": "^2.0.1",
+    "mocha": "^8.0.1"
+  }
+}

@@ -30,7 +30,7 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json({"strict" : false}));
 app.use(bodyParser.json({"type" : "application/fhir+json"}));
 app.use(bodyParser.text({"type" : "text/*"}));
-app.use(bodyParser.raw({ "type" : "multipart/related" , limit: "100gb"}));
+//app.use(bodyParser.raw({ "type" : "multipart/related" , limit: "100gb"}));
 app.use((err, req, res, next) => {
   // This check makes sure this is a JSON parsing issue, but it might be
   // coming from any middleware, not just body-parser:

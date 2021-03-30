@@ -1,5 +1,4 @@
 'use strict';
-const Busboy = require('busboy');
 const path = require('path');
 const fs = require('fs');
 const request = require('request');
@@ -11,11 +10,12 @@ const { QIDORetAtt } = require('../../../../models/FHIR/dicom-tag');
 const DCM2Patient = require('../../../../models/FHIR/DICOM2FHIRPatient');
 const _ = require('lodash');
 const { dcm2jpegCustomCmd , jpeg2dcmFromDataset , dcm2jsonV8 } = require('models/dcmtk');
-const dcm2json = require('bindings')('dcm2json');
 const moment = require('moment');
-const formidable = require('formidable');
+const formidable = require('../../../../models/formidable');
 const { sendServerWrongMessage } = require('../../../../models/DICOMWeb/httpMessage');
 const moveFile = require('move-file');
+const uuid = require('uuid');
+const { getJpeg } = require('../../../../models/python');
 
 //browserify
 //https://github.com/node-formidable/formidable/blob/6baefeec3df6f38e34c018c9e978329ae68b4c78/src/Formidable.js#L496
@@ -106,10 +106,27 @@ async function saveDicom(buffer, filename) {
         let uuid = sh.unique(uid);
         let new_store_path = `files/${year}/${month}/${uuid}/${filename}`
         fhirData.series[0].instance[0].store_path = new_store_path;
-        await fileFunc.mkdir_Not_Exist(process.env.DICOM_STORE_ROOTPATH + new_store_path);
-        await moveFile(buffer, process.env.DICOM_STORE_ROOTPATH + new_store_path , {
+        let newStorePathWithRoot = path.join(process.env.DICOM_STORE_ROOTPATH + new_store_path);
+        await fileFunc.mkdir_Not_Exist(newStorePathWithRoot);
+        await moveFile(buffer,newStorePathWithRoot , {
             overwrite : true
         });
+        let execCmd = "";
+        let jpegFile = newStorePathWithRoot.replace(/\.dcm/gi , '');
+        if (process.env.ENV == "windows") {
+            execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${newStorePathWithRoot} ${jpegFile} --all-frames`;
+        } else if (process.env.ENV == "linux") {
+            execCmd = `dcmj2pnm --write-jpeg ${newStorePathWithRoot} ${jpegFile}--all-frames`;
+        }
+        try {
+            await dcm2jpegCustomCmd(execCmd);
+        } catch (e) {
+            try {
+                await getJpeg[process.env.ENV].getJpegByPydicom(process.env.DICOM_STORE_ROOTPATH + new_store_path );
+            } catch (e) {
+                console.error(e);
+            }
+        }
         let dicomJson = "";
         try {
             dicomJson = await dcm2jsonV8.exec(process.env.DICOM_STORE_ROOTPATH + new_store_path);
@@ -232,7 +249,8 @@ module.exports = async (req, res) => {
     new formidable.IncomingForm({
         uploadDir: path.join(process.cwd(), "/temp"),
         maxFileSize: 100 * 1024 * 1024 * 1024,
-        multiples: true
+        multiples: true ,
+        isGetBoundaryInData : true
     }).parse(req, async (err, fields, files) => {
         if (err) {
             console.error(err);
@@ -246,6 +264,7 @@ module.exports = async (req, res) => {
                 //if env FHIR_NEED_PARSE_PATIENT is true then post the patient data
                 let isNeedParsePatient = process.env.FHIR_NEED_PARSE_PATIENT == "true";
                 for (let i = 0; i < uploadedFiles.length; i++) {
+                    if (!uploadedFiles[i].name) uploadedFiles[i].name=`${uuid.v4()}.dcm`;
                     let FHIRData = await saveDicom(uploadedFiles[i].path, uploadedFiles[i].name);
                     if (!FHIRData) {
                         continue;
@@ -279,8 +298,9 @@ module.exports = async (req, res) => {
                     let endPoint = await DCM2Endpoint_imagingStudy(FHIRData);
                     await dicomEndpoint2MongoDB(endPoint);
                     if (isNeedParsePatient) {
-                        await dicomPatient2MongoDB(path.join(process.env.DICOM_STORE_ROOTPATH
+                        let dcmJson = await dcm2jsonV8.exec(path.join(process.env.DICOM_STORE_ROOTPATH
                             , FHIRData.series[0].instance[0].store_path));
+                        await dicomPatient2MongoDB(dcmJson);
                     }
                     FHIRData.endpoint = {
                         reference: `Endpoint/${endPoint.id}`,

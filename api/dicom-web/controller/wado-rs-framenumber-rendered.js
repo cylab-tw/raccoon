@@ -20,16 +20,15 @@ async function getInstance (iParam) {
 
 module.exports = async function (req , res) {
     let headerAccept = req.headers.accept;
+    if (_.isUndefined(headerAccept)) {
+        return sendBadRequestMessage(res , `header accept only allow */* or image/jpeg , exception : ${headerAccept}`);
+    }
     if (!headerAccept.includes("*/*")  && !headerAccept.includes("image/jpeg")) {
         return sendBadRequestMessage(res , `header accept only allow */* or image/jpeg , exception : ${headerAccept}`);
     }
     let getInstanceStatu = await getInstance(req.params);
     if (getInstanceStatu.statu) {
         let imagePath = getInstanceStatu.path;
-        /*let dicomRs = await streamToBuffer(fs.createReadStream(`${process.env.DICOM_STORE_ROOTPATH}${imagePath}`));
-        let dicomDataset = dicomParser.parseDicom(dicomRs);*/
-        /*let dicomJson = await dcmtk.dcm2jsonV8.exec(`${process.env.DICOM_STORE_ROOTPATH}${imagePath}`);
-        let dicomNumberOfFrames = dcmtk.dcm2jsonV8.dcmString(dicomJson , "00280008") || 1;*/
         let dicomJson = await mongodb.ImagingStudy.findOne({
             $and : [
                 {

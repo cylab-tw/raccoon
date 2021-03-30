@@ -122,8 +122,8 @@ function DCMJson2Patient(dcmJson)
     } else {
         patientName.use = "usual";
     }
-    patientName.text = pName;
-    let DICOMpName = _.pickBy(dicomParser.parsePN(pName) ,  _.identity); //remove undefined or null key
+    patientName.text = pName.Alphabetic;
+    let DICOMpName = _.pickBy(dicomParser.parsePN(pName.Alphabetic) ,  _.identity); //remove undefined or null key
     
     patientName = patientName.ToJson();
     let pJson = JSON.stringify(patientName);
@@ -189,7 +189,6 @@ function dcmString(json , tag) {
     let data = _.get(json, tag);
     //console.log("d" , data);
     let value = _.get(data, "Value.0");
-    console.log(value);
     return value;
 }
 async function getFile (filename) {

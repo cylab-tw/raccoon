@@ -115,7 +115,8 @@ const buildFunc = {
         //stringBuild(query , "given" , "name.given" , ["given"]);
     } , 
     "given:contains" : (query) => {
-        stringBuild(query , "given:contains" , "name.given" , ["given" , "given:contains"]);
+       /* stringBuild(query , "given:contains" , "name.given" , ["given" , "given:contains"]);*/
+        queryBuild.arrayStringBuild(query ,"given:contains" , "name.given" , ["given" , "given:contains"]);
     } ,
     "given:exact" : (query) => {
         stringBuild(query , "given:exact" , "name.given" , ["given" ,"given:exact"]);
@@ -282,23 +283,7 @@ function arrayAddressBuild (query , field , queryField) {
     query.$and.push(buildResult);
     delete query[field];
 }
-/*function arrayStringBuild (query , field , queryField ,deleteFields=['']) {
-    if (!_.isArray(query[field])) {
-        query[field] = [query[field]];
-    }
-    for (let item of query[field]) {
-        stringBuild2(query , item , field , queryField , deleteFields);
-    }
-}
-function stringBuild2 (query , item , field , queryField ,deleteFields=['']) {
-    let buildResult = queryBuild.stringQuery(item , field);
-    query.$and.push({
-        [queryField]: buildResult
-    });
-    for (let i of deleteFields) {
-        delete query[i];
-    }
-}*/
+
 
 const includeSearch = {
     "Patient:organization" :async (result) =>{

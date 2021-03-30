@@ -68,11 +68,11 @@ function dcm2json(filename) {
 
 
 const dcm2jsonV8 = {
-    exec : function (dcmfile , isSkipBinary=true) {
+    exec : function (dcmfile) {
         return new Promise((resolve) => {
             const dcm2jsonC = require('bindings')('dcm2json');
             try {
-                dcm2jsonC(dcmfile , isSkipBinary , function (data) {
+                dcm2jsonC(dcmfile , function (data) {
                     let obj = JSON.parse(data);
                     return resolve(obj);
                 })

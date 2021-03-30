@@ -29,22 +29,3 @@ module.exports.mkdir_Not_Exist =async function (filename)
         }
     });
 }
-module.exports.movefile =  async function movefile (filename ,dest_path)
-{
-    let mkdir_Statu = await this.mkdir_Not_Exist(dest_path);
-    if (mkdir_Statu)
-    {
-        return new Promise((resolve)=>
-        {
-            fs.rename(filename , dest_path , function(err)
-            {
-                if (err)
-                {
-                    console.log(err);
-                    return resolve(false);
-                }
-                return resolve(true);
-            });
-        });
-    }
-}

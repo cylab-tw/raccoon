@@ -5,7 +5,7 @@ function sendServerWrongMessage (res , value) {
         "Message" : "Server Wrong",
         "Method" : "GET",
     }
-    res.status(500).send(message);
+    res.status(500).json(message);
     res.end();
 }
 
@@ -16,7 +16,7 @@ function sendBadRequestMessage (res , value) {
         "Message" : "Bad request",
         "Method" : "GET",
     }
-    res.status(400).send(message);
+    res.status(400).json(message);
     res.end();
 }
 
@@ -32,7 +32,7 @@ function sendNotFoundMessage (req , res){
         notFoundStr.push(`${i}:${req.query[i]}`);
     }
     message.Details += notFoundStr.join(',\r\n');
-    res.status(404).send(message);
+    res.status(404).json(message);
     res.end(); 
 }
 

@@ -39,6 +39,7 @@ RUN cp gdcm.py gdcmswig.py _gdcmswig.so /usr/local/lib/python3.7/dist-packages
 WORKDIR /
 RUN git clone https://github.com/Chinlinlee/dcmtk.git
 RUN mkdir dcmtk-build
+WORKDIR /dcmtk-build
 RUN cmake -DDCMTK_MODULES:STRING="ofstd;oflog;dcmdata;" \
 -DBUILD_SINGLE_SHARED_LIBRARY:BOOL=1 \
 -DCMAKE_CXX_FLAGS:STRING="-fPIC" \

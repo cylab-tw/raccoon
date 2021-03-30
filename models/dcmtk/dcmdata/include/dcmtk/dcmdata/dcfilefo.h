@@ -253,8 +253,7 @@ class DCMTK_DCMDATA_EXPORT DcmFileFormat
      *  @return status, EC_Normal if successful, an error code otherwise
      */
     virtual OFCondition writeJson(STD_NAMESPACE ostream &out,
-                                  DcmJsonFormat &format,
-                                  OFBool isSkipBinary=OFFalse);
+                                  DcmJsonFormat &format);
 
     /** load object from a DICOM file.
      *  This method supports DICOM objects stored as a file (with meta header) or as a

@@ -53,8 +53,7 @@ static OFCondition writeFile(STD_NAMESPACE ostream &out,
                              const E_FileReadMode readMode,
                              const OFBool format,
                              const OFBool printMetaInfo,
-                             const OFBool encode_extended ,
-                             const OFBool isSkipBinary)
+                             const OFBool encode_extended)
 {
     
     OFCondition result = EC_IllegalParameter;
@@ -67,18 +66,18 @@ static OFCondition writeFile(STD_NAMESPACE ostream &out,
             DcmJsonFormatPretty fmt(printMetaInfo);
             fmt.setJsonExtensionEnabled(encode_extended);
             if (readMode == ERM_dataset)
-                result = dset->writeJsonExt(out, fmt, OFTrue, OFTrue , isSkipBinary);
+                result = dset->writeJsonExt(out, fmt, OFTrue, OFTrue);
             else
-                result = dfile->writeJson(out, fmt , isSkipBinary);
+                result = dfile->writeJson(out, fmt );
         }
         else
         {
             DcmJsonFormatCompact fmt(printMetaInfo);
             fmt.setJsonExtensionEnabled(encode_extended);
             if (readMode == ERM_dataset)
-                result = dset->writeJsonExt(out, fmt, OFTrue, OFTrue , isSkipBinary);
+                result = dset->writeJsonExt(out, fmt, OFTrue, OFTrue );
             else
-                result = dfile->writeJson(out, fmt , isSkipBinary);
+                result = dfile->writeJson(out, fmt );
         }
     }
     return result;
@@ -93,7 +92,7 @@ static char rcsid[] = "$dcmtk: " OFFIS_CONSOLE_APPLICATION " v" OFFIS_DCMTK_VERS
 #include <node_api.h>
 
 
-char *getDCMJson(char *ifname , OFBool isSkipBinary=OFFalse)
+char *getDCMJson(char *ifname)
 {
     OFBool opt_format = OFTrue;
     OFBool opt_addMetaInformation = OFFalse;
@@ -128,7 +127,7 @@ char *getDCMJson(char *ifname , OFBool isSkipBinary=OFFalse)
             if (result == 0)
             {
                 std::ostringstream stream;
-                status = writeFile(stream, ifname, &dfile, opt_readMode, opt_format, opt_addMetaInformation, opt_encode_extended , isSkipBinary);
+                status = writeFile(stream, ifname, &dfile, opt_readMode, opt_format, opt_addMetaInformation, opt_encode_extended);
                 if (status.bad())
                 {
                     OFLOG_FATAL(dcm2jsonLogger, status.text() << ": " << ifname);
@@ -158,30 +157,16 @@ static napi_value dcm2json(napi_env env, napi_callback_info info)
 {
     napi_status napiStatus;
     napi_value jsonResult[1];
-    size_t argc = 3;
-    napi_value args[3];
+    size_t argc = 2;
+    napi_value args[2];
     napiStatus = napi_get_cb_info(env, info, &argc, args, NULL, NULL);
     char *ifname = (char *)malloc(741478763* sizeof(char));
     size_t str_size;
-    napi_value cb = args[2];
+    napi_value cb = args[1];
     napiStatus = napi_get_value_string_utf8(env, args[0], ifname, 741478763, &str_size);
-    OFBool isSkipBinary = OFFalse;
-    napi_valuetype isSkipBinaryType;
-    napi_status status = napi_typeof(env, args[1], &isSkipBinaryType);
     OFLOG_INFO(dcm2jsonLogger, ifname);
-    char* dcmjson;
-    if (isSkipBinaryType == napi_undefined)
-    {
-        OFLOG_INFO(dcm2jsonLogger, "is Undefined");
-        dcmjson = getDCMJson(ifname);
-    }
-    else
-    {
-        bool tempBool;
-        napiStatus = napi_get_value_bool(env , args[1] , &tempBool);
-        isSkipBinary = tempBool ? OFTrue : OFFalse;
-        dcmjson = getDCMJson(ifname , isSkipBinary);
-    }
+    char* dcmjson = getDCMJson(ifname);
+
     if (dcmjson != NULL) 
     {
         napiStatus = napi_create_string_utf8(env, dcmjson, NAPI_AUTO_LENGTH, jsonResult);

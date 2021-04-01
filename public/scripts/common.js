@@ -102,6 +102,23 @@ async function sleep(ms = 1) {
     return new Promise(r => setTimeout(r, ms));
 }
 
+(function () {
+    let raccoon = {
+        blockUI :  () => {
+            $.blockUI({
+                message: "<i class='fa fa-spinner fa-pulse orange' style='font-size:600%'></i>", 
+            //borderWidth:'0px' 和透明背景
+                css: { borderWidth: '0px', backgroundColor: 'transparent' },
+            });
+            $("body").css("overflow" , "hidden");
+        } , 
+        unblockUI : () => {
+            $.unblockUI();
+            $("body").css("overflow" , "auto");
+        }
+    }
+    window.raccoon = raccoon;
+})();
 
 (function () {
     let Micala = {

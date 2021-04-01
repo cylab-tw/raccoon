@@ -68,7 +68,7 @@ module.exports = async function (req ,res)
 
 async function useImageSearch (image_Query , limit , skip) {
     return new Promise (async (resolve) => {
-        let aggregate_Query = [
+        /*let aggregate_Query = [
             {
                 $match : image_Query
             } ,
@@ -87,16 +87,28 @@ async function useImageSearch (image_Query , limit , skip) {
             {
                 $skip : parseInt(skip)
             }
-        ];
-        let imagingStudies = await mongoFunc.aggregate_Func("ImagingStudy" , aggregate_Query);
-        console.log(JSON.stringify(aggregate_Query , null ,4) );
+        ];*/
+        let imagingStudies = await mongodb.ImagingStudy
+                                   .find(image_Query)
+                                   .sort({'_id' : 1})
+                                   .skip(skip)
+                                   .limit(limit)
+                                   .exec();
+        for (let i in imagingStudies) {
+            let imaging = imagingStudies[i];
+            let hitPatient = await mongodb.patients.findOne({
+                "id" : imaging.subject.identifier.value
+            });
+            imagingStudies[i].patient = hitPatient;
+        }
+        //let imagingStudies = await mongoFunc.aggregate_Func("ImagingStudy" , aggregate_Query);
         return resolve(imagingStudies);
     });
 }
 
 async function getCount (image_Query) {
     return new Promise (async (resolve) => {
-        let count = await mongodb.ImagingStudy.find(image_Query).count();
+        let count = await mongodb.ImagingStudy.countDocuments(image_Query);
         return resolve(count);
     });
 }

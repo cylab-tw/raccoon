@@ -36,16 +36,16 @@
                 <div class="col-sm-12" id="studyTable">
                     <table class="table table-hover table-bordered table-sm w-100 table-striped" style="width: 100%; table-layout: fixed;word-break: break-all;font-size: large;">
                         <thead class="thead-dark">
-                            <th class="text-center" style="width: 15%;" ng-click="orderStudy('patient[0].id')">PatientID</th>
-                            <th class="text-center" style="width: 15%;" ng-click="orderStudy('patient[0].name[0].text')">PatientName</th>
+                            <th class="text-center" style="width: 15%;" ng-click="orderStudy('patient.id')">PatientID</th>
+                            <th class="text-center" style="width: 15%;" ng-click="orderStudy('patient.name[0].text')">PatientName</th>
                             <th class="text-center" style="width: 15%;" ng-click="orderStudy('started')">StudyDate</th>
                             <th class="text-center" style="width: 15%;" ng-click="orderStudy('identifier.value')">Identifier</th>
                             <th class="text-center" style="width: 40%;">Operate</th>
                         </thead>
                         <tbody>
                             <tr ng-repeat="item in dataList|orderBy:orderStudyCol:orderStudyReverse" ng-click="">
-                                <td class="text-center" style="width: 10%;">{{item.patient[0].id}}</td>
-                                <td class="text-center" style="width: 60%;">{{item.patient[0].name[0].text}}</td>
+                                <td class="text-center" style="width: 10%;">{{item.patient.id}}</td>
+                                <td class="text-center" style="width: 60%;">{{item.patient.name[0].text}}</td>
                                 <td class="text-center" style="width: 10%;">{{item.started | date:'yyyyMMdd'}}</td>
                                 <td class="text-center" style="width: 10%;">{{item.identifier.value}}</td>
                                 <td class="text-center" style="width: 10%;">
@@ -155,11 +155,11 @@
                             Are you sure you want to remove this study from the remote server?<br/>
                             您確定要刪除此Study嗎?<p style="color: red;">一旦刪除，將無法回復。</p>
                         </p>
-                        <p>Patient id : {{clickStudy.patient[0].id}}</p>
-                        <p>Patient Name : {{clickStudy.patient[0].name[0].text}}</p>
+                        <p>Patient id : {{clickStudy.patient.id}}</p>
+                        <p>Patient Name : {{clickStudy.patient.name[0].text}}</p>
                         <p>Accession number : {{clickStudy.identifier.value}}</p>
                         <div class="form-group">
-                          <label for="deleteStudyConfirmInput">Please type <span style="font-weight: bold;">Delete Confirm</span>to accept deletion</label>
+                          <label for="deleteStudyConfirmInput">Please type <span style="font-weight: bold;">Delete Confirm</span> to accept deletion</label>
                           <input type="text" class="form-control" name="deleteStudyConfirmInput" id="deleteStudyConfirmInput" placeholder="confirm">
                         </div>
                     </div>
@@ -343,6 +343,7 @@
     </body>
     <!--#region jquery-->
     <script type="text/javascript" src="../scripts/external/jquery.js"></script>
+    <script src="../scripts/external/jquery-blockUI.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery.json-viewer@1.4.0/json-viewer/jquery.json-viewer.js"></script>
     <!--#endregion-->
     <!--#region bootstrap-->
@@ -363,12 +364,6 @@
     <script src="../scripts/common.js"></script>
     <script src="../scripts/ngCommon.js"></script>
     <script src="../scripts/ImageMS/ImageMS.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/cornerstone-core@2.3.0/dist/cornerstone.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dicom-parser@1.8.5/dist/dicomParser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/cornerstone-math@0.1.8/dist/cornerstoneMath.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/cornerstone-wado-image-loader@3.0.6/dist/cornerstoneWADOImageLoader.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/cornerstone-web-image-loader@2.1.1/dist/cornerstoneWebImageLoader.min.js"></script>
-    <script src="../scripts/search/dicom_search_conerstone.js"></script>
 </html>
 
 

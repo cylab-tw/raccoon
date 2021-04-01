@@ -27,8 +27,8 @@
 					<small ng-show="isPasswordError" style="font:bold;color: red;">密碼長度須為 8 到 30 個字，且包含小寫英文字母及數字。</small>
 					<input type="password" id="passwordMatch" class="fadeIn fifth" name="passwordMatch" autocomplete="off" placeholder="請再次輸入密碼" required="required" ng-focus="removeErrorOnFocus($event);" ng-model="passwordConfirm"> <br />
 					<small ng-show="isPasswordNotMatch" style="font:bold;color: red;">密碼不相符</small>
-					<input type="email" id="email" class="fadeIn sixth" name="email" placeholder="請輸入電子郵件" required="required" ng-model="email"><br/><br/>
-
+					<input type="email" id="email" class="fadeIn sixth" name="email" placeholder="請輸入電子郵件" required="required" ng-model="email"><br/>
+					<small ng-show="isEmailError" style="font:bold;color: red;">請輸入正確的Email格式</small>
 					<input type="submit" class="fadeIn seventh" value="註冊">
 				</form>
 			</div>

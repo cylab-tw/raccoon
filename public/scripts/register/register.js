@@ -9,6 +9,12 @@ RegisterApp.controller("RegisterCtrl" , function($scope, RegisterService)
     $scope.lastname = "";
     $scope.gender = "";
     $scope.Havelastname = true;
+
+    $scope.isAccError = false;
+    $scope.isEmailError = false;
+    $scope.isPasswordError = false;
+    $scope.isPasswordNotMatch = false;
+    
     $scope.Register = function()
     {
         if ($scope.password != $scope.passwordConfirm) {
@@ -20,7 +26,7 @@ RegisterApp.controller("RegisterCtrl" , function($scope, RegisterService)
         RegisterService.Register($scope).then((res)=>
         {   
             if (res.status == 400) {
-                let errorMessage = res.data.result;
+                let errorMessage = res.data.Details;
                 errorMessageFunc(errorMessage);
             }
             else if (res.data.account != undefined)
@@ -56,9 +62,17 @@ RegisterApp.controller("RegisterCtrl" , function($scope, RegisterService)
             $('#password').addClass("inputError");
         }
     }
+    function handleEmailError ( message) {
+        if (message.includes("email")) {
+            $scope.isEmailError = true;
+            $('#email').removeClass("inputError");
+            $('#email').addClass("inputError");
+        }
+    }
     function errorMessageFunc(message) {
         handleAccError(message) ;
         handlePasswordError(message);
+        handleEmailError(message);
     }
     function clearError () {
         $scope.isAccError = false;

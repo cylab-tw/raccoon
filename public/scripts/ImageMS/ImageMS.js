@@ -53,7 +53,6 @@ imageMSApp.controller('imageMSCtrl' , function ($scope , imageMSService , common
             }
             let nowParamValue = paramValue.get(nowItem);
             if (nowParamValue != null) {
-                console.log(nowParamValue);
                 $scope[nowItem] =nowParamValue;
             }
         }
@@ -89,6 +88,7 @@ imageMSApp.controller('imageMSCtrl' , function ($scope , imageMSService , common
         if ($scope.isSearched) {
             $scope.curStudyPage = 1;
         }
+        raccoon.blockUI();
         imageMSService.QIDO($scope).then(async function(res)
         {
             $scope.dataList = res.data[0];
@@ -96,6 +96,7 @@ imageMSApp.controller('imageMSCtrl' , function ($scope , imageMSService , common
             //console.log($scope.dataList);
             if ($scope.dataList == null ||$scope.dataList.length <=0 ) {
                 alert('no data');
+                raccoon.unblockUI();
                 return;
             }
             for (let i = 0 ; i < $scope.dataList.length ; i++) {
@@ -106,6 +107,8 @@ imageMSApp.controller('imageMSCtrl' , function ($scope , imageMSService , common
                     }
                 }
             }
+            console.log($scope.dataList);
+            raccoon.unblockUI();
         });
     }
     $scope.deleteItem = function (iName , iItem) {
@@ -152,8 +155,10 @@ imageMSApp.controller('imageMSCtrl' , function ($scope , imageMSService , common
     }
     $scope.$watch("curStudyPage",function(newValue,oldValue){
         // your code goes here...
-        $scope.isSearched = false;
-        $scope.QIDO();
+        if (newValue != oldValue) {
+            $scope.isSearched = false;
+            $scope.QIDO();
+        }
     });
 //#region dowload file function
     $scope.downloadStudy = function (iItem) {

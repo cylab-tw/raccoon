@@ -178,6 +178,7 @@ function DCMJson2Patient(dcmJson)
             pJson
         ]
     }
+    Patient.id = Patient.id.replace(/[\s\u0000]/gim , '');
     if (pBD) {
         Patient.birthDate = moment.utc(pBD).format("YYYY-MM-DD");
     }

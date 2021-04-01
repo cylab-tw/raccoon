@@ -9,23 +9,56 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import pydicom.pixel_data_handlers.gdcm_handler as gdcmHandler
 import pydicom
-from skimage import io
 
+
+
+def window_image(img, window_center, window_width, intercept, slope , ds):
+    img = (img * slope + intercept)  # 灰度值轉化為ＣＴ輻射強度，轉化後的結果其實可以理解為"醫用像素值"
+    img_min = window_center - window_width // 2  # ＂－＂後面的先計算
+    img_max = window_center + window_width // 2
+    #     下面其實是一個濾波器，過濾掉噪音
+    img[img < img_min] = img_min
+    img[img > img_max] = img_max
+    if hasattr(ds, 'PhotometricInterpretation'):
+        if ds.PhotometricInterpretation == 'MONOCHROME1':
+            print('monochrome1')
+            img = img.astype(float)
+            img = 255 - img
+        pass
+    pass
+    return img
+pass
+
+# 這裡img是一個二維矩陣
+
+
+def get_first_of_dicom_field_as_int(x):
+    # get x[0] as in int is x is a 'pydicom.multival.MultiValue', otherwise get int(x)
+    if type(x) == pydicom.multival.MultiValue:  # 如果有很多个值
+        return int(x[0])
+    else:
+        return int(x)
+pass
+
+def get_windowing(data):
+    #     下面是獲取dicom各個參數
+    dicom_fields = [data[('0028', '1050')].value,  # window center
+                    data[('0028', '1051')].value,  # window width
+                    data[('0028', '1052')].value,  # intercept
+                    data[('0028', '1053')].value]  # slope
+    #     上面(0028,1053)在dicom中稱為tag
+    return [get_first_of_dicom_field_as_int(x) for x in dicom_fields]
+pass
 
 def saveImage(ds, imageArray, saveName):
     saveStatu = False
-    # image_2d_scaled = newImage.astype(np.uint8)
-    # if 'YBR' in ds.PhotometricInterpretation :
-    #     RGBImg = pydicom.pixel_data_handlers.convert_color_space(imageArray , ds.PhotometricInterpretation , 'RGB')
-    #     #YBR2BGRImg = cv2.cvtColor(imageArray, cv2.COLOR_YUV2RGB_Y422 )
-    #     RGB2BGRImg = cv2.cvtColor(RGBImg ,  cv2.COLOR_RGB2BGR)
-    #     saveStatu = cv2.imwrite(saveName , RGB2BGRImg)
-    # elif 'RGB' in ds.PhotometricInterpretation :
-    #     RGB2BGRImg = cv2.cvtColor(RGBImg ,  cv2.COLOR_RGB2BGR)
-    #     saveStatu = cv2.imwrite(saveName , imageArray)    
-    # else :
-    #     saveStatu = cv2.imwrite(saveName , imageArray)
-    # pass
+    #https://blog.csdn.net/appleyuchi/article/details/102388184
+    if hasattr(ds , 'WindowCenter') and hasattr(ds , 'WindowWidth'):
+        window_center, window_width, intercept, slope = get_windowing(ds)
+        img = window_image(imageArray, window_center, window_width, intercept, slope , ds)
+        plt.imsave(saveName , img, cmap='gray')
+        return True
+    pass
 
     image_2d = imageArray.astype(float)
     image_2d_scaled = (np.maximum(image_2d, 0) / image_2d.max()) * 255.0
@@ -35,6 +68,7 @@ def saveImage(ds, imageArray, saveName):
     if hasattr(ds, 'PhotometricInterpretation'):
         if ds.PhotometricInterpretation == 'MONOCHROME1':
             image_2d_scaled = 255.0 - image_2d_scaled
+            print(1)
         pass
     pass
     image_2d_scaled = image_2d_scaled.astype(np.uint8)
@@ -83,7 +117,7 @@ def DICOM2JPEG(filename, imageFormat):
     # TransferSyntaxUID = '1.2.840.10008.1.2.1'
 
     ds = dcmread(filename)
-    # ds.pixel_data_handlers = [gdcmHandler]
+    ds.pixel_data_handlers = [gdcmHandler]
     # ds.file_meta.TransferSyntaxUID = '1.2.840.10008.1.2.1'
     shape = ds.pixel_array.shape
     #print(shape)

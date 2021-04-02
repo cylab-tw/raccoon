@@ -31,14 +31,14 @@
                 }],
                 ['OS=="linux"', {
                     "include_dirs": [
-                        "models/dcmtk/linux-lib/usr/include/"
+                        "models/dcmtk/linux-lib/usr/local/include/"
                     ],
                     "library_dirs": [
-                        "<(module_root_dir)/models/dcmtk/linux-lib/usr/lib"
+                        "<(module_root_dir)/models/dcmtk/linux-lib/usr/local/lib"
                     ] , 
                     "libraries" : [
                         "-ldcmtk",
-                        "-Wl,-rpath,<(module_root_dir)/models/dcmtk/linux-lib/usr/lib"
+                        "-Wl,-rpath,<(module_root_dir)/models/dcmtk/linux-lib/usr/local/lib"
                     ]
                 }]
             ],

@@ -85,9 +85,9 @@ async function generateJpeg(dicomJson , dicomFile , jpegFile) {
         }
     } else if (process.env.ENV == "linux") {
         if (windowCenter && windowWidth) {
-            execCmd = `dcmj2pnm --write-jpeg ${dicomFile} ${jpegFile}--all-frames +Ww  ${windowCenter} ${windowWidth}`;
+            execCmd = `dcmj2pnm --write-jpeg ${dicomFile} ${jpegFile} --all-frames +Ww ${windowCenter} ${windowWidth}`;
         } else {
-            execCmd = `dcmj2pnm --write-jpeg ${dicomFile} ${jpegFile}--all-frames`;
+            execCmd = `dcmj2pnm --write-jpeg ${dicomFile} ${jpegFile} --all-frames`;
         }
     }
     try {

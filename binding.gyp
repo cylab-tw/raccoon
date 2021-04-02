@@ -37,7 +37,9 @@
                         "<(module_root_dir)/models/dcmtk/linux-lib/usr/local/lib"
                     ] , 
                     "libraries" : [
-                        "-ldcmtk",
+                        "-loflog",
+                        "-lofstd",
+                        "-ldcmdata" , 
                         "-Wl,-rpath,<(module_root_dir)/models/dcmtk/linux-lib/usr/local/lib"
                     ]
                 }]

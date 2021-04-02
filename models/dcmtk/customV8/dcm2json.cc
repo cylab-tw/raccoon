@@ -135,7 +135,7 @@ char *getDCMJson(char *ifname)
                 }
                 //COUT << stream.str();
                 auto  streamStr = stream.str();
-                char *item = new char[streamStr.size()];
+                char *item = new char[streamStr.size() +1 ];
                 //important!
                 //use strcpy avoid char* empty
                 strcpy(item , streamStr.c_str());
@@ -179,7 +179,6 @@ static napi_value dcm2json(napi_env env, napi_callback_info info)
     {
         napiStatus = napi_throw_error(env, "404" , "The dcmtk status is bad , maybe is no such file");
     }
-    free(ifname);
     return NULL;
 }
 

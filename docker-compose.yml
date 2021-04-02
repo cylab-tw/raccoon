@@ -33,6 +33,8 @@ services:
     volumes :
       - ./:/nodejs/raccoon
       - /nodejs/raccoon/node_modules
+      - /nodejs/raccoon/build
+      - /nodejs/raccoon/models/dcmtk/linux-lib
     ports:
       - 8081:8081
     depends_on:

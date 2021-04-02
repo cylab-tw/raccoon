@@ -1,5 +1,16 @@
 const mongodb = require('models/mongodb');
+const _ =require('lodash');
 const mongoFunc = require('../../../models/mongodb/func');
+
+const returnProject = {
+    $project : {
+        _id : 0 , 
+        __v : 0 ,
+        studyUID : 0 ,
+        seriesUID : 0 ,
+        instanceUID : 0
+    }
+};
 
 module.exports = async function (req , res ) {
     let getMetaFunc = [getStudyMetadata , getSeriesMetadata , getInstanceMetadata];
@@ -15,6 +26,7 @@ module.exports = async function (req , res ) {
     if (item[0].metadata) {
         if (item[0].metadata.length > 0) {
             res.setHeader('Content-Type' , 'application/dicom+json');
+            replaceBinaryData(item[0].metadata);
             return res.send(item[0].metadata);
         }
     }
@@ -23,99 +35,139 @@ module.exports = async function (req , res ) {
 }
 
 async function getStudyMetadata (params) {
-    const query = [
+    const metadataQuery = [
         {
             $match : {
-                "dicomJson.0020000D.Value": params.studyID
+                $and : [
+                    {
+                        studyUID : params.studyID
+                    }
+                ]
+                
             } 
-        } , 
-        {
-            $unwind : "$series"
-        } , 
-        {
-            $unwind : "$series.instance"
-        } , 
-        {
-            $match : {
-                "id": params.studyID
-            }
-        } , 
+        } ,
+        returnProject
+         , 
         {
             $group : {
-                "_id" : "$_id" , 
+                "_id" : "$seriesUID" , 
                 "metadata" : {
-                    $push : "$series.instance.metadata"
+                    $push : "$$ROOT"
                 }
             }
         }
-    ];
-    let agg = await mongoFunc.aggregate_Func("ImagingStudy" , query)
+    ]
+    let agg = await mongoFunc.aggregate_Func("dicomMetadata" , metadataQuery)
     return agg;
 }
 async function getSeriesMetadata (params) {
-    const query = [
+    const metadataQuery = [
         {
             $match : {
-                "dicomJson.0020000D.Value": params.studyID
+                $and : [
+                    {
+                        studyUID : params.studyID
+                    }
+                ]
+                
             } 
-        } , 
-        {
-            $unwind : "$series"
-        } , 
-        {
-            $unwind : "$series.instance"
-        } , 
-        {
-            $match : {
-                "series.uid": params.seriesID
-            }
-        } , 
+        } ,
+        returnProject
+         , 
         {
             $group : {
-                "_id" : "$_id" , 
+                "_id" : "$seriesUID" , 
                 "metadata" : {
-                    $push : "$series.instance.metadata"
+                    $push : "$$ROOT"
                 }
             }
         }
-    ];
-    let agg = await mongoFunc.aggregate_Func("ImagingStudy" , query)
+    ]
+    
+    let agg = await mongoFunc.aggregate_Func("dicomMetadata" , metadataQuery)
     return agg;
 }
 async function getInstanceMetadata (params) {
-    const query = [
+    const metadataQuery = [
         {
             $match : {
-                "dicomJson.0020000D.Value" : params.studyID
-            } ,
-            $match : {
-                "series.uid" : params.seriesID
-            } ,
-            $match : {
-                "series.instance.uid": params.instanceID
-            }
-        } , 
-        {
-            $unwind : "$series"
-        } , 
-        {
-            $unwind : "$series.instance"
-        } , 
-        {
-            $match : {
-                "series.instance.uid": params.instanceID
-            }
-        } , 
+                $and : [
+                    {
+                        studyUID : params.studyID
+                    } ,
+                    {
+                        seriesUID : params.seriesID
+                    } ,
+                    {
+                        instanceUID : params.instanceID
+                    }
+                ]
+                
+            } 
+        } ,
+        returnProject
+        , 
         {
             $group : {
-                "_id" : "$_id" , 
+                "_id" : "$instanceUID" , 
                 "metadata" : {
-                    $push : "$series.instance.metadata"
+                    $push : "$$ROOT"
                 }
             }
         }
-    ];
-    console.log(JSON.stringify(query , null , 4));
-    let agg = await mongoFunc.aggregate_Func("ImagingStudy" , query)
+    ]
+    let agg = await mongoFunc.aggregate_Func("dicomMetadata" , metadataQuery)
     return agg;
+}
+
+
+function propertiesToArray(obj) {
+    const addDelimiter = (a, b) =>
+        a ? `${a}.${b}` : b;
+
+    const paths = (obj = {}, head = '') => {
+        return Object.entries(obj)
+            .reduce((product, [key, value]) => 
+                {
+                    let fullPath = addDelimiter(head, key)
+                    return _.isObject(value) ?
+                        product.concat(paths(value, fullPath))
+                    : product.concat(fullPath)
+                }, []);
+    }
+    return paths(obj);
+}
+
+function replaceBinaryData (data) {
+    let keys = propertiesToArray(data);
+    let binaryKeys = [];
+    let isBinary = false;
+    for (let key of keys) {
+        let keyData = _.get(data , key);
+        let isbinaryValueKey = ( key.includes("Value") || key.includes("InlineBinary") ) && !key.includes('vr');
+        if (isBinary && isbinaryValueKey) {
+            binaryKeys.push(key);
+        } else {
+            isBinary = false;
+        }
+        if (keyData== "OW" || keyData == "OB") {
+            isBinary = true;
+        }
+    }
+    let port = process.env.DICOMWEB_PORT || "";
+    port = (port) ? `:${port}` : "";
+    for (let key of binaryKeys) {
+        let instanceUID = _.get(data , `${key.substring(0,1)}.00080018.Value.0`);
+        let valuePos = key.lastIndexOf("InlineBinary") ||key.lastIndexOf("Value");
+        let keyBulkDataURI = `${key.substring(0 , valuePos)}BulkDataURI`;
+        let keyLastStr = key.substring(key.length -1 , key.length );
+        if (_.isNumber(keyLastStr)) {
+            let valueKey = key.substring(0 , key.length-2)
+            _.omit(data , valueKey);
+        } else {
+            _.omit(data , key);
+        }
+        
+        _.set(data , keyBulkDataURI ,`http://${process.env.DICOMWEB_HOST}${port}/api/dicom/instance/${instanceUID}/bulkData/${key.substr(2)}`);
+    }
 }

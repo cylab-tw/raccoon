@@ -216,16 +216,16 @@ let multipartFunc = {
             return new Promise (async (resolve)=> {
                 let imagesPath = await mongoFunc.getStudyImagesPath(iParam);
                 if (imagesPath) {
-                    const BOUNDORY = `${uuid.v4()}-${uuid.v4()}`;
+                    const BOUNDARY = `${uuid.v4()}-${uuid.v4()}`;
                     for (let i= 0 ; i < imagesPath.length ; i++) {
                         console.log(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`);
                         let fileBuffer = await streamToBuffer(fs.createReadStream(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`));
-                        res.write(`${i==0? "":"\n\n"}--${BOUNDORY}\n`);
+                        res.write(`${i==0? "":"\n\n"}--${BOUNDARY}\n`);
                         res.write(`Content-Type: ${type}\n`);
                         res.write('Content-length: ' + fileBuffer.length + '\n\n');
                         res.write(fileBuffer);
                     }
-                    res.write(`\n--${BOUNDORY}--`);
+                    res.write(`\n--${BOUNDARY}--`);
                     return resolve(true);
                 }
                 return resolve(false);
@@ -235,16 +235,16 @@ let multipartFunc = {
             return new Promise(async (resolve)=> {
                 let imagesPath = await mongoFunc.getSeriesImagesPath(iParam);
                 if (imagesPath) {
-                    const BOUNDORY = `${uuid.v4()}-${uuid.v4()}`;
+                    const BOUNDARY = `${uuid.v4()}-${uuid.v4()}`;
                     for (let i= 0 ; i < imagesPath.length ; i++) {
                         console.log(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`);
                         let fileBuffer = await streamToBuffer(fs.createReadStream(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`));
-                        res.write(`${i==0? "":"\n\n"}--${BOUNDORY}\n`);
+                        res.write(`${i==0? "":"\n\n"}--${BOUNDARY}\n`);
                         res.write(`Content-Type: ${type}\n`);
                         res.write('Content-length: ' + fileBuffer.length + '\n\n');
                         res.write(fileBuffer);
                     }
-                    res.write(`\n--${BOUNDORY}--`);
+                    res.write(`\n--${BOUNDARY}--`);
                     return resolve(true);
                 }
                 return resolve(false);
@@ -254,14 +254,14 @@ let multipartFunc = {
             return new Promise (async (resolve)=> {
                 let imagesPath = await mongoFunc.getInstanceImagePath(iParam);
                 if (imagesPath) {
-                    const BOUNDORY = `${uuid.v4()}-${uuid.v4()}`;
+                    const BOUNDARY = `${uuid.v4()}-${uuid.v4()}`;
                     let fileBuffer = await streamToBuffer(fs.createReadStream(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[0]}`));
                     console.log(imagesPath[0]);
-                    res.write(`--${BOUNDORY}\n`);
+                    res.write(`--${BOUNDARY}\n`);
                     res.write(`Content-Type: ${type}\n`);
                     res.write('Content-length: ' + fileBuffer.length + '\n\n');
                     res.write(fileBuffer);
-                    res.write(`\n--${BOUNDORY}--`);
+                    res.write(`\n--${BOUNDARY}--`);
                     return resolve(true);
                 }
                 return resolve(false);

@@ -9,13 +9,14 @@ const fileFunc = require('../../../../models/file/file_Func');
 const { QIDORetAtt } = require('../../../../models/FHIR/dicom-tag');
 const DCM2Patient = require('../../../../models/FHIR/DICOM2FHIRPatient');
 const _ = require('lodash');
-const { dcm2jpegCustomCmd , jpeg2dcmFromDataset , dcm2jsonV8 } = require('models/dcmtk');
+const { dcm2jpegCustomCmd , dcm2jsonV8 } = require('models/dcmtk');
 const moment = require('moment');
 const formidable = require('../../../../models/formidable');
 const { sendServerWrongMessage } = require('../../../../models/DICOMWeb/httpMessage');
 const moveFile = require('move-file');
 const uuid = require('uuid');
 const { getJpeg } = require('../../../../models/python');
+const mongodb = require('../../../../models/mongodb');
 
 //browserify
 //https://github.com/node-formidable/formidable/blob/6baefeec3df6f38e34c018c9e978329ae68b4c78/src/Formidable.js#L496
@@ -72,117 +73,162 @@ async function dicomPatient2MongoDB(data) {
     });
 }
 
-async function saveDicom(buffer, filename) {
+async function generateJpeg(dicomJson , dicomFile , jpegFile) {
+    let windowCenter = _.get(dicomJson , '00281050.Value.0');
+    let windowWidth  = _.get(dicomJson , '00281051.Value.0');
+    let execCmd = "";
+    if (process.env.ENV == "windows") {
+        if (windowCenter && windowWidth) {
+            execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${dicomFile} ${jpegFile} --all-frames +Ww ${windowCenter} ${windowWidth}`;
+        } else {
+            execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${dicomFile} ${jpegFile} --all-frames`;
+        }
+    } else if (process.env.ENV == "linux") {
+        if (windowCenter && windowWidth) {
+            execCmd = `dcmj2pnm --write-jpeg ${dicomFile} ${jpegFile}--all-frames +Ww  ${windowCenter} ${windowWidth}`;
+        } else {
+            execCmd = `dcmj2pnm --write-jpeg ${dicomFile} ${jpegFile}--all-frames`;
+        }
+    }
+    try {
+        await dcm2jpegCustomCmd(execCmd);
+    } catch (e) {
+        try {
+            await getJpeg[process.env.ENV].getJpegByPydicom(dicomFile);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+}
+
+async function saveDicomFile (fhirData , tempFilename , filename) {
+    let started_date = new Date(fhirData.started).toISOString();
+    let started_date_split = started_date.split('-');
+    let year = started_date_split[0];
+    let month = started_date_split[1];
+    let uid = fhirData.series[0].uid;
+    let uuid = sh.unique(uid);
+    let new_store_path = `files/${year}/${month}/${uuid}/${filename}`
+    fhirData.series[0].instance[0].store_path = new_store_path;
+    let newStorePathWithRoot = path.join(process.env.DICOM_STORE_ROOTPATH ,new_store_path);
+    await fileFunc.mkdir_Not_Exist(newStorePathWithRoot);
+    await moveFile(tempFilename,newStorePathWithRoot , {
+        overwrite : true
+    });
+    return newStorePathWithRoot;
+}
+
+async function saveUploadDicom(tempFilename, filename) {
     return new Promise(async (resolve, reject) => {
         let maxSize = 500 * 1024 * 1024;
-        let fileSize = fs.statSync(buffer).size;
+        let fileSize = fs.statSync(tempFilename).size;
         let fhirData = "";
         if (fileSize > maxSize) {
-            if (_.isString(buffer)) {
-                let dcmJson = await dcm2jsonV8.exec(buffer);
+            if (_.isString(tempFilename)) {
+                let dcmJson = await dcm2jsonV8.exec(tempFilename);
                 fhirData = await FHIR_Imagingstudy_model.DCMJson2FHIR(dcmJson);
             }
         } else {
-            fhirData = await FHIR_Imagingstudy_model.DCM2FHIR(buffer).catch((err) => {
+            fhirData = await FHIR_Imagingstudy_model.DCM2FHIR(tempFilename).catch((err) => {
                 console.error(err);
-                fs.unlinkSync(buffer);
+                fs.unlinkSync(tempFilename);
                 return resolve(false);
             });
         }
         if (!fhirData) {
-            fs.unlinkSync(buffer);
+            fs.unlinkSync(tempFilename);
             return resolve(false);
         }
         // let fhirData = fhirDataList[0];
         if (!fhirData.started) {
-            fs.unlinkSync(buffer);
+            fs.unlinkSync(tempFilename);
             return resolve(false);
         }
-        let started_date = new Date(fhirData.started).toISOString();
-        let started_date_split = started_date.split('-');
-        let year = started_date_split[0];
-        let month = started_date_split[1];
-        let uid = fhirData.series[0].uid;
-        let uuid = sh.unique(uid);
-        let new_store_path = `files/${year}/${month}/${uuid}/${filename}`
-        fhirData.series[0].instance[0].store_path = new_store_path;
-        let newStorePathWithRoot = path.join(process.env.DICOM_STORE_ROOTPATH + new_store_path);
-        await fileFunc.mkdir_Not_Exist(newStorePathWithRoot);
-        await moveFile(buffer,newStorePathWithRoot , {
-            overwrite : true
-        });
-        let execCmd = "";
-        let jpegFile = newStorePathWithRoot.replace(/\.dcm/gi , '');
-        if (process.env.ENV == "windows") {
-            execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${newStorePathWithRoot} ${jpegFile} --all-frames`;
-        } else if (process.env.ENV == "linux") {
-            execCmd = `dcmj2pnm --write-jpeg ${newStorePathWithRoot} ${jpegFile}--all-frames`;
-        }
+        let newStoredFilename = await saveDicomFile(fhirData , tempFilename , filename);
+        fhirData = await getFHIRIntegrateDICOMJson(newStoredFilename , fhirData);
+        return resolve(fhirData);
+    });
+}
+
+function insertMetadata (metadata) {
+    return new Promise(async (resolve)=> {
         try {
-            await dcm2jpegCustomCmd(execCmd);
-        } catch (e) {
-            try {
-                await getJpeg[process.env.ENV].getJpegByPydicom(process.env.DICOM_STORE_ROOTPATH + new_store_path );
-            } catch (e) {
-                console.error(e);
-            }
-        }
-        let dicomJson = "";
-        try {
-            dicomJson = await dcm2jsonV8.exec(process.env.DICOM_STORE_ROOTPATH + new_store_path);
+            await mongodb.dicomMetadata.updateOne({
+                'studyUID' : metadata.studyUID ,
+                'seriesUID' : metadata.seriesUID , 
+                'instanceUID' : metadata.instanceUID
+            } , metadata , {
+                upsert : true
+            });
+            return resolve(true);
         } catch (e) {
             console.error(e);
-            throw e;
+            return resolve(false);
         }
-        delete dicomJson["7fe00010"];
+    });
+}
 
-        let QIDOLevelKeys = Object.keys(QIDORetAtt);
-        let QIDOAtt = Object.assign({}, QIDORetAtt);
-        for (let i = 0; i < QIDOLevelKeys.length; i++) {
-            let levelTags = Object.keys(QIDORetAtt[QIDOLevelKeys[i]]);
-            for (let x = 0; x < levelTags.length; x++) {
-                let nowLevelKeyItem = QIDOAtt[QIDOLevelKeys[i]];
-                let setValueTag = levelTags[x];
-                if (dicomJson[setValueTag]) {
-                    nowLevelKeyItem[setValueTag] = dicomJson[setValueTag];
-                } else {
-                    if (!_.isObject(nowLevelKeyItem[setValueTag])) {
-                        delete nowLevelKeyItem[setValueTag];
-                    }
+async function getFHIRIntegrateDICOMJson (filename , fhirData) {
+    let dicomJson = "";
+    try {
+        dicomJson = await dcm2jsonV8.exec(filename);
+    } catch (e) { 
+        console.error(e);
+        throw e;
+    }
+    delete dicomJson["7fe00010"];
+    let jpegFile = filename.replace(/\.dcm/gi , '');
+    await generateJpeg(dicomJson , filename , jpegFile);
+    let QIDOLevelKeys = Object.keys(QIDORetAtt);
+    let QIDOAtt = Object.assign({}, QIDORetAtt);
+    for (let i = 0; i < QIDOLevelKeys.length; i++) {
+        let levelTags = Object.keys(QIDORetAtt[QIDOLevelKeys[i]]);
+        for (let x = 0; x < levelTags.length; x++) {
+            let nowLevelKeyItem = QIDOAtt[QIDOLevelKeys[i]];
+            let setValueTag = levelTags[x];
+            if (dicomJson[setValueTag]) {
+                nowLevelKeyItem[setValueTag] = dicomJson[setValueTag];
+            } else {
+                if (!_.isObject(nowLevelKeyItem[setValueTag])) {
+                    delete nowLevelKeyItem[setValueTag];
                 }
             }
         }
-        //QIDOAtt.instance = dicomJson;
-        let port = process.env.DICOMWEB_PORT || "";
-        port = (port) ? `:${port}` : "";
-        QIDOAtt.study['00081190'] = {
-            vr: "UT",
-            Value: [`http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${QIDOAtt.study['0020000D'].Value[0]}`]
-        }
-        fhirData['dicomJson'] = QIDOAtt.study;
-        QIDOAtt.series['00081190'] = {
-            vr: "UT",
-            Value: [`http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${QIDOAtt.study['0020000D'].Value[0]}/series/${QIDOAtt.series['0020000E'].Value[0]}`]
-        }
-        fhirData.series[0].dicomJson = QIDOAtt.series;
-        QIDOAtt.instance['00081190'] = {
-            vr: "UT",
-            Value: [`http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${QIDOAtt.study['0020000D'].Value[0]}/series/${QIDOAtt.series['0020000E'].Value[0]}/instances/${QIDOAtt.instance['00080018'].Value[0]}`]
-        }
-        fhirData.series[0].instance[0].dicomJson = QIDOAtt.instance;
-        dicomJson["7FE00010"] = {
-            "vr": "OW",
-            "BulkDataURI": `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${QIDOAtt.study['0020000D'].Value[0]}/series/${QIDOAtt.series['0020000E'].Value[0]}/instances/${QIDOAtt.instance['00080018'].Value[0]}`
-        }
-        fhirData.series[0].instance[0].metadata = dicomJson;
-        for (let i in fhirData.dicomJson["00080020"].Value) {
-            fhirData.dicomJson["00080020"].Value[i] = moment(fhirData.dicomJson["00080020"].Value[i], "YYYYMMDD").toDate();
-        }
-        return resolve(fhirData);
-    });
-    //let dicomJson = await FHIR_Imagingstudy_model.DCM2Json(process.env.DICOM_STORE_ROOTPATH + new_store_path);
-}
+    }
+    //QIDOAtt.instance = dicomJson;
+    let port = process.env.DICOMWEB_PORT || "";
+    port = (port) ? `:${port}` : "";
+    QIDOAtt.study['00081190'] = {
+        vr: "UT",
+        Value: [`http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${QIDOAtt.study['0020000D'].Value[0]}`]
+    }
+    fhirData['dicomJson'] = QIDOAtt.study;
+    QIDOAtt.series['00081190'] = {
+        vr: "UT",
+        Value: [`http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${QIDOAtt.study['0020000D'].Value[0]}/series/${QIDOAtt.series['0020000E'].Value[0]}`]
+    }
+    fhirData.series[0].dicomJson = QIDOAtt.series;
+    QIDOAtt.instance['00081190'] = {
+        vr: "UT",
+        Value: [`http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${QIDOAtt.study['0020000D'].Value[0]}/series/${QIDOAtt.series['0020000E'].Value[0]}/instances/${QIDOAtt.instance['00080018'].Value[0]}`]
+    }
+    fhirData.series[0].instance[0].dicomJson = QIDOAtt.instance;
+    dicomJson["7FE00010"] = {
+        "vr": "OW",
+        "BulkDataURI": `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${QIDOAtt.study['0020000D'].Value[0]}/series/${QIDOAtt.series['0020000E'].Value[0]}/instances/${QIDOAtt.instance['00080018'].Value[0]}`
+    }
 
+    //fhirData.series[0].instance[0].metadata = dicomJson;
+    for (let i in fhirData.dicomJson["00080020"].Value) {
+        fhirData.dicomJson["00080020"].Value[i] = moment(fhirData.dicomJson["00080020"].Value[i], "YYYYMMDD").toDate();
+    }
+    let metadata = _.cloneDeep(dicomJson);
+    _.set(metadata , 'studyUID' , metadata["0020000D"].Value[0]);
+    _.set(metadata , 'seriesUID' , metadata["0020000E"].Value[0]);
+    _.set(metadata , 'instanceUID' , metadata["00080018"].Value[0]);
+    await insertMetadata(metadata);
+    return fhirData;
+}
 /* Failure Reason
 A7xx - Refused out of Resources
 
@@ -265,7 +311,7 @@ module.exports = async (req, res) => {
                 let isNeedParsePatient = process.env.FHIR_NEED_PARSE_PATIENT == "true";
                 for (let i = 0; i < uploadedFiles.length; i++) {
                     if (!uploadedFiles[i].name) uploadedFiles[i].name=`${uuid.v4()}.dcm`;
-                    let FHIRData = await saveDicom(uploadedFiles[i].path, uploadedFiles[i].name);
+                    let FHIRData = await saveUploadDicom(uploadedFiles[i].path, uploadedFiles[i].name);
                     if (!FHIRData) {
                         continue;
                     }
@@ -333,6 +379,7 @@ module.exports = async (req, res) => {
 }
 
 
+
 module.exports.STOWWithoutRoute = async (filename) => {
     //store the successFiles;
     let successFiles = [];
@@ -356,7 +403,7 @@ module.exports.STOWWithoutRoute = async (filename) => {
         let readstream = fs.createReadStream(filename);
         //if env FHIR_NEED_PARSE_PATIENT is true then post the patient data
         let isNeedParsePatient = process.env.FHIR_NEED_PARSE_PATIENT == "true";
-        let FHIRData = await saveDicom(readstream, path.basename(filename));
+        let FHIRData = await saveUploadDicom(filename, path.basename(filename));
         if (!FHIRData) {
             return false;
         }
@@ -375,8 +422,9 @@ module.exports.STOWWithoutRoute = async (filename) => {
         let endPoint = await DCM2Endpoint_imagingStudy(FHIRData);
         await dicomEndpoint2MongoDB(endPoint);
         if (isNeedParsePatient) {
-            await dicomPatient2MongoDB(path.join(process.env.DICOM_STORE_ROOTPATH
+            let dcmJson = await dcm2jsonV8.exec(path.join(process.env.DICOM_STORE_ROOTPATH
                 , FHIRData.series[0].instance[0].store_path));
+            await dicomPatient2MongoDB(dcmJson);
         }
         FHIRData.endpoint = {
             reference: `Endpoint/${endPoint.id}`,

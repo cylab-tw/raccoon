@@ -77,6 +77,7 @@ RegisterApp.controller("RegisterCtrl" , function($scope, RegisterService)
     function clearError () {
         $scope.isAccError = false;
         $scope.isPasswordError = false;
+        $scope.isEmailError = false;
         $("input").removeClass("inputError");
     }
 });

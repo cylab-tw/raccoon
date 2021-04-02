@@ -13,9 +13,12 @@ router.get('/wado/' , validateParams({
     contentType : Joi.string() ,
     frameNumber : Joi.number().integer().min(1)
 } , "query" , {allowUnknown : true}),require('api/dicom/controller/wado'));
+
 router.get('/qido/studies/' ,validateParams({
     limit : Joi.number().integer() , 
     offset : Joi.number().integer()
 } , "query" , {allowUnknown:true}) ,  require('api/dicom/controller/qido'));
+
+router.get('/instance/:instanceUID/bulkdata/:objKey' , require('./controller/bulkData.js'));
 
 module.exports = router;

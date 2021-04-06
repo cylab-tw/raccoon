@@ -22,6 +22,7 @@ run `node server.js`
 ```bash
 npm install
 npm run build #This will download dcmtk executable binaries to ./models/dcmtk and generate example dotenv file.
+node-gyp rebuild #Build nodev8 dcmtk dcm2json
 ```
 ### Linux
 #### Test OS
@@ -32,6 +33,8 @@ npm run build #This will download dcmtk executable binaries to ./models/dcmtk an
 ```bash
 npm install
 npm run build #This will download dcmtk using apt-get install and generate example dotenv file.
+bash complie_dcmtk.sh  #Important!!! use in nodev8 dcm2json(complie the custom dcmtk)
+node-gyp rebuild #Build nodev8 dcmtk dcm2json
 ```
 ### dotenv Configuration
 ```bash

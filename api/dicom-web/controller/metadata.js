@@ -67,6 +67,9 @@ async function getSeriesMetadata (params) {
                 $and : [
                     {
                         studyUID : params.studyID
+                    } ,
+                    {
+                        seriesUID : params.seriesID
                     }
                 ]
                 

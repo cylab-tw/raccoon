@@ -10,8 +10,7 @@ RUN apt-get update -y && apt-get install python -y
 
 RUN apt-get install python3-pip -y
 RUN pip3 install --upgrade pip
-RUN pip3 install pydicom
-RUN pip3 install opencv-python
+RUN pip3 install pydicom opencv-python Pillow
 
 RUN apt-get install software-properties-common -y
 RUN apt-get update ##[edited]
@@ -25,7 +24,7 @@ swig \
 netcat
 
 #Build gdcm
-RUN curl https://altushost-swe.dl.sourceforge.net/project/gdcm/gdcm%202.x/GDCM%202.8.9/gdcm-2.8.9.tar.gz --output gdcm.tar.gz
+RUN curl https://sourceforge.net/projects/gdcm/files/gdcm%202.x/GDCM%202.8.9/gdcm-2.8.9.tar.gz --output gdcm.tar.gz
 RUN tar xzvf gdcm.tar.gz
 RUN cd /
 RUN mkdir gdcm-build
@@ -47,6 +46,19 @@ RUN cmake -DDCMTK_MODULES:STRING="ofstd;oflog;dcmdata;" \
 RUN make -j8
 RUN make DESTDIR=/nodejs/raccoon/models/dcmtk/linux-lib/ install
 
+#Build official dcmtk
+WORKDIR /
+RUN wget https://github.com/DCMTK/dcmtk/archive/refs/tags/DCMTK-3.6.6.tar.gz
+RUN tar xzvf DCMTK-3.6.6.tar.gz
+WORKDIR /dcmtk-DCMTK-3.6.6
+RUN mkdir build
+WORKDIR /dcmtk-DCMTK-3.6.6/build
+RUN cmake -DBUILD_SHARED_LIBS:BOOL=1 \
+-DBUILD_APPS:BOOL=1 \
+-DCMAKE_CXX_FLAGS:STRING="-fPIC" \
+-DCMAKE_C_FLAGS:STRING="-fPIC" ../
+RUN make -j8
+RUN make install
 
 #Set up node.js raccoon
 WORKDIR /

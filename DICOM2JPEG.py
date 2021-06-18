@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import io
 from pydicom import *
 import os
@@ -6,9 +7,10 @@ import gdcm
 import numpy as np
 import sys
 from PIL import Image
-import matplotlib.pyplot as plt
 import pydicom.pixel_data_handlers.gdcm_handler as gdcmHandler
 import pydicom
+import time
+
 
 
 
@@ -51,6 +53,7 @@ def get_windowing(data):
 pass
 
 def saveImage(ds, imageArray, saveName):
+    tStart = time.time()
     saveStatu = False
     #https://blog.csdn.net/appleyuchi/article/details/102388184
     if hasattr(ds , 'WindowCenter') and hasattr(ds , 'WindowWidth'):
@@ -86,6 +89,8 @@ def saveImage(ds, imageArray, saveName):
             saveStatu = cv2.imwrite(saveName, image_2d_scaled)
         pass
     pass
+    tEnd = time.time()
+    print("save Image time :" , tEnd - tStart)
     return True
 pass
 
@@ -156,7 +161,10 @@ if __name__ == '__main__':
     except:
         imageFormat = "jpg"
     pass
+    tStart = time.time()
     statu = DICOM2JPEG(filename, imageFormat)
+    tEnd = time.time()
+    print("process time:" , tEnd - tStart)
     if statu:
         print(1)
     else:

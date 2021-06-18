@@ -28,6 +28,9 @@ FHIR_NEED_PARSE_PATIENT = true
 
 CONDA_PATH = "path/conda.exe"
 CONDA_GDCM_ENV_NAME = "gdcm"
+
+USE_DCM2JPEG_PYTHONAPI = true
+DCM2JPEG_PYTHONAPI_PORT = 5000
 `
 async function main() {
     let userOS = OS.type().toLowerCase();

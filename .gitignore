@@ -30,3 +30,6 @@ build/
 dcmtk/
 dcmtk-build/
 models/dcmtk/linux-lib
+
+#ignore pycache
+__pycache__/

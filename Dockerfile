@@ -24,7 +24,7 @@ swig \
 netcat
 
 #Build gdcm
-RUN curl https://sourceforge.net/projects/gdcm/files/gdcm%202.x/GDCM%202.8.9/gdcm-2.8.9.tar.gz --output gdcm.tar.gz
+RUN wget -O gdcm.tar.gz https://sourceforge.net/projects/gdcm/files/gdcm%202.x/GDCM%202.8.9/gdcm-2.8.9.tar.gz
 RUN tar xzvf gdcm.tar.gz
 RUN cd /
 RUN mkdir gdcm-build

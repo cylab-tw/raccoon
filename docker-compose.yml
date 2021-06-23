@@ -14,7 +14,7 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=Raccoon#Admin2Mongo
       - MONGO_PORT=27017
-  node_web:
+  raccoon:
     build:
       context : ./
       dockerfile : Dockerfile

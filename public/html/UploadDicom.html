@@ -4,55 +4,98 @@
 <head>
     <title>Raccoon | Upload DICOM</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport"
+        content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="../css/file/UploadDicom.css">
 </head>
 
-<body>
+
+<body ondragover="angular.element(this).scope().dragoverHandler(event);angular.element(this).scope().dragEnter()"
+    ondrop="angular.element(this).scope().dropHandler(event);angular.element(this).scope().dragLeave()"
+    ondragleave="angular.element(this).scope().dragLeave()">
     <div ng-include="'/navbar.html'"></div>
-    <div class="container-fluid h-100" ondragover="angular.element(this).scope().dragoverHandler(event);angular.element(this).scope().dragEnter()" ondrop="angular.element(this).scope().dragoverHandler(event);angular.element(this).scope().dragLeave()" ondragleave="angular.element(this).scope().dragLeave()">
-        <div class="row h-100">
-            <div id="col-t" class="col-12">
-                <div id="consoleTable">
-                    <h4 class="text-info">- DICOM UPLOAD -</h4>
-                    <h5>
-                        <span>
-                            <strong>上傳進度：{{systemStatus}}</strong>
-                        </span>
-                    </h5>
-                    <div class="progress w-75 m-auto">
-                        <div class="progress-bar progress-bar-striped bg-success progress-bar-animated" style="width: {{uploadProgres}}%"></div>
-                    </div><br />
-                    <h6><strong id="dragTips">拖曳檔案或點擊"選擇檔案"</strong></h6>
-                    <h6>檔案列表：{{fileList.length}} Files</h6>
-                    <input type="button" class="btn btn-sm btn-success" value="開始上傳" onclick="angular.element(this).scope().uploadFiles()">&nbsp;&nbsp;
-                    <input type="button" class="btn btn-sm btn-primary" value="選擇檔案" onclick="file.click()">&nbsp;&nbsp;
-                    <input type="button" class="btn btn-sm btn-danger" value="重置上傳" onclick="angular.element(this).scope().resetUpload()">
-                    <input id="file" type="file" style="display: none" onchange="angular.element(this).scope().appendFiles(this.files)" multiple="multiple" />
+    <div id="consoleTable">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12 col-md-4 text-center text-md-left text-nowrap">
+                    <h2 class="text-success">DICOM Uploader</h2>
                 </div>
-            </div>
-            <div id="col-b" class="col-12">
-                <div id="infoTable" ondrop="angular.element(this).scope().dropHandler(event);angular.element(this).scope().dragLeave()">
-                    <table class="table table-sm table-striped table-bordered table-hover text-center text-nowrap bg-light">
+                <div class="col-12 col-md-8 text-center text-md-right">
+                    <button class="btn btn-success mt-1 mr-1" ng-click="uploadFile()"><i
+                            class="fas fa-upload"></i>&nbsp;全部上傳</button>
+                    <button class="btn btn-danger mt-1 mr-1" ng-click="resetUpload()"><i
+                            class="far fa-trash-alt"></i>&nbsp;重置</button>
+                    <button class="btn btn-secondary mt-1 mr-1" onclick="inputFile.click()"><i
+                            class="fas fa-file-alt"></i>&nbsp;選擇檔案</button>
+                    <button class="btn btn-secondary mt-1" onclick="inputFolder.click()"><i
+                            class="fas fa-folder-open"></i>&nbsp;選擇資料夾</button>
+                    <input id="inputFile" type="file" class="d-none"
+                        onchange="angular.element(this).scope().appendFiles(this.files)" multiple="multiple" />
+                    <input id="inputFolder" type="file" class="d-none" webkitdirectory="true"
+                        onchange="angular.element(this).scope().appendFiles(this.files)" />
+                </div>
+                <div class="col-12 text-center">
+                    <div ng-show="IsUploading">
+                        <h5 class="mt-1">
+                            <strong>上傳進度：{{(successUpload+errorUpload)/totalUpload*100| number:0}}%
+                                ({{(successUpload+errorUpload)+" / "+totalUpload}})</strong>
+                        </h5>
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped bg-success progress-bar-animated"
+                                ng-style="{'width' : ((successUpload+errorUpload)/totalUpload*100)+'%'}"></div>
+                        </div>
+                    </div>
+                    <h5 class="mt-1" ng-show="!IsUploading && !IsNewUpload"><strong>{{uploadResult}}</strong></h5>
+                </div>
+                <!-- File table -->
+                <div class="col-12">
+                    <hr />
+                    <h6>
+                        <div class="float-left mb-1">檔案列表：{{fileList.length}} Files</div>
+                        <div class="float-right mb-1">
+                            <input type="checkbox" class="mr-1" ng-model="AllowSameFileName">允許同檔名檔案
+                        </div>
+                    </h6>
+                    <table
+                        class="table table-sm table-striped table-bordered table-hover table-rwd text-center bg-light">
                         <thead>
-                            <tr>
-                                <th style="width: 5%;">No.</th>
-                                <th ng-click="orderCol='fileName'; reverseList=!reverseList;" style="width: 15%;">檔案名稱</th>
-                                <th ng-click="orderCol='Status'; reverseList=!reverseList;" style="width: 10%;">狀態</th>
-                                <th ng-click="orderCol='Result'; reverseList=!reverseList;" style="width: 65%;">處理結果</th>
-                                <th style="width: 5%;">刪除</th>
+                            <tr class="tr-only-hide">
+                                <th style="width: 5%">No.</th>
+                                <th style="width: 30%;" ng-click="orderCol='fileName'; reverseList=!reverseList;">
+                                    檔案名稱</th>
+                                <th style="width: 10%;" ng-click="orderCol='Status'; reverseList=!reverseList;">狀態
+                                </th>
+                                <th style="width: 45%;" ng-click="orderCol='Result'; reverseList=!reverseList;">處理進度
+                                </th>
+                                <th style="width: 10%;">操作</th>
                             </tr>
                         </thead>
-                        <tbody ng-init="textColor={success:'success',warning:'warning',fail:'danger',ready:'primary'}">
-                            <tr ng-repeat="fileItem in fileList | orderBy:orderCol:reverseList" ng-click="uploadCompleted && selectResultInit(fileItem.fileName);selectFileName=fileItem.fileName">
-                                <th>{{ $index + 1 }}</th>
-                                <td>{{fileItem.fileName}}</td>
-                                <td><strong class="text-{{textColor[fileItem.Status]}} text-uppercase">{{fileItem.Status}}</strong></td>
-                                <td class="text-{{textColor[fileItem.Status]}}"><strong>{{fileItem.Result}}</strong></td>
-                                <td>
-                                    <button class="btn-sm btn-danger" ng-click="cancelFile(fileItem.fileName)">刪除</button>
+                        <tbody>
+                            <tr ng-repeat="fileItem in fileList | orderBy:orderCol:reverseList">
+                                <td data-th="No.">{{ $index + 1 }}</td>
+                                <td data-th="檔案名稱">{{fileItem.fileName}}</td>
+                                <td data-th="狀態">
+                                    <strong class="text-uppercase"
+                                        ng-class="setTextColor(fileItem.Status)">{{fileItem.Status}}</strong>
+                                </td>
+                                <td data-th="處理進度" class="align-middle">
+                                    <strong ng-show="fileItem.ProgressRate==0"
+                                        ng-class="setTextColor(fileItem.Status)">{{fileItem.Result}}</strong>
+                                    <div class="progress" ng-show="fileItem.ProgressRate!=0">
+                                        <div class="progress-bar progress-bar-striped bg-info progress-bar-animated"
+                                            ng-style="{'width' : fileItem.ProgressRate+'%'}"></div>
+                                    </div>
+                                </td>
+                                <td data-th="操作" class="text-nowrap">
+                                    <button class="btn btn-sm btn-success"
+                                        ng-click="uploadFile(fileList.indexOf(fileItem))"><i
+                                            class="fas fa-upload"></i></button>
+                                    <button class="btn btn-sm btn-danger"
+                                        ng-click="removeFile(fileList.indexOf(fileItem))"><i
+                                            class="far fa-trash-alt"></i></button>
                                 </td>
                             </tr>
                         </tbody>
@@ -61,15 +104,44 @@
             </div>
         </div>
     </div>
+    <!-- Modal -->
+    <div class="modal fade" id="SystemInfoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><strong id="SystemInfoTitle"></strong></h5>
+                    <button type="button" class="close" data-dismiss="modal" ng-click="systemInfo=''">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div id="SystemInfoText" class="modal-body"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info" data-dismiss="modal" ng-click="systemInfo=''">確認</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
 
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous">
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous">
+</script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous">
+</script>
 <script src="../scripts/external/angularjs/angular.min.js"></script>
 <script src="../scripts/ngCommon.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<script src="../scripts/external/FormData-master/FormData.js"></script>
+<script type="module">
+    import {  formDataToBlob  } from '../scripts/external/formdata/formdata-to-blob.js'
+    window.formDataToBlob  = formDataToBlob;
+</script>
+<script src="../scripts/external/formdata/formdata.min.js"></script>
+
+
 <script src="../scripts/dicom/UploadDicom.js"></script>

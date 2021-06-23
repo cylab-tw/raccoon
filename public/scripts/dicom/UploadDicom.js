@@ -1,24 +1,22 @@
-var UploadApp = angular.module("UploadApp", ["commonApp"]);
-UploadApp.controller("UploadCtrl", function ($scope, $location, $window, UploadService  , commonService) {
+var UploadApp = angular.module("UploadApp", []);
+UploadApp.controller("UploadCtrl", function ($scope, $location, $window, UploadService) {
     $scope.fileList = [];
-    $scope.selectFileName = '';
-    $scope.selectQueryKey = [];
-    $scope.selectFileResult = [];
     $scope.uploadProgres = 0;
-    $scope.uploadCompleted = false;
-    $scope.systemStatus = "準備上傳";
-    const uploadApiUrl = "/dicom-web/studies";
-    let FD = new FormData();
-    let UploadResult = {};
-    commonService.user.init($scope);
+    $scope.IsNewUpload = true;
+    $scope.IsUploading = false;
+    $scope.AllowSameFileName = false;
+    $scope.totalUpload = 0;
+    $scope.successUpload = 0;
+    $scope.errorUpload = 0;
+    $scope.systemInfo = '';
+    $scope.uploadResult = '';
+
     $scope.dragEnter = function () {
-        document.getElementById("infoTable").style.borderColor = 'red';
-        document.getElementById("dragTips").innerHTML = '拖曳至下方紅框';
+        document.body.style.borderColor = 'red';
     }
 
     $scope.dragLeave = function () {
-        document.getElementById("infoTable").style.borderColor = '';
-        document.getElementById("dragTips").innerHTML = '拖曳檔案或點擊"選擇檔案"';
+        document.body.style.borderColor = 'gainsboro';
     }
 
     $scope.dragoverHandler = function (evt) {
@@ -31,125 +29,186 @@ UploadApp.controller("UploadCtrl", function ($scope, $location, $window, UploadS
     }
 
     $scope.appendFiles = function (files) {
-        if ($scope.uploadCompleted) $scope.resetUpload();
+        if ($scope.IsUploading) {
+            ApplySystemInfo("info", "", "正在進行上傳作業，請稍後...");
+            return;
+        } else if (!$scope.IsNewUpload) {
+            $scope.fileList = [];
+            $scope.IsNewUpload = true;
+            $scope.uploadProgres = 0;
+            $scope.totalUpload = 0;
+            $scope.successUpload = 0;
+            $scope.errorUpload = 0;
+        };
+        let unallowFile = [];
         for (let i = 0; i < files.length; i++) {
             let fileExtension = files[i].name.slice((files[i].name.lastIndexOf(".") - 1 >>> 0) + 2);
-            if (typeof (fileExtension) == 'undefined') {
-                alert("無法辨識的檔案類型，請選擇.dcm檔！");
-            } else if (fileExtension.indexOf("dcm") == -1) {
-                alert("無法上傳 " + files[i].name + "，請選擇.dcm檔！");
+            if (typeof (fileExtension) == 'undefined' || fileExtension.indexOf("dcm") == -1) {
+                unallowFile.push(files[i].name);
             } else {
-                let fileList = FD.getAll('Files[]');
+                let fileObj = {
+                    'fileName': (files[i].webkitRelativePath) ? (files[i].webkitRelativePath) : (files[i].name),
+                    'Status': 'ready',
+                    'ProgressRate': 0,
+                    'Result': "新增時間：" + getNowTime().Y + "-" + getNowTime().M + "-" + + getNowTime().D + " " + getNowTime().moon + " " + getNowTime().h + ":" + getNowTime().m + ":" + getNowTime().s,
+                    'FormData': new FormData()
+                };
+                fileObj.FormData.append('file', files[i]);
                 let fileExist = false;
-                fileList.forEach(item => {
-                    if (item.name == files[i].name) fileExist = true;
-                })
-                if (!fileExist) FD.append('Files[]', files[i]);
+                if (!$scope.AllowSameFileName) {
+                    $scope.fileList.forEach((item, index) => {
+                        if (item.fileName == fileObj.fileName) {
+                            $scope.fileList[index] = fileObj;
+                            fileExist = true;
+                        };
+                    })
+                }
+                if (!fileExist) $scope.fileList.push(fileObj);
             }
         }
-        $scope.showFiles();
-        // Clear file
-        document.getElementById("file").value = "";
-    }
-
-    $scope.cancelFile = function (fileName) {
-        let files = FD.getAll('Files[]');
-        FD = new FormData();
-        for (let i in files) {
-            if (files[i].name !== fileName) {
-                FD.append('Files[]', files[i]);
-            }
-        }
-        $scope.showFiles();
-    }
-
-    $scope.showFiles = function () {
-        let files = FD.getAll('Files[]');
-        $scope.fileList = [];
-        for (let i in files) {
-            $scope.fileList.push({ fileName: files[i].name, Status: "ready", Result: "-" });
+        if (unallowFile.length > 0) {
+            let text = "無法上傳 " + unallowFile.length + " 個檔案：\n";
+            unallowFile.forEach((item, index) => {
+                text += (index + 1) + ". " + item + "\n"
+            })
+            ApplySystemInfo("warning", "請選擇.dcm檔上傳！", text);
         }
         $scope.$applyAsync();
+        // Clear file
+        document.getElementById("inputFile").value = "";
+        document.getElementById("inputFolder").value = "";
+    }
+
+    $scope.removeFile = function (index) {
+        if ($scope.IsUploading) {
+            ApplySystemInfo("info", "", "正在進行上傳作業，請稍後...");
+        } else {
+            $scope.fileList.splice(index, 1);
+            $scope.$applyAsync();
+        }
     }
 
     $scope.resetUpload = function () {
-        FD = new FormData();
-        $scope.uploadProgres = 0;
-        $scope.uploadCompleted = false;
-        $scope.systemStatus = "準備上傳";
-        $scope.showFiles();
+        let text = ($scope.IsUploading) ? "正在進行上傳作業，將會遺失進度，確定要重置？" : "確定要重置上傳作業？";
+        if (confirm(text)) window.location.reload();
     }
 
-    $scope.uploadFiles = function () {
-        let xhr = new XMLHttpRequest();
-        FD.setBoundary('----formdata-polyfill-' + Math.random());
-        let boundary = FD.getBoundary();
-        xhr.open('POST', uploadApiUrl , true);
-        xhr.setRequestHeader("Accept" , "*/*");
-        xhr.setRequestHeader("Content-Type", `multipart/related; boundary=${boundary}`);
-        xhr.setRequestHeader("temp-type" , `multipart/related; boundary=${boundary}`);
-        //xhr.setRequestHeader("Content-Type" , `multipart/form-data`);
-        xhr.onload = function () {
-            $scope.uploadCompleted = true;
-            $scope.uploadProgres = 0;
-            if (xhr.status === 200) {
-                alert("上傳成功");
-                $scope.systemStatus = "已完成上傳";
-                UploadResult = JSON.parse(xhr.responseText).result;
-                $scope.fileList.forEach(item => {
-                    if (UploadResult.indexOf(item.fileName) != -1) {
-                        item.Status = "success";
-                        item.Result = "上傳完成";
-                    } else {
-                        item.Status = "fail";
-                        item.Result = "上傳失敗";
-                    }
-                })
-                $scope.$applyAsync();
-            } else {
-                // upload error
-                alert("伺服器發生錯誤");
-                $scope.systemStatus = "伺服器發生錯誤";
-                $scope.fileList.forEach(item => {
-                    item.Status = "fail";
-                    item.Result = "上傳失敗";
-                })
-            }
-            $scope.$applyAsync();
-        };
-        xhr.upload.onprogress = function (evt) {
-            if (evt.lengthComputable) {
-                $scope.uploadProgres = (evt.loaded / evt.total * 100 | 0);
-                $scope.systemStatus = $scope.uploadProgres + "%";
-                ($scope.uploadProgres == 100) && ($scope.systemStatus = "正在儲存至資料庫...");
-                $scope.$applyAsync();
-            }
-        }
-        if (FD.getAll('Files[]').length > 0) {
-            if (confirm("確認要上傳嗎？")) {
-                console.log(FD.getAll("Files[]"));
-                /*fermata.json(uploadApiUrl).post({'Content-Type':`multipart/form-data`}, {fileField: FD.getAll("Files[]")}, function () {
-                    console.log("test");
-                })*/
-                console.log(FD.getBoundary());
-                
-                xhr.send(FD._blob ? FD._blob() : FD);
-            } else {
-                alert("已取消上傳作業。");
+    $scope.uploadFile = async function (index) {
+        if ($scope.IsUploading) {
+            ApplySystemInfo("info", "", "正在進行上傳作業，請稍後...");
+        } else if (index != undefined) {
+            if (confirm("確認要上傳 " + $scope.fileList[index].fileName + "？")) {
+                $scope.IsNewUpload = false;
+                $scope.IsUploading = true;
+                $scope.totalUpload = 1;
+                await FileUploader($scope.fileList[index])
+                    .then(res => {
+                        ApplySystemInfo("success", "上傳成功", $scope.fileList[index].fileName + " 上傳完成");
+                        $scope.uploadResult = "上傳完成：" + $scope.fileList[index].fileName;
+                        $scope.totalUpload = 0;
+                        $scope.successUpload = 0;
+                        $scope.errorUpload = 0;
+                        $scope.IsUploading = false;
+                    })
             }
         } else {
-            alert("請選擇要上傳的檔案。");
+            if ($scope.fileList.length == 0) {
+                ApplySystemInfo("info", "請先選擇上傳檔案", "\"拖曳檔案\" 或 \"選擇檔案、資料夾\"。");
+            } else if (confirm("確認要上傳 " + $scope.fileList.length + " 個檔案？")) {
+                $scope.IsNewUpload = false;
+                $scope.IsUploading = true;
+                $scope.totalUpload = $scope.fileList.length;
+                // Start Upload
+                for (let i = 0; i < $scope.fileList.length; i++) {
+                    await FileUploader($scope.fileList[i]);
+                }
+                // Complete Upload
+                ApplySystemInfo("success", "上傳成功", "上傳 " + $scope.totalUpload + " 個檔案完成。\n" + $scope.successUpload + "成功。" + $scope.errorUpload + "失敗");
+                $scope.uploadResult = "上傳完成：" + $scope.successUpload + " 筆成功，" + $scope.errorUpload + " 筆失敗，共 " + $scope.totalUpload + " 個檔案。"
+                $scope.totalUpload = 0;
+                $scope.successUpload = 0;
+                $scope.errorUpload = 0;
+                $scope.IsUploading = false;                
+            }
         }
     }
+
+    function FileUploader(file) {
+        return new Promise(resolve => {
+            let xhr = new XMLHttpRequest();
+            xhr.open('POST', '/dicom-web/studies');
+            xhr.setRequestHeader("Accept", "*/*");
+            
+            xhr.onload = function () {
+                //上傳完成
+                file.ProgressRate = 0;
+                if (xhr.status === 200) {
+                    $scope.successUpload++;
+                    file.Status = "success";
+                    file.Result = xhr.statusText;
+                } else {
+                    $scope.errorUpload++;
+                    file.Status = "fail";
+                    file.Result = xhr.statusText;
+                }
+                $scope.$applyAsync();
+                resolve();
+            };
+            xhr.upload.onprogress = function (evt) {
+                if (evt.lengthComputable) {
+                    file.ProgressRate = (evt.loaded / evt.total * 100 | 0);
+                    file.Status = file.ProgressRate + "%";
+                    (file.ProgressRate == 100) && (file.Status = "處理中");
+                    $scope.$applyAsync();
+                }
+            }
+            let myBlob = formDataToBlob(file.FormData);
+            let m = myBlob.type.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
+            let boundary = m[1] || m[2];
+            xhr.setRequestHeader("Content-Type", `multipart/related; type="application/dicom"; boundary=------------------------${boundary}`);
+            xhr.send(myBlob);
+        })
+    }
+
+    $scope.setTextColor = (text) => {
+        if (text == 'success') return 'text-success';
+        else if (text == 'warning') return 'text-warning';
+        else if (text == 'fail') return 'text-danger';
+        else if (text == 'ready') return 'text-primary';
+        else return 'text-info';
+    }
+
     function makeid(length) {
-        var result           = '';
-        var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        var result = '';
+        var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         var charactersLength = characters.length;
-        for ( var i = 0; i < length; i++ ) {
-           result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        for (var i = 0; i < length; i++) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
         }
         return result;
-     }
+    }
+
+    function ApplySystemInfo(type, title, text) {
+        $("#SystemInfoTitle").text("系統訊息：" + title);
+        $("#SystemInfoTitle").removeClass();
+        $("#SystemInfoTitle").addClass("text-" + type);
+        $("#SystemInfoText").text(text);
+        $('#SystemInfoModal').modal('toggle');
+    }
+
+    function getNowTime() {
+        let date = new Date();
+        let time = {
+            'Y': date.getFullYear(),
+            'M': ("0" + (date.getMonth() + 1)).slice(-2),
+            'D': ("0" + date.getDate()).slice(-2),
+            'h': ("0" + date.getHours()).slice(-2),
+            'm': ("0" + date.getMinutes()).slice(-2),
+            's': ("0" + date.getSeconds()).slice(-2),
+            'moon': (("0" + date.getHours()).slice(-2) < 12) ? ('上午') : ('下午')
+        }
+        return time
+    }
 });
 
 UploadApp.service('UploadService', function ($http, $q, $location) {

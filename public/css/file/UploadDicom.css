@@ -3,31 +3,17 @@ body {
   height: 100%;
 }
 
-#col-t {
-  padding-top: calc(1rem + 55px); 
-}
-
-#col-b {
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  height: calc(100% - 19rem);
-  min-height: 300px;
+body {
+  padding-top: 3.5rem;
+  background-color: gainsboro;  
+  border-style: solid;
+  border-color: gainsboro;
 }
 
 #consoleTable {
-  border: 3px ridge;
-  background-color: #C0C0C0;
-  padding: 1rem;
-  text-align: center;
+  padding: 1rem 0;
 }
 
-#infoTable {
-  border: 3px ridge;
-  height: 100%;
-  overflow: auto;
-  table-layout: fixed;
-}
-
-#infoTable table>thead>tr>th:hover {
-  color: brown;
+#SystemInfoModal .modal-body {
+  white-space: pre-line
 }

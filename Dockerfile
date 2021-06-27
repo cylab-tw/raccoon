@@ -10,7 +10,7 @@ RUN apt-get update -y && apt-get install python -y
 
 RUN apt-get install python3-pip -y
 RUN pip3 install --upgrade pip
-RUN pip3 install pydicom opencv-python Pillow
+RUN pip3 install pydicom opencv-python Pillow flask matplotlib
 
 RUN apt-get install software-properties-common -y
 RUN apt-get update ##[edited]

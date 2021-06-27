@@ -32,9 +32,9 @@ services:
       '
     volumes :
       - ./:/nodejs/raccoon
-      - /nodejs/raccoon/node_modules
-      - /nodejs/raccoon/build
-      - /nodejs/raccoon/models/dcmtk/linux-lib
+      - raccoon-node_modules:/nodejs/raccoon/node_modules
+      - raccoon-gyp-build:/nodejs/raccoon/build
+      - raccoon-dcmtk-linux:/nodejs/raccoon/models/dcmtk/linux-lib
     ports:
       - 8081:8081
     depends_on:
@@ -42,3 +42,7 @@ services:
     tty : true
     restart: on-failure:3
     stdin_open : true
+volumes:
+  raccoon-node_modules:
+  raccoon-gyp-build:
+  raccoon-dcmtk-linux:

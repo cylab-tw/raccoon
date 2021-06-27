@@ -14,6 +14,7 @@ const mongodb = require('./models/mongodb');
 const mongoose = require('mongoose');
 const MongoStore = require('connect-mongo')({ session: session });
 //
+const fetch = require('node-fetch');
 const os = require('os');
 const { exec } = require('child_process');
 require('dotenv').config();
@@ -89,51 +90,65 @@ process.env.USE_DCM2JPEG_PYTHONAPI = (process.env.USE_DCM2JPEG_PYTHONAPI=='true'
 let condaPath = process.env.CONDA_PATH;
 let condaEnvName = process.env.CONDA_GDCM_ENV_NAME;
 
-if (process.env.USE_DCM2JPEG_PYTHONAPI) {
-  if (process.env.ENV == "windows") {
-    exec(`${condaPath} run -n ${condaEnvName} python DICOM2JPEGAPI.py ${process.env.DCM2JPEG_PYTHONAPI_PORT}`, {
-      cwd: process.cwd()
-    }, function (err, stdout, stderr) {
-      if (err) {
-        console.error(err);
-        process.exit(1);
-      } else if (stderr) {
-        console.error(stderr);
-        process.exit(1);
+(async ()=> {
+  let isflaskRunning = false;
+  if (process.env.USE_DCM2JPEG_PYTHONAPI) {
+    try {
+      let res = await fetch(`http://localhost:${process.env.DCM2JPEG_PYTHONAPI_PORT}/`);
+      let resJson = await res.json();
+      if (resJson.status) {
+        isflaskRunning = true;
+        console.log('the dcm2jpeg python flask api ready');  
       }
-    });
-  } else {
-    exec(`python3 DICOM2JPEGAPI.py ${process.env.DCM2JPEG_PYTHONAPI_PORT}`, {
-      cwd: process.cwd()
-    }, function (err, stdout, stderr) {
-      if (err) {
-        console.error(err);
-        process.exit(1)
-      } else if (stderr) {
-        console.error(stderr);
+    } catch (e) {
+
+    }
+    if (!isflaskRunning) {
+      if (process.env.ENV == "windows") {
+        exec(`${condaPath} run -n ${condaEnvName} python DICOM2JPEGAPI.py ${process.env.DCM2JPEG_PYTHONAPI_PORT}`, {
+          cwd: process.cwd()
+        }, function (err, stdout, stderr) {
+          if (err) {
+            console.error(err);
+            process.exit(1);
+          } else if (stderr) {
+            console.error(stderr);
+            process.exit(1);
+          }
+        });
+      } else {
+        exec(`python3 DICOM2JPEGAPI.py ${process.env.DCM2JPEG_PYTHONAPI_PORT}`, {
+          cwd: process.cwd()
+        }, function (err, stdout, stderr) {
+          if (err) {
+            console.error(err);
+            process.exit(1)
+          } else if (stderr) {
+            console.error(stderr);
+          }
+        });
       }
-    });
+    }
   }
-}
+})();
+
 (()=> {
   let checkAPITimes = 0;
-  let checkAPIInterval = setInterval(async ()=> {
-    if (checkAPITimes >=30) {
-      console.error("The dcm2jpeg python flask api set up failure");
-      process.exit(1);
-    }
-    if (process.env.USE_DCM2JPEG_PYTHONAPI) {
-      const fetch = require('node-fetch');
-        try {
-          let res = await fetch(`http://localhost:${process.env.DCM2JPEG_PYTHONAPI_PORT}/`)
-          console.log('the dcm2jpeg python flask api ready');
-          clearInterval(checkAPIInterval);
-        } catch (e) {
-          checkAPITimes++;
-        }
-    }
-  } , 1000);
-
+  if (process.env.USE_DCM2JPEG_PYTHONAPI) {
+    let checkAPIInterval = setInterval(async ()=> {
+      if (checkAPITimes >=30) {
+        console.error("The dcm2jpeg python flask api set up failure");
+        process.exit(1);
+      }
+      try {
+        let res = await fetch(`http://localhost:${process.env.DCM2JPEG_PYTHONAPI_PORT}/`)
+        console.log('the dcm2jpeg python flask api ready');
+        clearInterval(checkAPIInterval);
+      } catch (e) {
+        checkAPITimes++;
+      }
+    } , 1000);
+  }
 })();
 
 module.exports = app;

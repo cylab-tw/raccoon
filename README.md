@@ -153,3 +153,4 @@ metadata : `/api/fhir/metadata`
 
 # Acknowledgement
 * This project is supported by a grant from the Ministry of Science and Technology Taiwan.
+* Thanks [琦雯Queenie](https://www.cakeresume.com/Queenie0814?locale=zh-TW), [Queenie's github](https://github.com/Queenie0814) for contributing the logo design. 

@@ -105,11 +105,11 @@ async function InsertImagingStudy(Insert_Data, id) {
                 for (let y = 0; y < dataKeys.length; y++) {
                     ImagingStudy[dataKeys[y]] = tempInsertData[dataKeys[y]];
                 }
-                for (let x = 0; x < Insert_Data.series.length; x++) {
+                for (let x in Insert_Data.series) {
                     let series = Insert_Data.series[x];
                     let seriesStudy = await getImagingStudySeries(series);
                     if (seriesStudy[0]) {
-                        for (let j = 0; j < series.instance.length; j++) {
+                        for (let j in series.instance) {
                             let instance = series.instance[j];
                             let updateSeries = async function () {
                                 return new Promise((resolve) => {

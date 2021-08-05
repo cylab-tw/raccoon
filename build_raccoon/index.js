@@ -5,6 +5,7 @@ const fs = require('fs');
 const glob = require("glob");
 const fetch = require('node-fetch');
 const AdmZip = require('adm-zip');
+const mkdirp = require('mkdirp')
 let envText = `
 MONGODB_NAME="dbName"
 MONGODB_HOSTS=["localhost"]
@@ -33,6 +34,9 @@ USE_DCM2JPEG_PYTHONAPI = true
 DCM2JPEG_PYTHONAPI_PORT = 5000
 `
 async function main() {
+    if (!fs.existsSync('./temp')) {
+        mkdirp.sync('./temp' , 0775);
+    }
     let userOS = OS.type().toLowerCase();
     if (userOS.includes("windows")) {
         await genDCMTK("windows");

@@ -194,7 +194,7 @@ async function xml2dcm (filename , outputFilename) {
 
 async function getFrameImage (imagesPath , frameNumber) {
     let images = `${process.env.DICOM_STORE_ROOTPATH}${imagesPath}`;
-    let jpegFile = images.replace(/\.dcm\b/gi , `.${frameNumber}.jpg`);
+    let jpegFile = images.replace(/\.dcm\b/gi , `.${frameNumber-1}.jpg`);
     if (fs.existsSync(jpegFile)) {
         let rs = fs.createReadStream(jpegFile);
         return {
@@ -207,18 +207,22 @@ async function getFrameImage (imagesPath , frameNumber) {
     } else if (process.env.ENV == "linux") {
         execCmd = `dcmj2pnm --write-jpeg ${images} ${jpegFile} --frame ${frameNumber}`;
     }
-    let dcm2jpegStatu = await dcm2jpegCustomCmd(execCmd);
-    if (dcm2jpegStatu) {
-        let rs = fs.createReadStream(jpegFile);
+    try {
+        let dcm2jpegStatu = await dcm2jpegCustomCmd(execCmd);
+        if (dcm2jpegStatu) {
+            let rs = fs.createReadStream(jpegFile);
+            return {
+                statu : true , 
+                imageStream : rs
+            };
+        }
+    } catch(e) {
         return {
-            statu : true , 
-            imageStream : rs
-        };
-    } else {
-        return {
-            statu : false
+            statu : false ,
+            imageStream : e
         };
     }
+
 }
 
 module.exports = {

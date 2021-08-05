@@ -61,6 +61,9 @@ RUN make -j8
 RUN make install
 
 #Set up node.js raccoon
+ENV LD_LIBRARY_PATH="/usr/local/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/nodejs/raccoon/models/dcmtk/linux-lib/usr/local/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+RUN echo $LD_LIBRARY_PATH
 WORKDIR /
 RUN mkdir -p /nodejs/raccoon/
 WORKDIR /nodejs/raccoon/

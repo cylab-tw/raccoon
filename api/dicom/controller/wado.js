@@ -5,6 +5,7 @@ const path = require('path');
 const { exec, execFile } = require('child_process');
 const _ = require('lodash');
 const dicomParser = require('dicom-parser');
+const { getFrameImage } = require('../../../models/dcmtk/index');
 let DICOMWebHandleError = require('../../../models/DICOMWeb/httpMessage.js');
 let condaPath = process.env.CONDA_PATH;
 let condaEnvName =  process.env.CONDA_GDCM_ENV_NAME;
@@ -37,11 +38,11 @@ module.exports = async(req, res) =>
         let inputDicomFrameNumber = parseInt(dicomDataSet.intString("x00280008"));
         if (param.contentType == 'image/jpeg') {
             if (param.frameNumber) {
-                return handleFrameNumber(param , res , store_Path);
+                return await handleFrameNumber(param , res , store_Path);
             }
             if (inputDicomFrameNumber > 1) {
                 param.frameNumber = 1;
-                return handleFrameNumber(param , res , store_Path);
+                return await handleFrameNumber(param , res , store_Path);
             }
             let jpgFile = store_Path.replace('.dcm' , '.jpg');
             let isExist = fs.existsSync(jpgFile);
@@ -93,23 +94,19 @@ module.exports = async(req, res) =>
     }
 }
 
-function handleFrameNumber (param , res , dicomFile) {
+async function handleFrameNumber (param , res , dicomFile) {
     if (!_.isNumber(param.frameNumber)) {
         return DICOMWebHandleError.sendBadRequestMessage(res, "Parameter error : frameNumber must be Number");
     } 
     if (param.contentType != "image/jpeg") {
         return DICOMWebHandleError.sendBadRequestMessage(res, "Parameter error : contentType only support image/jpeg with frameNumber");
     }
-    let newFileName = dicomFile.replace(/(\.dcm)/gi , `.${param.frameNumber}.jpg`);
-    execFile('models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe', [dicomFile, "--write-jpeg", "--frame" , param.frameNumber , newFileName], function (err, stdout, stderr) {
-        if (err) {
-            return res.sendServerWrongMessage(res , `dcmtk Convert frame error ${err}`);
-        }
-        if (stderr) {
-            return res.sendServerWrongMessage(res , `dcmtk Convert frame error ${stderr}`);
-        }
-        return fs.createReadStream(newFileName).pipe(res);
-    });
+    let frame = await getFrameImage(dicomFile.replace(process.env.DICOM_STORE_ROOTPATH,""), param.frameNumber)
+    if (frame.statu) {
+        return frame.imageStream.pipe(res);
+    } else {
+        return DICOMWebHandleError.sendServerWrongMessage(res , `dcmtk Convert frame error ${frame.imageStream}`);
+    }
 }
 
 async function get_Instance_StorePath(i_Param)

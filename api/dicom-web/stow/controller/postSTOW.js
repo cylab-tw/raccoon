@@ -17,7 +17,7 @@ const moveFile = require('move-file');
 const uuid = require('uuid');
 const { getJpeg } = require('../../../../models/python');
 const mongodb = require('../../../../models/mongodb');
-
+const { getData } = require('../../../FHIR/ImagingStudy/controller/post_convertFHIR');
 //browserify
 //https://github.com/node-formidable/formidable/blob/6baefeec3df6f38e34c018c9e978329ae68b4c78/src/Formidable.js#L496
 //https://github.com/node-formidable/formidable/blob/6baefeec3df6f38e34c018c9e978329ae68b4c78/src/plugins/multipart.js#L47
@@ -32,7 +32,7 @@ async function dicom2mongodb(data) {
 
 async function dicom2FHIR(data) {
     return new Promise(async (resolve, reject) => {
-        let resData = await require('../../../FHIR/ImagingStudy/controller/post_convertFHIR').getData(data.id, data);
+        let resData = await getData(data.id, data);
         return resolve(resData);
     });
 }
@@ -111,11 +111,13 @@ async function saveDicomFile (fhirData , tempFilename , filename) {
     let new_store_path = `files/${year}/${month}/${uuid}/${filename}`
     fhirData.series[0].instance[0].store_path = new_store_path;
     let newStorePathWithRoot = path.join(process.env.DICOM_STORE_ROOTPATH ,new_store_path);
-    await fileFunc.mkdir_Not_Exist(newStorePathWithRoot);
-    await moveFile(tempFilename,newStorePathWithRoot , {
-        overwrite : true
-    });
-    return newStorePathWithRoot;
+    if (await fileFunc.mkdir_Not_Exist(newStorePathWithRoot)) {
+        await moveFile(tempFilename,newStorePathWithRoot , {
+            overwrite : true
+        });
+        return newStorePathWithRoot;
+    }
+    return undefined;
 }
 
 async function saveUploadDicom(tempFilename, filename) {
@@ -145,6 +147,9 @@ async function saveUploadDicom(tempFilename, filename) {
             return resolve(false);
         }
         let newStoredFilename = await saveDicomFile(fhirData , tempFilename , filename);
+        if (_.isUndefined(newStoredFilename)) {
+            return resolve(false);
+        }
         fhirData = await getFHIRIntegrateDICOMJson(newStoredFilename , fhirData);
         return resolve(fhirData);
     });
@@ -291,7 +296,7 @@ module.exports = async (req, res) => {
     }
     let retCode = 200;
     console.time("Processing STOW");
-    //const form = formidable({ multiples: true });
+    
     new formidable.IncomingForm({
         uploadDir: path.join(process.cwd(), "/temp"),
         maxFileSize: 100 * 1024 * 1024 * 1024,
@@ -309,6 +314,7 @@ module.exports = async (req, res) => {
             try {
                 //if env FHIR_NEED_PARSE_PATIENT is true then post the patient data
                 let isNeedParsePatient = process.env.FHIR_NEED_PARSE_PATIENT == "true";
+                console.log(uploadedFiles.length);
                 for (let i = 0; i < uploadedFiles.length; i++) {
                     if (!uploadedFiles[i].name) uploadedFiles[i].name=`${uuid.v4()}.dcm`;
                     let FHIRData = await saveUploadDicom(uploadedFiles[i].path, uploadedFiles[i].name);

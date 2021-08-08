@@ -5,10 +5,10 @@ const condaEnvName = process.env.CONDA_GDCM_ENV_NAME;
 
 const getJpeg = {
     'linux': {
-        'getJpegByPydicom': async function (store_Path) {
+        'getJpegByPydicom': async function (store_Path, frameNumber=1) {
             return new Promise(async (resolve, reject) => {
                 if (process.env.USE_DCM2JPEG_PYTHONAPI) {
-                    let fetchRes = await fetch(`http://localhost:${process.env.DCM2JPEG_PYTHONAPI_PORT}/dcm2jpeg?filename=${store_Path}` , {method : 'POST'});
+                    let fetchRes = await fetch(`http://localhost:${process.env.DCM2JPEG_PYTHONAPI_PORT}/dcm2jpeg?filename=${store_Path}&frameNumber=${frameNumber}` , {method : 'POST'});
                     let resBody = await fetchRes.json();
                     console.log(resBody);
                     if (resBody.status) {
@@ -20,11 +20,9 @@ const getJpeg = {
                     }, function (err, stdout, stderr) {
                         if (err || stderr) {
                             console.error(err);
-                            theError = err;
                             return resolve(new Error(err));
                         } else if (stderr) {
                             console.error(stderr);
-                            theError = stderr;
                             return reject(new Error(stderr));
                         }
                         return resolve(true);
@@ -34,12 +32,11 @@ const getJpeg = {
         }
     },
     'windows': {
-        'getJpegByPydicom': async function (store_Path) {
+        'getJpegByPydicom': async function (store_Path, frameNumber=1) {
             return new Promise(async (resolve, reject) => {
                 if (process.env.USE_DCM2JPEG_PYTHONAPI) {
-                    let fetchRes = await fetch(`http://localhost:5000/dcm2jpeg?filename=${store_Path}` , {method : 'POST'});
+                    let fetchRes = await fetch(`http://localhost:5000/dcm2jpeg?filename=${store_Path}&frameNumber=${frameNumber}` , {method : 'POST'});
                     let resBody = await fetchRes.json();
-                    console.log(resBody);
                     if (resBody.status) {
                         return resolve(true);
                     }
@@ -49,11 +46,9 @@ const getJpeg = {
                     }, function (err, stdout, stderr) {
                         if (err) {
                             console.log(err);
-                            theError = err;
                             return reject(err);
                         } else if (stderr) {
                             console.log(stderr);
-                            theError = stderr;
                             return reject(stderr);
                         }
                         return resolve(true);

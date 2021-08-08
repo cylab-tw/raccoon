@@ -4,6 +4,7 @@ from flask import *
 from werkzeug.utils import secure_filename
 
 import DICOM2JPEG
+import DICOM2JPEGFrame
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = False
@@ -16,7 +17,8 @@ pass
 @app.route('/dcm2jpeg', methods=['POST'])
 def convert2jpeg():
     filename = request.values.get('filename')
-    statu = DICOM2JPEG(filename , 'jpg')
+    frameNumber = int(request.values.get('frameNumber'))
+    statu = DICOM2JPEGFrame(filename ,frameNumber-1)
     result = {"status" : str(statu)}
     return result
 pass

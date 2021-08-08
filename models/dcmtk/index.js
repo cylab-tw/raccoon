@@ -3,6 +3,21 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('lodash');
 const iconv = require('iconv-lite')
+
+
+const dcmtkSupportTransferSyntax = [
+    "1.2.840.10008.1.2",
+    "1.2.840.10008.1.2.1",
+    "1.2.840.10008.1.2.1.99",
+    "1.2.840.10008.1.2.2",
+    "1.2.840.10008.1.2.4.50",
+    "1.2.840.10008.1.2.4.51",
+    "1.2.840.10008.1.2.4.53",
+    "1.2.840.10008.1.2.4.55",
+    "1.2.840.10008.1.2.4.57",
+    "1.2.840.10008.1.2.4.70",
+    "1.2.840.10008.1.2.5"
+];
 function dcm2json(filename) {
     function readGenJson (outFilename) {
         try {
@@ -189,37 +204,39 @@ async function xml2dcm (filename , outputFilename) {
  * 
  * @param {String} imagesPath 
  * @param {int} frameNumber 
- * 
+ * @param {Array<String>}otherOptions
  */
 
-async function getFrameImage (imagesPath , frameNumber) {
+async function getFrameImage (imagesPath , frameNumber ,otherOptions=[]) {
     let images = `${process.env.DICOM_STORE_ROOTPATH}${imagesPath}`;
     let jpegFile = images.replace(/\.dcm\b/gi , `.${frameNumber-1}.jpg`);
-    if (fs.existsSync(jpegFile)) {
+    /*if (fs.existsSync(jpegFile)) {
         let rs = fs.createReadStream(jpegFile);
         return {
             statu : true , 
             imageStream : rs
         };
-    }
+    }*/
     if (process.env.ENV == "windows") {
-        execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${images} ${jpegFile} --frame ${frameNumber}`;
+        execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${images} ${jpegFile} --frame ${frameNumber} ${otherOptions.join(" ")}`;
     } else if (process.env.ENV == "linux") {
-        execCmd = `dcmj2pnm --write-jpeg ${images} ${jpegFile} --frame ${frameNumber}`;
+        execCmd = `dcmj2pnm --write-jpeg ${images} ${jpegFile} --frame ${frameNumber}  ${otherOptions.join(" ")}`;
     }
     try {
-        let dcm2jpegStatu = await dcm2jpegCustomCmd(execCmd);
+        let dcm2jpegStatu = await dcm2jpegCustomCmd(execCmd.trim());
         if (dcm2jpegStatu) {
             let rs = fs.createReadStream(jpegFile);
             return {
-                statu : true , 
-                imageStream : rs
+                status : true , 
+                imageStream : rs,
+                imagePath: jpegFile
             };
         }
     } catch(e) {
         return {
-            statu : false ,
-            imageStream : e
+            status : false ,
+            imageStream : e,
+            imagePath: jpegFile
         };
     }
 
@@ -232,5 +249,6 @@ module.exports = {
     dcm2jpegCustomCmd : dcm2jpegCustomCmd ,
     jpeg2dcmFromDataset : jpeg2dcmFromDataset ,
     xml2dcm : xml2dcm , 
-    getFrameImage : getFrameImage
+    getFrameImage : getFrameImage,
+    dcmtkSupportTransferSyntax: dcmtkSupportTransferSyntax
 }

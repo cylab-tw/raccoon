@@ -9,7 +9,7 @@ const fileFunc = require('../../../../models/file/file_Func');
 const { QIDORetAtt } = require('../../../../models/FHIR/dicom-tag');
 const DCM2Patient = require('../../../../models/FHIR/DICOM2FHIRPatient');
 const _ = require('lodash');
-const { dcm2jpegCustomCmd , dcm2jsonV8 } = require('models/dcmtk');
+const { dcm2jpegCustomCmd, dcm2jsonV8, dcmtkSupportTransferSyntax } = require('models/dcmtk');
 const moment = require('moment');
 const formidable = require('../../../../models/formidable');
 const { sendServerWrongMessage } = require('../../../../models/DICOMWeb/httpMessage');
@@ -73,35 +73,71 @@ async function dicomPatient2MongoDB(data) {
     });
 }
 
-async function generateJpeg(dicomJson , dicomFile , jpegFile) {
-    let windowCenter = _.get(dicomJson , '00281050.Value.0');
-    let windowWidth  = _.get(dicomJson , '00281051.Value.0');
-    let execCmd = "";
-    if (process.env.ENV == "windows") {
-        if (windowCenter && windowWidth) {
-            execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${dicomFile} ${jpegFile} --all-frames +Ww ${windowCenter} ${windowWidth}`;
-        } else {
-            execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${dicomFile} ${jpegFile} --all-frames`;
-        }
-    } else if (process.env.ENV == "linux") {
-        if (windowCenter && windowWidth) {
-            execCmd = `dcmj2pnm --write-jpeg ${dicomFile} ${jpegFile} --all-frames +Ww ${windowCenter} ${windowWidth}`;
-        } else {
-            execCmd = `dcmj2pnm --write-jpeg ${dicomFile} ${jpegFile} --all-frames`;
-        }
-    }
+async function generateJpeg(dicomJson, dicomFile, jpegFile) {
     try {
-        await dcm2jpegCustomCmd(execCmd);
-    } catch (e) {
-        try {
-            await getJpeg[process.env.ENV].getJpegByPydicom(dicomFile);
-        } catch (e) {
-            console.error(e);
+        console.time("generate jpeg");
+        let studyUID = _.get(dicomJson, '0020000D.Value.0');
+        let seriesUID = _.get(dicomJson, '0020000E.Value.0');
+        let instanceUID = _.get(dicomJson, '00080018.Value.0');
+        await insertDicomToJpegTask({
+            studyUID: studyUID,
+            seriesUID: seriesUID,
+            instanceUID: instanceUID,
+            status: false,
+            message: "processing"
+        });
+        let windowCenter = _.get(dicomJson, '00281050.Value.0');
+        let windowWidth = _.get(dicomJson, '00281051.Value.0');
+        let frameNumber = _.get(dicomJson, '00280008.Value.0', 1);
+        let transferSyntax = _.get(dicomJson, "00020010.Value.0");
+        let execCmd = "";
+        let execCmdList = [];
+        if (dcmtkSupportTransferSyntax.includes(transferSyntax)) {
+            for (let i = 1; i <= frameNumber; i++) {
+                if (process.env.ENV == "windows") {
+                    if (windowCenter && windowWidth) {
+                        execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${dicomFile} ${jpegFile}.${i - 1}.jpg --frame ${i} +Ww ${windowCenter} ${windowWidth}`;
+                    } else {
+                        execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${dicomFile} ${jpegFile}.${i - 1}.jpg --frame ${i}`;
+                    }
+                } else if (process.env.ENV == "linux") {
+                    if (windowCenter && windowWidth) {
+                        execCmd = `dcmj2pnm --write-jpeg ${dicomFile} ${jpegFile}.${i - 1}.jpg --frame ${i} +Ww ${windowCenter} ${windowWidth}`;
+                    } else {
+                        execCmd = `dcmj2pnm --write-jpeg ${dicomFile} ${jpegFile}.${i - 1}.jpg --frame ${i}`;
+                    }
+                }
+                execCmdList.push(execCmd);
+            }
+            await Promise.all(execCmdList.map(cmd => dcm2jpegCustomCmd(cmd)))
+            console.timeEnd("generate jpeg");
+        } else {
+            for (let i = 1; i <= frameNumber; i++) {
+                await getJpeg[process.env.ENV].getJpegByPydicom(dicomFile, i);
+            }
+            console.timeEnd("generate jpeg");
         }
+        await insertDicomToJpegTask({
+            studyUID: studyUID,
+            seriesUID: seriesUID,
+            instanceUID: instanceUID,
+            status: true,
+            message: "generated"
+        });
+    } catch (e) {
+        await insertDicomToJpegTask({
+            studyUID: studyUID,
+            seriesUID: seriesUID,
+            instanceUID: instanceUID,
+            status: true,
+            message: e.toString()
+        });
+        console.error(e);
+        throw e;
     }
 }
 
-async function saveDicomFile (fhirData , tempFilename , filename) {
+async function saveDicomFile(fhirData, tempFilename, filename) {
     let started_date = new Date(fhirData.started).toISOString();
     let started_date_split = started_date.split('-');
     let year = started_date_split[0];
@@ -110,10 +146,10 @@ async function saveDicomFile (fhirData , tempFilename , filename) {
     let uuid = sh.unique(uid);
     let new_store_path = `files/${year}/${month}/${uuid}/${filename}`
     fhirData.series[0].instance[0].store_path = new_store_path;
-    let newStorePathWithRoot = path.join(process.env.DICOM_STORE_ROOTPATH ,new_store_path);
+    let newStorePathWithRoot = path.join(process.env.DICOM_STORE_ROOTPATH, new_store_path);
     if (await fileFunc.mkdir_Not_Exist(newStorePathWithRoot)) {
-        await moveFile(tempFilename,newStorePathWithRoot , {
-            overwrite : true
+        await moveFile(tempFilename, newStorePathWithRoot, {
+            overwrite: true
         });
         return newStorePathWithRoot;
     }
@@ -146,24 +182,24 @@ async function saveUploadDicom(tempFilename, filename) {
             fs.unlinkSync(tempFilename);
             return resolve(false);
         }
-        let newStoredFilename = await saveDicomFile(fhirData , tempFilename , filename);
+        let newStoredFilename = await saveDicomFile(fhirData, tempFilename, filename);
         if (_.isUndefined(newStoredFilename)) {
             return resolve(false);
         }
-        fhirData = await getFHIRIntegrateDICOMJson(newStoredFilename , fhirData);
+        fhirData = await getFHIRIntegrateDICOMJson(newStoredFilename, fhirData);
         return resolve(fhirData);
     });
 }
 
-function insertMetadata (metadata) {
-    return new Promise(async (resolve)=> {
+function insertMetadata(metadata) {
+    return new Promise(async (resolve) => {
         try {
             await mongodb.dicomMetadata.updateOne({
-                'studyUID' : metadata.studyUID ,
-                'seriesUID' : metadata.seriesUID , 
-                'instanceUID' : metadata.instanceUID
-            } , metadata , {
-                upsert : true
+                'studyUID': metadata.studyUID,
+                'seriesUID': metadata.seriesUID,
+                'instanceUID': metadata.instanceUID
+            }, metadata, {
+                upsert: true
             });
             return resolve(true);
         } catch (e) {
@@ -173,17 +209,35 @@ function insertMetadata (metadata) {
     });
 }
 
-async function getFHIRIntegrateDICOMJson (filename , fhirData) {
+async function insertDicomToJpegTask(item) {
+    return new Promise(async (resolve) => {
+        try {
+            await mongodb.dicomToJpegTask.updateOne({
+                'studyUID': item.studyUID,
+                'seriesUID': item.seriesUID,
+                'instanceUID': item.instanceUID
+            }, item, {
+                upsert: true
+            })
+            resolve(true);
+        } catch (e) {
+            console.error(e);
+            resolve(false);
+        }
+    });
+}
+
+async function getFHIRIntegrateDICOMJson(filename, fhirData) {
     let dicomJson = "";
     try {
         dicomJson = await dcm2jsonV8.exec(filename);
-    } catch (e) { 
+    } catch (e) {
         console.error(e);
         throw e;
     }
     delete dicomJson["7fe00010"];
-    let jpegFile = filename.replace(/\.dcm/gi , '');
-    await generateJpeg(dicomJson , filename , jpegFile);
+    let jpegFile = filename.replace(/\.dcm/gi, '');
+    generateJpeg(dicomJson, filename, jpegFile);
     let QIDOLevelKeys = Object.keys(QIDORetAtt);
     let QIDOAtt = Object.assign({}, QIDORetAtt);
     for (let i = 0; i < QIDOLevelKeys.length; i++) {
@@ -228,9 +282,9 @@ async function getFHIRIntegrateDICOMJson (filename , fhirData) {
         fhirData.dicomJson["00080020"].Value[i] = moment(fhirData.dicomJson["00080020"].Value[i], "YYYYMMDD").toDate();
     }
     let metadata = _.cloneDeep(dicomJson);
-    _.set(metadata , 'studyUID' , metadata["0020000D"].Value[0]);
-    _.set(metadata , 'seriesUID' , metadata["0020000E"].Value[0]);
-    _.set(metadata , 'instanceUID' , metadata["00080018"].Value[0]);
+    _.set(metadata, 'studyUID', metadata["0020000D"].Value[0]);
+    _.set(metadata, 'seriesUID', metadata["0020000E"].Value[0]);
+    _.set(metadata, 'instanceUID', metadata["00080018"].Value[0]);
     await insertMetadata(metadata);
     return fhirData;
 }
@@ -296,12 +350,12 @@ module.exports = async (req, res) => {
     }
     let retCode = 200;
     console.time("Processing STOW");
-    
+
     new formidable.IncomingForm({
         uploadDir: path.join(process.cwd(), "/temp"),
         maxFileSize: 100 * 1024 * 1024 * 1024,
-        multiples: true ,
-        isGetBoundaryInData : true
+        multiples: true,
+        isGetBoundaryInData: true
     }).parse(req, async (err, fields, files) => {
         if (err) {
             console.error(err);
@@ -314,9 +368,8 @@ module.exports = async (req, res) => {
             try {
                 //if env FHIR_NEED_PARSE_PATIENT is true then post the patient data
                 let isNeedParsePatient = process.env.FHIR_NEED_PARSE_PATIENT == "true";
-                console.log(uploadedFiles.length);
                 for (let i = 0; i < uploadedFiles.length; i++) {
-                    if (!uploadedFiles[i].name) uploadedFiles[i].name=`${uuid.v4()}.dcm`;
+                    if (!uploadedFiles[i].name) uploadedFiles[i].name = `${uuid.v4()}.dcm`;
                     let FHIRData = await saveUploadDicom(uploadedFiles[i].path, uploadedFiles[i].name);
                     if (!FHIRData) {
                         continue;

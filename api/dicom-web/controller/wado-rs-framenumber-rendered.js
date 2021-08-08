@@ -56,9 +56,9 @@ module.exports = async function (req , res) {
         if (req.params.frameNumber > dicomNumberOfFrames) {
             return sendBadRequestMessage(res , `Bad frame number , This instance NumberOfFrames is : ${dicomNumberOfFrames} , But request ${req.params.frameNumber}`);
         }
-        let getFrameImageStatu = await getFrameImage(imagePath , req.params.frameNumber);
-        if (getFrameImageStatu.statu) {
-            let imageStream = getFrameImageStatu.imageStream;
+        let getFrameImageStatus = await getFrameImage(imagePath , req.params.frameNumber);
+        if (getFrameImageStatus.status) {
+            let imageStream = getFrameImageStatus.imageStream;
             return imageStream.pipe(res);
         }
     }    

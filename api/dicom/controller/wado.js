@@ -5,10 +5,10 @@ const path = require('path');
 const { exec, execFile } = require('child_process');
 const _ = require('lodash');
 const dicomParser = require('dicom-parser');
-const { getFrameImage } = require('../../../models/dcmtk/index');
+const { getFrameImage, dcmtkSupportTransferSyntax } = require('../../../models/dcmtk/index');
+let { getJpeg } = require('../../../models/python/index');
+const sharp = require('sharp');
 let DICOMWebHandleError = require('../../../models/DICOMWeb/httpMessage.js');
-let condaPath = process.env.CONDA_PATH;
-let condaEnvName =  process.env.CONDA_GDCM_ENV_NAME;
 
 module.exports = async(req, res) => 
 {
@@ -33,50 +33,14 @@ module.exports = async(req, res) =>
         if (!fs.existsSync(store_Path)) {
             return DICOMWebHandleError.sendNotFoundMessage(req , res);
         }
-        let dicomFileStream = fs.readFileSync(store_Path);
-        let dicomDataSet = dicomParser.parseDicom(dicomFileStream);
-        let inputDicomFrameNumber = parseInt(dicomDataSet.intString("x00280008"));
+
         if (param.contentType == 'image/jpeg') {
             if (param.frameNumber) {
                 return await handleFrameNumber(param , res , store_Path);
             }
-            if (inputDicomFrameNumber > 1) {
-                param.frameNumber = 1;
-                return await handleFrameNumber(param , res , store_Path);
-            }
-            let jpgFile = store_Path.replace('.dcm' , '.jpg');
-            let isExist = fs.existsSync(jpgFile);
-            if (isExist) {
-                fs.createReadStream(jpgFile).pipe(res);
-            } else {
-                if (process.env.ENV == "windows") {
-                    try {
-                        await getJpeg.windows.getJpegByPydicom(store_Path);
-                        fs.createReadStream(jpgFile).pipe(res);
-                    } catch (e) {
-                        console.error(e);
-                        try {
-                            await getJpegByDCMTK(store_Path);
-                            fs.createReadStream(jpgFile).pipe(res);
-                        } catch (e) {
-                            return res.status(500).json(e);
-                        }
-                    }
-                } else if (process.env.ENV == "linux"){
-                    console.log(store_Path);
-                    try {
-                        await getJpeg.linux.getJpegByPydicom(store_Path);
-                        fs.createReadStream(jpgFile).pipe(res);
-                    } catch (e) {
-                        try {
-                            await getJpegByDCMTK(store_Path);
-                            fs.createReadStream(jpgFile).pipe(res);
-                        } catch (e) {
-                            return res.status(500).json(e);
-                        }
-                    }
-                }
-            }
+            //when user get DICOM without frame number, default return first frame image
+            param.frameNumber = 1;
+            return await handleFrameNumber(param , res , store_Path);
         } else {
             res.writeHead(200 , 
             {
@@ -93,19 +57,107 @@ module.exports = async(req, res) =>
         return DICOMWebHandleError.sendServerWrongMessage(res , e);
     }
 }
+/**
+ * 
+ * @param {*} param 
+ * @param {sharp.Sharp} imageSharp 
+ */
+function handleImageQuality (param, imageSharp) {
+    if(param.imageQuality) {
+        imageSharp = imageSharp.clone().jpeg({
+            quality: param.imageQuality
+        });
+    }
+}
+/**
+ * 
+ * @param {*} param 
+ * @param {sharp.Sharp} imageSharp 
+ */
+async function handleRegion(param, imageSharp) {
+    if (param.region) {
+        let [xMin , yMin ,xMax , yMax ] = param.region.split(",").map(v=> parseFloat(v));
+        let imageMetadata = await imageSharp.metadata();
+        let imageWidth = imageMetadata.width;
+        let imageHeight = imageMetadata.height;
+        let extractLeft = imageWidth * xMin;
+        let extractTop = imageHeight * yMin;
+        let extractWidth = imageWidth * xMax - extractLeft;
+        let extractHeight = imageHeight * yMax - extractTop;
+        imageSharp = imageSharp.extract({
+            left: parseInt(extractLeft),
+            top: parseInt(extractTop),
+            width: parseInt(extractWidth),
+            height: parseInt(extractHeight)
+        });
+    }
+}
+/**
+ * 
+ * @param {*} param 
+ * @param {sharp.Sharp} imageSharp 
+ */
+async function handleRowsAndColumns(param, imageSharp) {
+    let imageMetadata = await imageSharp.metadata();
+    let rows = Number(param.rows);
+    let columns = Number(param.columns);
+    if (param.rows && param.columns) {
+        imageSharp.resize(rows , columns , {
+            fit: "fill"
+        });
+    } else if (param.rows) {
+        imageSharp.resize(rows , imageMetadata.height, {
+            fit: "fill"
+        })
+    } else if (param.columns) {
+        imageSharp.resize(imageMetadata.width, columns, {
+            fit: "fill"
+        });
+    }
+}
 
 async function handleFrameNumber (param , res , dicomFile) {
-    if (!_.isNumber(param.frameNumber)) {
-        return DICOMWebHandleError.sendBadRequestMessage(res, "Parameter error : frameNumber must be Number");
-    } 
-    if (param.contentType != "image/jpeg") {
-        return DICOMWebHandleError.sendBadRequestMessage(res, "Parameter error : contentType only support image/jpeg with frameNumber");
-    }
-    let frame = await getFrameImage(dicomFile.replace(process.env.DICOM_STORE_ROOTPATH,""), param.frameNumber)
-    if (frame.statu) {
-        return frame.imageStream.pipe(res);
-    } else {
-        return DICOMWebHandleError.sendServerWrongMessage(res , `dcmtk Convert frame error ${frame.imageStream}`);
+    try {
+        if (!_.isNumber(param.frameNumber)) {
+            return DICOMWebHandleError.sendBadRequestMessage(res, "Parameter error : frameNumber must be Number");
+        } 
+        if (param.contentType != "image/jpeg") {
+            return DICOMWebHandleError.sendBadRequestMessage(res, "Parameter error : contentType only support image/jpeg with frameNumber");
+        }
+        let imageRelativePath = dicomFile.replace(process.env.DICOM_STORE_ROOTPATH,"");
+        let images = `${process.env.DICOM_STORE_ROOTPATH}${imageRelativePath}`;
+        let jpegFile = images.replace(/\.dcm\b/gi , `.${param.frameNumber-1}.jpg`);
+        let finalJpegFile = "";
+        if(fs.existsSync(jpegFile)) {
+            finalJpegFile = jpegFile;
+        } else {
+            let dicomJson = await getDICOMJson(param);
+            let transferSyntax = _.get(dicomJson ,"00020010.Value.0");
+            if (!dcmtkSupportTransferSyntax.includes(transferSyntax)) {
+                let pythonDICOM2JPEGStatus = await getJpeg[process.env.ENV]['getJpegByPydicom'](images);
+                if (pythonDICOM2JPEGStatus) {
+                    return fs.createReadStream(jpegFile).pipe(res);
+                }
+                res.set('content-type' , 'application/json');
+                return DICOMWebHandleError.sendServerWrongMessage(res , `can't not convert dicom to jpeg with transfer syntax: ${transferSyntax}`); 
+            }
+            let frame = await getFrameImage(imageRelativePath, param.frameNumber);
+            if (frame.status) {
+                finalJpegFile = frame.imagePath;
+            } else {
+                res.set('content-type' , 'application/json');
+                return DICOMWebHandleError.sendServerWrongMessage(res , `dcmtk Convert frame error ${frame.imageStream}`);
+            }
+        }
+        let imageSharp = sharp(finalJpegFile);
+        handleImageQuality(param, imageSharp);
+        await handleRegion(param, imageSharp);
+        await handleRowsAndColumns(param, imageSharp);
+        return res.end(await imageSharp.toBuffer(), 'binary');
+    } catch(e) {
+        console.error(e);
+        res.set('content-type' , 'application/json');
+        return DICOMWebHandleError.sendServerWrongMessage(res , `${e.toString()}`);
     }
 }
 
@@ -160,74 +212,28 @@ async function get_Instance_StorePath(i_Param)
     
 }
 
-const getJpeg = {
-    'linux' : {
-        'getJpegByPydicom' : async function (store_Path , jpgFile , res) {
-            return new Promise((resolve , reject)=> {
-                exec(`python3 DICOM2JPEG.py ${store_Path}` , {
-                    cwd : process.cwd()
-                } , function (err , stdout , stderr) {
-                    if (err || stderr) {
-                        console.error(err);
-                        theError = err;
-                        return resolve(new Error(err));
-                    } else if (stderr) {
-                        console.error(stderr);
-                        theError = stderr;
-                        return reject(new Error(stderr));
-                    }
-                    //console.log(stdout);
-                    //console.log(stderr);
-                    return resolve(true);
-                });
-            });
-        }
-    } , 
-    'windows' : {
-        'getJpegByPydicom' : async function (store_Path) {
-            return new Promise ((resolve , reject) => {
-                exec(`${condaPath} run -n ${condaEnvName} python DICOM2JPEG.py ${store_Path}` , {
-                    cwd : process.cwd()
-                } , function (err , stdout , stderr) {
-                    if (err) {
-                        console.log(err);
-                        theError = err;
-                        return reject(err);
-                    } else if (stderr) {
-                        console.log(stderr);
-                        theError = stderr;
-                        return reject(stderr);
-                    }
-                    return resolve(true);
-                });
-            })
-        }
-    }
-}
-async function getJpegByDCMTK (store_Path) {
-    return new Promise((resolve , reject)=> {
-        let execCmd = "";
-        if (process.env.ENV == "windows") {
-            execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${store_Path} ${store_Path.replace('.dcm' ,'.jpg')}`;
-        } else if (process.env.ENV == "linux") {
-            execCmd = `dcmj2pnm --write-jpeg ${store_Path} ${store_Path.replace('.dcm' ,'.jpg')}`;
-        }
-        execFile(execCmd , {
-            cwd : process.cwd() 
-        } , function (err , stdout , stderr) {
-            if (err) {
-                console.error(err);
-                theError = err;
-                return reject(new Error(err));
-            } else if (stderr) {
-                console.error(stderr);
-                theError = stderr;
-                return reject(new Error(stderr));
+async function getDICOMJson(param) {
+    let studyUID = param.studyUID;
+    let seriesUID = param.seriesUID;
+    let instanceUID = param.objectUID;
+
+    let foundMetadata = await mongodb["dicomMetadata"].findOne({
+        $and: [
+            {
+                studyUID: studyUID
+            },
+            {
+                seriesUID: seriesUID
+            },
+            {
+                instanceUID: instanceUID
             }
-            return resolve(true);
-        });
-    })  
+        ]
+    }).exec();
+    if (foundMetadata) return foundMetadata._doc;
+    return false;
 }
+
 async function find_Aggregate_Func (collection_Name , i_Query)
 {
     return new Promise(async (resolve , reject)=>

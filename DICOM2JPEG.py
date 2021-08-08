@@ -94,26 +94,6 @@ def saveImage(ds, imageArray, saveName):
     return True
 pass
 
-
-def saveMultiFrame(ds, frame, saveName):
-    newImage = gdcmHandler.get_pixeldata(ds)
-    # #scipy.misc.toimage(newImage, cmin=0.0, cmax=...).save(saveName)
-    testc = np.reshape(newImage, (ds.pixel_array.shape[0], ds.Rows, ds.Columns, ds.SamplesPerPixel))
-
-    io.imshow('image', testc[frame])
-    saveStatu = cv2.imwrite(saveName, testc[frame])
-    tt = cv2.cvtColor(testc[frame], cv2.COLOR_YUV2BGR)
-    # tt2 = cv2.cvtColor(tt , cv2.COLOR_BGR2RGB)
-    # cv2.imshow('image' , tt)
-    # cv2.waitKey(1000)
-    # cv2.destroyAllWindows()
-    # im = Image.fromarray(testc[frame])
-    # im.save(saveName)
-
-
-pass
-
-
 # How to use
 # python DICOM2JPEG.py inputFilename imageFormat TransferSyntaxUID
 # default imageFormat is jpg

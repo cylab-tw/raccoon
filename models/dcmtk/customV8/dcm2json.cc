@@ -95,7 +95,7 @@ static char rcsid[] = "$dcmtk: " OFFIS_CONSOLE_APPLICATION " v" OFFIS_DCMTK_VERS
 char *getDCMJson(char *ifname)
 {
     OFBool opt_format = OFTrue;
-    OFBool opt_addMetaInformation = OFFalse;
+    OFBool opt_addMetaInformation = OFTrue;
     OFBool opt_encode_extended = OFFalse;
     E_FileReadMode opt_readMode = ERM_autoDetect;
     E_TransferSyntax opt_ixfer = EXS_Unknown;

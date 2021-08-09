@@ -91,7 +91,7 @@ async function DCM2Patient(filename)
     let Patient = 
     {
         resourceType : "Patient" , 
-        id : dataset.string('x00100020'),
+        id : dataset.string('x00100020') || "unknown",
         gender : pGender , 
         active : true  ,
         name :[
@@ -118,7 +118,8 @@ function DCMJson2Patient(dcmJson)
     let pBD = dcmString(dcmJson , '00100030');
     let patientName = new HumanName();
     if (pName == undefined) {
-        pName = "UNKNOWN"
+        pName = {};
+        _.set(pName, "Alphabetic", "UNKNOWN");
     } else {
         patientName.use = "usual";
     }
@@ -171,7 +172,7 @@ function DCMJson2Patient(dcmJson)
     let Patient = 
     {
         resourceType : "Patient" , 
-        id : dcmString(dcmJson , '00100020'),
+        id : dcmString(dcmJson , '00100020') || "unknown",
         gender : pGender , 
         active : true  ,
         name :[

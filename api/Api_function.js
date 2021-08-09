@@ -63,7 +63,7 @@ module.exports.isLogin = async function (req, res, next) {
 module.exports.isAdminLogin = async function (req, res, next) {
     console.log(req.isAuthenticated() + " " + req.user + " Is LoggedIn");
     let isNormalLogin = req.isAuthenticated();
-    let isTokenLogin = await  exports.isTokenLogin(req);
+    let isTokenLogin = await exports.isTokenLogin(req);
     let isAuthenticated = (isNormalLogin || isTokenLogin);
     if (isAuthenticated && req.user.toLowerCase() == "admin") {
         return next();
@@ -73,7 +73,7 @@ module.exports.isAdminLogin = async function (req, res, next) {
 }
 module.exports.isAdmin = async function (req, res, next) {
     let isNormalLogin = req.isAuthenticated();
-    let isTokenLogin = await  exports.isTokenLogin(req);
+    let isTokenLogin = await exports.isTokenLogin(req);
     let isAuthenticated = (isNormalLogin || isTokenLogin);
     if (isAuthenticated && req.user.toLowerCase() == "admin") {
         return next();
@@ -84,7 +84,7 @@ module.exports.isAdmin = async function (req, res, next) {
 }
 
 module.exports.isTokenLogin = async function (req, res, next) {
-    return new Promise((resolve)=> {
+    return new Promise((resolve) => {
         let token = _.get(req.headers, "authorization");
         if (!token) {
             return resolve(false);
@@ -94,8 +94,8 @@ module.exports.isTokenLogin = async function (req, res, next) {
             if (err) {
                 return resolve(false);
             }
-            mongodb.users.findOne({token : token} , function (err , user) {
-                if (err || !user)  {
+            mongodb.users.findOne({ token: token }, function (err, user) {
+                if (err || !user) {
                     return resolve(false);
                 }
                 req.user = user.account;
@@ -137,7 +137,7 @@ module.exports.cleanDoc = async function (data) {
         let clean = o => _.transform(o, (r, v, k) => {
             let isObject = _.isObject(v);
             let val = isObject ? cleanArray(clean(v)) : v;
-            let keep = isObject ? ! _.isEmpty(val) : Boolean(val);
+            let keep = isObject ? !_.isEmpty(val) : Boolean(val);
             if (keep) {
                 r[k] = val;
             }
@@ -147,6 +147,21 @@ module.exports.cleanDoc = async function (data) {
         return resolve(result);
     });
 }
+function getDeepKeys(obj) {
+    let keys = [];
+    for (let key in obj) {
+        keys.push(key);
+        if (typeof obj[key] === "object") {
+            let subkeys = getDeepKeys(obj[key]);
+            keys = keys.concat(subkeys.map(function (subkey) {
+                return key + "." + subkey;
+            }));
+        }
+    }
+    return keys;
+}
+
+module.exports.getDeepKeys = getDeepKeys;
 
 module.exports.getObjectBelong = async function (iArr, uid, element) {
     return new Promise((resolve) => {

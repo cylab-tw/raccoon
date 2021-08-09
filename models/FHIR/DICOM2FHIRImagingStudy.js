@@ -126,23 +126,26 @@ async function Func_DicomParser(filename) {
             var identifiers = [studyInstanceUID, ANandIssuer, dataset.string('x00200010')];
             studyobj.identifier = await Get_ImagingStudy_identifiers(identifiers);
             studyobj.modality = dataset.string('x00080061');
-            for (var key in dataset.elements) {
-                if (key.indexOf('x0010')) {
-                    studyobj.subject.reference = "Patient/" + dataset.string('x00100020');
-                    studyobj.subject.type = "Patient";
-                    studyobj.subject.identifier.use = "usual"
-                    studyobj.subject.identifier.value = dataset.string('x00100020');
-                    break;
-                }
+            let patientId = dataset.string('x00100020');
+            if (patientId) {
+                studyobj.subject.reference = "Patient/" + dataset.string('x00100020');
+                studyobj.subject.type = "Patient";
+                studyobj.subject.identifier.use = "usual"
+                studyobj.subject.identifier.value = dataset.string('x00100020');
+            } else {
+                studyobj.subject.reference = "Patient/unknown"
+                studyobj.subject.type = "Patient";
+                studyobj.subject.identifier.use = "anonymous"
+                studyobj.subject.identifier.value = "unknown";
             }
 
-            var imaging_started = dataset.string('x00080020') + dataset.string('x00080030');
+            let imaging_started = dataset.string('x00080020') + dataset.string('x00080030');
             const date = Moment(imaging_started, "YYYYMMDDhhmmss").toISOString();
             studyobj.started = date;
             studyobj.numberOfSeries = dataset.string('x00201206');
             studyobj.numberOfInstances = dataset.string('x00201208');
             studyobj.description = dataset.string('x00081030');
-            var study_series_obj = new ImagingStudy_Series();
+            let study_series_obj = new ImagingStudy_Series();
             study_series_obj.uid = dataset.string('x0020000e');
             study_series_obj.number = dataset.intString('x00200011');
             study_series_obj.modality.code = dataset.string('x00080060');
@@ -153,7 +156,7 @@ async function Func_DicomParser(filename) {
             const series_date = Moment(series_started, "YYYYMMDDhhmmss").toDate();
             study_series_obj.started = series_date != null ? series_date : undefined;
             study_series_obj.performer = dataset.string('x00081050') || dataset.string('x00081052') || dataset.string('x00081070') || dataset.string('x00081072');
-            var study_series_insatance_obj = new ImagingStudy_Series_Instance();
+            let study_series_insatance_obj = new ImagingStudy_Series_Instance();
             study_series_insatance_obj.uid = dataset.string('x00080018');
             study_series_insatance_obj.sopClass.system = "urn:ietf:rfc:3986"
             study_series_insatance_obj.sopClass.code = "urn:oid:" + dataset.string('x00080016');
@@ -208,14 +211,17 @@ async function getFHIRUseJson(json) {
             var identifiers = [studyInstanceUID, ANandIssuer, DCMstring(json, '00200010')];
             studyobj.identifier = await Get_ImagingStudy_identifiers(identifiers);
             studyobj.modality = DCMstring(json, '00080061');
-            for (let key in json) {
-                if (key.indexOf('0010') == 0) {
-                    studyobj.subject.reference = "Patient/" + DCMstring(json, '00100020');
-                    studyobj.subject.type = "Patient";
-                    studyobj.subject.identifier.use = "usual"
-                    studyobj.subject.identifier.value = DCMstring(json, '00100020');
-                    break;
-                }
+            let patientId = DCMstring(json, '00100020');
+            if (patientId) {
+                studyobj.subject.reference = "Patient/" + DCMstring(json, '00100020');
+                studyobj.subject.type = "Patient";
+                studyobj.subject.identifier.use = "usual"
+                studyobj.subject.identifier.value = DCMstring(json, '00100020');
+            } else {
+                studyobj.subject.reference = "Patient/unknown"
+                studyobj.subject.type = "Patient";
+                studyobj.subject.identifier.use = "anonymous"
+                studyobj.subject.identifier.value = "unknown";
             }
 
             var imaging_started = DCMstring(json, '00080020') + DCMstring(json, '00080030');
@@ -411,8 +417,8 @@ module.exports.DCMJson2FHIR = async function (iData) {
         if (IsValid) {
             //console.log("Is valid fhir");
             //fs.writeFileSync(path.parse(dirname).name + '.json' ,JSON.stringify(ImagingStudy_List[0]));
-            await ImagingStudy_ToDate(imagingStudyJson);
             console.log(imagingStudyJson)
+            await ImagingStudy_ToDate(imagingStudyJson);
             return resolve(imagingStudyJson);
         }
         else {

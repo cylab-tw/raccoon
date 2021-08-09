@@ -1,4 +1,3 @@
-'use strict';
 const path = require('path');
 const fs = require('fs');
 const request = require('request');
@@ -18,6 +17,8 @@ const uuid = require('uuid');
 const { getJpeg } = require('../../../../models/python');
 const mongodb = require('../../../../models/mongodb');
 const { getData } = require('../../../FHIR/ImagingStudy/controller/post_convertFHIR');
+const { getDeepKeys } = require('../../../Api_function');
+const mkdirp = require('mkdirp')
 //browserify
 //https://github.com/node-formidable/formidable/blob/6baefeec3df6f38e34c018c9e978329ae68b4c78/src/Formidable.js#L496
 //https://github.com/node-formidable/formidable/blob/6baefeec3df6f38e34c018c9e978329ae68b4c78/src/plugins/multipart.js#L47
@@ -57,7 +58,7 @@ async function dicomEndpoint2MongoDB(data) {
 
 async function dicomPatient2MongoDB(data) {
     return new Promise(async (resolve) => {
-        let patient = await DCM2Patient.DCMJson2Patient(data);
+        let patient = DCM2Patient.DCMJson2Patient(data);
         let Insert_Patient_options = {
             url: `http://${process.env.FHIRSERVER_HOST}:${process.env.SERVER_PORT}/api/fhir/Patient/${patient.id}`,
             method: "PUT",
@@ -108,8 +109,11 @@ async function generateJpeg(dicomJson, dicomFile, jpegFile) {
                     }
                 }
                 execCmdList.push(execCmd);
+                if (i % 4 === 0) {
+                    await Promise.all(execCmdList.map(cmd => dcm2jpegCustomCmd(cmd)))
+                    execCmdList = new Array();
+                }
             }
-            await Promise.all(execCmdList.map(cmd => dcm2jpegCustomCmd(cmd)))
             console.timeEnd("generate jpeg");
         } else {
             for (let i = 1; i <= frameNumber; i++) {
@@ -138,7 +142,10 @@ async function generateJpeg(dicomJson, dicomFile, jpegFile) {
 }
 
 async function saveDicomFile(fhirData, tempFilename, filename) {
-    let started_date = new Date(fhirData.started).toISOString();
+    let started_date = "";
+    if (fhirData.started) started_date = new Date(fhirData.started).toISOString()
+    else started_date = new Date().toISOString();
+
     let started_date_split = started_date.split('-');
     let year = started_date_split[0];
     let month = started_date_split[1];
@@ -158,42 +165,113 @@ async function saveDicomFile(fhirData, tempFilename, filename) {
 
 async function saveUploadDicom(tempFilename, filename) {
     return new Promise(async (resolve, reject) => {
-        let maxSize = 500 * 1024 * 1024;
-        let fileSize = fs.statSync(tempFilename).size;
-        let fhirData = "";
-        if (fileSize > maxSize) {
-            if (_.isString(tempFilename)) {
-                let dcmJson = await dcm2jsonV8.exec(tempFilename);
-                fhirData = await FHIR_Imagingstudy_model.DCMJson2FHIR(dcmJson);
+        try {
+            let maxSize = 500 * 1024 * 1024;
+            let fileSize = fs.statSync(tempFilename).size;
+            let fhirData = "";
+            let dcmJson = "";
+            dcmJson = await dcm2jsonV8.exec(tempFilename);
+            dcmJson = _.omit(dcmJson, ["52009230"]);
+            if (fileSize > maxSize) {
+                if (_.isString(tempFilename)) {
+                    fhirData = await FHIR_Imagingstudy_model.DCMJson2FHIR(dcmJson);
+                }
+            } else {
+                fhirData = await FHIR_Imagingstudy_model.DCM2FHIR(tempFilename).catch((err) => {
+                    console.error(err);
+                    fs.unlinkSync(tempFilename);
+                    return resolve(false);
+                });
             }
-        } else {
-            fhirData = await FHIR_Imagingstudy_model.DCM2FHIR(tempFilename).catch((err) => {
-                console.error(err);
+            if (!fhirData) {
                 fs.unlinkSync(tempFilename);
                 return resolve(false);
-            });
+            }
+            let newStoredFilename = await saveDicomFile(fhirData, tempFilename, filename);
+            if (_.isUndefined(newStoredFilename)) {
+                return resolve(false);
+            }
+            fhirData = await getFHIRIntegrateDICOMJson(dcmJson, newStoredFilename, fhirData);
+            return resolve(fhirData);
+        } catch(e) {
+            console.error(e)
+            resolve(false);
         }
-        if (!fhirData) {
-            fs.unlinkSync(tempFilename);
-            return resolve(false);
-        }
-        // let fhirData = fhirDataList[0];
-        if (!fhirData.started) {
-            fs.unlinkSync(tempFilename);
-            return resolve(false);
-        }
-        let newStoredFilename = await saveDicomFile(fhirData, tempFilename, filename);
-        if (_.isUndefined(newStoredFilename)) {
-            return resolve(false);
-        }
-        fhirData = await getFHIRIntegrateDICOMJson(newStoredFilename, fhirData);
-        return resolve(fhirData);
     });
+}
+
+async function replaceBinaryData(data) {
+    try {
+        let keys = getDeepKeys(data);
+        let binaryKeys = [];
+        let isBinary = false;
+        for (let key of keys) {
+            let keyData = _.get(data, key);
+            let isbinaryValueKey = (key.includes("Value") || key.includes("InlineBinary")) && !key.includes('vr');
+            if (isBinary && isbinaryValueKey) {
+                binaryKeys.push(key);
+            } else {
+                isBinary = false;
+            }
+            if (keyData == "OW" || keyData == "OB") {
+                isBinary = true;
+            }
+        }
+        let port = process.env.DICOMWEB_PORT || "";
+        port = (port) ? `:${port}` : "";
+        for (let key of binaryKeys) {
+            let instanceUID = _.get(data, `00080018.Value.0`);
+            
+            let valuePos = key.lastIndexOf("InlineBinary") || key.lastIndexOf("Value");
+            let keyBulkDataURI = `${key.substring(0, valuePos)}BulkDataURI`;
+            let keyLastStr = key.substring(key.length - 1, key.length);
+            let binaryData ="";
+            if (_.isNumber(keyLastStr)) {
+                let valueKey = key.substring(0, key.length - 2);
+                binaryData = _.get(data, valueKey);
+                data = _.omit(data, [valueKey]);
+            } else {
+                binaryData = _.get(data, key);
+                data = _.omit(data, [key]);
+            }
+
+            let shortInstanceUID = sh.unique(instanceUID);
+            let relativeFilename = `files/bulkData/${shortInstanceUID}/${key}.raw`;
+            let filename = path.join(process.env.DICOM_STORE_ROOTPATH, relativeFilename);
+            mkdirp.sync(path.join(process.env.DICOM_STORE_ROOTPATH, `files/bulkData/${shortInstanceUID}`));
+            fs.writeFileSync(filename, binaryData);
+            let bulkData = {
+                instanceUID: instanceUID,
+                filename: relativeFilename,
+            }
+
+            await mongodb["dicomBulkData"].updateOne({
+                $and: [
+                    {
+                        instanceUID: instanceUID
+                    },
+                    {
+                        filename: new RegExp(relativeFilename, "gi")
+                    }
+                ]
+            }, bulkData , {
+                upsert: true
+            });
+            
+            _.set(data, keyBulkDataURI, `http://${process.env.DICOMWEB_HOST}${port}/api/dicom/instance/${instanceUID}/bulkData/${key}`);
+            
+        }
+
+    } catch(e) {
+        console.error(e);
+        throw e;
+    }
 }
 
 function insertMetadata(metadata) {
     return new Promise(async (resolve) => {
         try {
+            await replaceBinaryData(metadata);
             await mongodb.dicomMetadata.updateOne({
                 'studyUID': metadata.studyUID,
                 'seriesUID': metadata.seriesUID,
@@ -204,7 +282,7 @@ function insertMetadata(metadata) {
             return resolve(true);
         } catch (e) {
             console.error(e);
-            return resolve(false);
+            throw e;
         }
     });
 }
@@ -227,66 +305,74 @@ async function insertDicomToJpegTask(item) {
     });
 }
 
-async function getFHIRIntegrateDICOMJson(filename, fhirData) {
-    let dicomJson = "";
+async function getFHIRIntegrateDICOMJson(dicomJson , filename, fhirData) {
     try {
-        dicomJson = await dcm2jsonV8.exec(filename);
-    } catch (e) {
-        console.error(e);
-        throw e;
-    }
-    delete dicomJson["7fe00010"];
-    let jpegFile = filename.replace(/\.dcm/gi, '');
-    generateJpeg(dicomJson, filename, jpegFile);
-    let QIDOLevelKeys = Object.keys(QIDORetAtt);
-    let QIDOAtt = Object.assign({}, QIDORetAtt);
-    for (let i = 0; i < QIDOLevelKeys.length; i++) {
-        let levelTags = Object.keys(QIDORetAtt[QIDOLevelKeys[i]]);
-        for (let x = 0; x < levelTags.length; x++) {
-            let nowLevelKeyItem = QIDOAtt[QIDOLevelKeys[i]];
-            let setValueTag = levelTags[x];
-            if (dicomJson[setValueTag]) {
-                nowLevelKeyItem[setValueTag] = dicomJson[setValueTag];
-            } else {
-                if (!_.isObject(nowLevelKeyItem[setValueTag])) {
-                    delete nowLevelKeyItem[setValueTag];
+        let isNeedParsePatient = process.env.FHIR_NEED_PARSE_PATIENT == "true";
+        let endPoint = DCM2Endpoint_imagingStudy(fhirData);
+        await dicomEndpoint2MongoDB(endPoint);
+        if (isNeedParsePatient) {
+            await dicomPatient2MongoDB(dicomJson);
+        }
+        fhirData.endpoint = {
+            reference: `Endpoint/${endPoint.id}`,
+            type: "Endpoint"
+        }
+        delete dicomJson["7fe00010"];
+        let jpegFile = filename.replace(/\.dcm/gi, '');
+        generateJpeg(dicomJson, filename, jpegFile);
+        let QIDOLevelKeys = Object.keys(QIDORetAtt);
+        let QIDOAtt = Object.assign({}, QIDORetAtt);
+        for (let i = 0; i < QIDOLevelKeys.length; i++) {
+            let levelTags = Object.keys(QIDORetAtt[QIDOLevelKeys[i]]);
+            for (let x = 0; x < levelTags.length; x++) {
+                let nowLevelKeyItem = QIDOAtt[QIDOLevelKeys[i]];
+                let setValueTag = levelTags[x];
+                if (dicomJson[setValueTag]) {
+                    nowLevelKeyItem[setValueTag] = dicomJson[setValueTag];
+                } else {
+                    if (!_.isObject(nowLevelKeyItem[setValueTag])) {
+                        delete nowLevelKeyItem[setValueTag];
+                    }
                 }
             }
         }
-    }
-    //QIDOAtt.instance = dicomJson;
-    let port = process.env.DICOMWEB_PORT || "";
-    port = (port) ? `:${port}` : "";
-    QIDOAtt.study['00081190'] = {
-        vr: "UT",
-        Value: [`http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${QIDOAtt.study['0020000D'].Value[0]}`]
-    }
-    fhirData['dicomJson'] = QIDOAtt.study;
-    QIDOAtt.series['00081190'] = {
-        vr: "UT",
-        Value: [`http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${QIDOAtt.study['0020000D'].Value[0]}/series/${QIDOAtt.series['0020000E'].Value[0]}`]
-    }
-    fhirData.series[0].dicomJson = QIDOAtt.series;
-    QIDOAtt.instance['00081190'] = {
-        vr: "UT",
-        Value: [`http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${QIDOAtt.study['0020000D'].Value[0]}/series/${QIDOAtt.series['0020000E'].Value[0]}/instances/${QIDOAtt.instance['00080018'].Value[0]}`]
-    }
-    fhirData.series[0].instance[0].dicomJson = QIDOAtt.instance;
-    dicomJson["7FE00010"] = {
-        "vr": "OW",
-        "BulkDataURI": `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${QIDOAtt.study['0020000D'].Value[0]}/series/${QIDOAtt.series['0020000E'].Value[0]}/instances/${QIDOAtt.instance['00080018'].Value[0]}`
-    }
+        //QIDOAtt.instance = dicomJson;
+        let port = process.env.DICOMWEB_PORT || "";
+        port = (port) ? `:${port}` : "";
+        QIDOAtt.study['00081190'] = {
+            vr: "UT",
+            Value: [`http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${QIDOAtt.study['0020000D'].Value[0]}`]
+        }
+        fhirData['dicomJson'] = QIDOAtt.study;
+        QIDOAtt.series['00081190'] = {
+            vr: "UT",
+            Value: [`http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${QIDOAtt.study['0020000D'].Value[0]}/series/${QIDOAtt.series['0020000E'].Value[0]}`]
+        }
+        fhirData.series[0].dicomJson = QIDOAtt.series;
+        QIDOAtt.instance['00081190'] = {
+            vr: "UT",
+            Value: [`http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${QIDOAtt.study['0020000D'].Value[0]}/series/${QIDOAtt.series['0020000E'].Value[0]}/instances/${QIDOAtt.instance['00080018'].Value[0]}`]
+        }
+        fhirData.series[0].instance[0].dicomJson = QIDOAtt.instance;
+        dicomJson["7FE00010"] = {
+            "vr": "OW",
+            "BulkDataURI": `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${QIDOAtt.study['0020000D'].Value[0]}/series/${QIDOAtt.series['0020000E'].Value[0]}/instances/${QIDOAtt.instance['00080018'].Value[0]}`
+        }
 
-    //fhirData.series[0].instance[0].metadata = dicomJson;
-    for (let i in fhirData.dicomJson["00080020"].Value) {
-        fhirData.dicomJson["00080020"].Value[i] = moment(fhirData.dicomJson["00080020"].Value[i], "YYYYMMDD").toDate();
+        //fhirData.series[0].instance[0].metadata = dicomJson;
+        for (let i in fhirData.dicomJson["00080020"].Value) {
+            fhirData.dicomJson["00080020"].Value[i] = moment(fhirData.dicomJson["00080020"].Value[i], "YYYYMMDD").toDate();
+        }
+        let metadata = _.cloneDeep(dicomJson);
+        _.set(metadata, 'studyUID', metadata["0020000D"].Value[0]);
+        _.set(metadata, 'seriesUID', metadata["0020000E"].Value[0]);
+        _.set(metadata, 'instanceUID', metadata["00080018"].Value[0]);
+        await insertMetadata(metadata);
+        return fhirData;
+    } catch (e) {
+        console.error(e);
+        return false;
     }
-    let metadata = _.cloneDeep(dicomJson);
-    _.set(metadata, 'studyUID', metadata["0020000D"].Value[0]);
-    _.set(metadata, 'seriesUID', metadata["0020000E"].Value[0]);
-    _.set(metadata, 'instanceUID', metadata["00080018"].Value[0]);
-    await insertMetadata(metadata);
-    return fhirData;
 }
 /* Failure Reason
 A7xx - Refused out of Resources
@@ -367,7 +453,6 @@ module.exports = async (req, res) => {
             //main-process
             try {
                 //if env FHIR_NEED_PARSE_PATIENT is true then post the patient data
-                let isNeedParsePatient = process.env.FHIR_NEED_PARSE_PATIENT == "true";
                 for (let i = 0; i < uploadedFiles.length; i++) {
                     if (!uploadedFiles[i].name) uploadedFiles[i].name = `${uuid.v4()}.dcm`;
                     let FHIRData = await saveUploadDicom(uploadedFiles[i].path, uploadedFiles[i].name);
@@ -400,17 +485,6 @@ module.exports = async (req, res) => {
                     }
                     Object.assign(sopSeq, retriveInstanceUrl);
                     STOWMessage["00081199"]["Value"].push(sopSeq);
-                    let endPoint = await DCM2Endpoint_imagingStudy(FHIRData);
-                    await dicomEndpoint2MongoDB(endPoint);
-                    if (isNeedParsePatient) {
-                        let dcmJson = await dcm2jsonV8.exec(path.join(process.env.DICOM_STORE_ROOTPATH
-                            , FHIRData.series[0].instance[0].store_path));
-                        await dicomPatient2MongoDB(dcmJson);
-                    }
-                    FHIRData.endpoint = {
-                        reference: `Endpoint/${endPoint.id}`,
-                        type: "Endpoint"
-                    }
                     let FHIRmerge = await dicom2FHIR(FHIRData);
                     await dicom2mongodb(FHIRmerge);
                     let baseFileName = path.basename(uploadedFiles[i].name);
@@ -459,9 +533,7 @@ module.exports.STOWWithoutRoute = async (filename) => {
         }
     }
     try {
-        let readstream = fs.createReadStream(filename);
-        //if env FHIR_NEED_PARSE_PATIENT is true then post the patient data
-        let isNeedParsePatient = process.env.FHIR_NEED_PARSE_PATIENT == "true";
+        
         let FHIRData = await saveUploadDicom(filename, path.basename(filename));
         if (!FHIRData) {
             return false;
@@ -478,17 +550,6 @@ module.exports.STOWWithoutRoute = async (filename) => {
         }
         Object.assign(sopSeq, retriveInstanceUrl);
         STOWMessage["00081199"]["Value"].push(sopSeq);
-        let endPoint = await DCM2Endpoint_imagingStudy(FHIRData);
-        await dicomEndpoint2MongoDB(endPoint);
-        if (isNeedParsePatient) {
-            let dcmJson = await dcm2jsonV8.exec(path.join(process.env.DICOM_STORE_ROOTPATH
-                , FHIRData.series[0].instance[0].store_path));
-            await dicomPatient2MongoDB(dcmJson);
-        }
-        FHIRData.endpoint = {
-            reference: `Endpoint/${endPoint.id}`,
-            type: "Endpoint"
-        }
         let FHIRmerge = await dicom2FHIR(FHIRData);
 
         await dicom2mongodb(FHIRmerge);

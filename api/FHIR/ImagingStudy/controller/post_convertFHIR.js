@@ -17,7 +17,7 @@ module.exports = async function (req, res) {
     return sendData[insertStatus.toString()](doc);
 };
 
-module.exports.getData = async function (id , data) {
+module.exports.storeImagingStudy = async function (id , data) {
     let [insertStatus, doc] = await InsertImagingStudy(data, id);
     return doc;
 }

@@ -48,7 +48,7 @@ module.exports = async function (req, res) {
       });
     }*/
 };
-module.exports.putWithoutReq = async function (id , data) {
+module.exports.putFHIRImagingStudyWithoutReq = async function (id , data) {
     delete data["_id"];
     let [updateStatus, doc] = await mongoUpdate({ id: id }, data);
     if (updateStatus) {

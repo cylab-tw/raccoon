@@ -1,14 +1,18 @@
 const path = require('path');
 const fs = require('fs');
 const request = require('request');
+const _ = require('lodash');
+
 const FHIR_Imagingstudy_model = require("../../../../models/FHIR/DICOM2FHIRImagingStudy");
 const { DCM2Endpoint_imagingStudy } = require("../../../../models/FHIR/DICOM2Endpoint");
+const DCM2Patient = require('../../../../models/FHIR/DICOM2FHIRPatient');
+const { putFHIRImagingStudyWithoutReq } = require('../../../FHIR/ImagingStudy/controller/putImagingStudy');
+
 const sh = require('shorthash');
 const fileFunc = require('../../../../models/file/file_Func');
 const { QIDORetAtt } = require('../../../../models/FHIR/dicom-tag');
-const DCM2Patient = require('../../../../models/FHIR/DICOM2FHIRPatient');
-const _ = require('lodash');
-const { dcm2jpegCustomCmd, dcm2jsonV8, dcmtkSupportTransferSyntax } = require('models/dcmtk');
+
+const { dcm2jpegCustomCmd, dcm2jsonV8, dcmtkSupportTransferSyntax, dcm2json } = require('../../../../models/dcmtk');
 const moment = require('moment');
 const formidable = require('../../../../models/formidable');
 const { sendServerWrongMessage } = require('../../../../models/DICOMWeb/httpMessage');
@@ -16,16 +20,18 @@ const moveFile = require('move-file');
 const uuid = require('uuid');
 const { getJpeg } = require('../../../../models/python');
 const mongodb = require('../../../../models/mongodb');
-const { getData } = require('../../../FHIR/ImagingStudy/controller/post_convertFHIR');
+const { storeImagingStudy } = require('../../../FHIR/ImagingStudy/controller/post_convertFHIR');
 const { getDeepKeys } = require('../../../Api_function');
-const mkdirp = require('mkdirp')
+const mkdirp = require('mkdirp');
+const notImageSOPClass = require('../../../../models/DICOMWeb/notImageSOPClass');
+
 //browserify
 //https://github.com/node-formidable/formidable/blob/6baefeec3df6f38e34c018c9e978329ae68b4c78/src/Formidable.js#L496
 //https://github.com/node-formidable/formidable/blob/6baefeec3df6f38e34c018c9e978329ae68b4c78/src/plugins/multipart.js#L47
 //https://github.com/node-formidable/formidable/blob/6baefeec3df6f38e34c018c9e978329ae68b4c78/examples/multipart-parser.js#L13
 async function dicom2mongodb(data) {
     return new Promise(async (resolve) => {
-        let result = await require('../../../FHIR/ImagingStudy/controller/putImagingStudy').putWithoutReq(data.id, data);
+        let result = await putFHIRImagingStudyWithoutReq(data.id, data);
         if (result) return resolve(true);
         return resolve(false);
     });
@@ -33,7 +39,7 @@ async function dicom2mongodb(data) {
 
 async function dicom2FHIR(data) {
     return new Promise(async (resolve, reject) => {
-        let resData = await getData(data.id, data);
+        let resData = await storeImagingStudy(data.id, data);
         return resolve(resData);
     });
 }
@@ -85,7 +91,8 @@ async function generateJpeg(dicomJson, dicomFile, jpegFile) {
             seriesUID: seriesUID,
             instanceUID: instanceUID,
             status: false,
-            message: "processing"
+            message: "processing",
+            taskTime: new Date()
         });
         let windowCenter = _.get(dicomJson, '00281050.Value.0');
         let windowWidth = _.get(dicomJson, '00281051.Value.0');
@@ -126,7 +133,8 @@ async function generateJpeg(dicomJson, dicomFile, jpegFile) {
             seriesUID: seriesUID,
             instanceUID: instanceUID,
             status: true,
-            message: "generated"
+            message: "generated",
+            finishedTime: new Date()
         });
     } catch (e) {
         await insertDicomToJpegTask({
@@ -134,33 +142,129 @@ async function generateJpeg(dicomJson, dicomFile, jpegFile) {
             seriesUID: seriesUID,
             instanceUID: instanceUID,
             status: true,
-            message: e.toString()
+            message: e.toString(),
+            finishedTime: new Date()
         });
         console.error(e);
         throw e;
     }
 }
 
-async function saveDicomFile(fhirData, tempFilename, filename) {
-    let started_date = "";
-    if (fhirData.started) started_date = new Date(fhirData.started).toISOString()
-    else started_date = new Date().toISOString();
+// async function saveDicomFile(fhirData, tempFilename, filename) {
+//     let started_date = "";
+//     if (fhirData.started) started_date = new Date(fhirData.started).toISOString()
+//     else started_date = new Date().toISOString();
 
-    let started_date_split = started_date.split('-');
-    let year = started_date_split[0];
-    let month = started_date_split[1];
-    let uid = fhirData.series[0].uid;
-    let uuid = sh.unique(uid);
-    let new_store_path = `files/${year}/${month}/${uuid}/${filename}`
-    fhirData.series[0].instance[0].store_path = new_store_path;
-    let newStorePathWithRoot = path.join(process.env.DICOM_STORE_ROOTPATH, new_store_path);
-    if (await fileFunc.mkdir_Not_Exist(newStorePathWithRoot)) {
-        await moveFile(tempFilename, newStorePathWithRoot, {
+//     let started_date_split = started_date.split('-');
+//     let year = started_date_split[0];
+//     let month = started_date_split[1];
+//     let uid = fhirData.series[0].uid;
+//     let uuid = sh.unique(uid);
+//     let new_store_path = `files/${year}/${month}/${uuid}/${filename}`
+//     fhirData.series[0].instance[0].store_path = new_store_path;
+//     let newStorePathWithRoot = path.join(process.env.DICOM_STORE_ROOTPATH, new_store_path);
+//     if (await fileFunc.mkdir_Not_Exist(newStorePathWithRoot)) {
+//         await moveFile(tempFilename, newStorePathWithRoot, {
+//             overwrite: true
+//         });
+//         return newStorePathWithRoot;
+//     }
+//     return undefined;
+// }
+
+/**
+ * @typedef convertDICOMFileToJSONModuleReturnObject
+ * @property {Boolean} status
+ * @property {string} storePath
+ * @property {string} storeFullPath
+ * @property {Object} dicomJson
+ */
+
+/**
+ * 
+ * @param {string} filename 
+ * @return {convertDICOMFileToJSONModuleReturnObject}
+ */
+async function convertDICOMFileToJSONModule(filename) {
+    try {
+        let dicomJson = await dcm2jsonV8.exec(filename);
+        let perFrameFunctionalGroupSQ = _.get(dicomJson, "52009230");
+        let tempPerFrameFunctionalGroupSQ = "";
+        if (perFrameFunctionalGroupSQ) {
+            tempPerFrameFunctionalGroupSQ = _.cloneDeep(perFrameFunctionalGroupSQ);
+            dicomJson = _.omit(dicomJson, ["52009230"]);
+            perFrameFunctionalGroupSQ = undefined;
+        }
+        let started_date = "";
+        started_date = dcm2jsonV8.dcmString(dicomJson, '00080020') + dcm2jsonV8.dcmString(dicomJson, '00080030');
+        started_date = moment(started_date, "YYYYMMDDhhmmss").toISOString();
+        let started_date_split = started_date.split('-');
+        let year = started_date_split[0];
+        let month = started_date_split[1];
+        let uid = dcm2jsonV8.dcmString(dicomJson, '0020000E');
+        let shortUID = sh.unique(uid);
+        let relativeStorePath = `files/${year}/${month}/${shortUID}/`;
+        let fullStorePath = path.join(process.env.DICOM_STORE_ROOTPATH, relativeStorePath);
+
+        let instanceUID = dcm2jsonV8.dcmString(dicomJson, '00080018')
+        let metadataFullStorePath = path.join(fullStorePath, `${instanceUID}.metadata.json`);
+        if (tempPerFrameFunctionalGroupSQ) {
+            _.set(dicomJson, "52009230", tempPerFrameFunctionalGroupSQ);
+        }
+        fs.writeFileSync(metadataFullStorePath, JSON.stringify(dicomJson, null, 4));
+        dicomJson = _.omit(dicomJson, ["52009230"]);
+        return {
+            status: true,
+            storePath: relativeStorePath,
+            storeFullPath: fullStorePath,
+            dicomJson: dicomJson
+        }
+    } catch (e) {
+        console.error(e);
+        return {
+            status: false,
+            storePath: undefined,
+            storeFullPath: undefined,
+            dicomJson: undefined
+        }
+    }
+}
+
+/**
+ * 
+ * @typedef saveDICOMFileReturnObject
+ * @property {Boolean} status
+ * @property {string} storeFullPath
+ * @property {Object} error
+ */
+
+/**
+ * 
+ * @param {string} tempFilename 
+ * @param {string} filename 
+ * @param {string} dest
+ * @return {saveDICOMFileReturnObject}
+ */
+async function saveDICOMFile(tempFilename, filename, dest) {
+    try {
+        await fileFunc.mkdir_Not_Exist(dest);
+        let destWithFilename = path.join(dest , filename);
+        await moveFile(tempFilename, destWithFilename, {
             overwrite: true
         });
-        return newStorePathWithRoot;
+        return {
+            status: true,
+            error: undefined,
+            storeFullPath: destWithFilename
+        };
+    } catch(e) {
+        console.error(e);
+        return {
+            status: false,
+            storeFullPath: undefined,
+            error: e
+        }
     }
-    return undefined;
 }
 
 async function saveUploadDicom(tempFilename, filename) {
@@ -172,6 +276,9 @@ async function saveUploadDicom(tempFilename, filename) {
             let dcmJson = "";
             dcmJson = await dcm2jsonV8.exec(tempFilename);
             dcmJson = _.omit(dcmJson, ["52009230"]);
+            if (_.isUndefined(newStoredFilename)) {
+                return resolve(false);
+            }
             if (fileSize > maxSize) {
                 if (_.isString(tempFilename)) {
                     fhirData = await FHIR_Imagingstudy_model.DCMJson2FHIR(dcmJson);
@@ -187,7 +294,7 @@ async function saveUploadDicom(tempFilename, filename) {
                 fs.unlinkSync(tempFilename);
                 return resolve(false);
             }
-            let newStoredFilename = await saveDicomFile(fhirData, tempFilename, filename);
+            let newStoredFilename = await saveDICOMFile(fhirData, tempFilename, filename);
             if (_.isUndefined(newStoredFilename)) {
                 return resolve(false);
             }
@@ -204,39 +311,34 @@ async function replaceBinaryData(data) {
     try {
         let keys = getDeepKeys(data);
         let binaryKeys = [];
-        let isBinary = false;
         for (let key of keys) {
+            if (key.includes("7FE00010")) continue;
             let keyData = _.get(data, key);
-            let isbinaryValueKey = (key.includes("Value") || key.includes("InlineBinary")) && !key.includes('vr');
-            if (isBinary && isbinaryValueKey) {
-                binaryKeys.push(key);
-            } else {
-                isBinary = false;
-            }
             if (keyData == "OW" || keyData == "OB") {
-                isBinary = true;
+                binaryKeys.push(key.substring(0 , key.lastIndexOf(".vr")));
             }
         }
         let port = process.env.DICOMWEB_PORT || "";
         port = (port) ? `:${port}` : "";
         for (let key of binaryKeys) {
             let instanceUID = _.get(data, `00080018.Value.0`);
-            
-            let valuePos = key.lastIndexOf("InlineBinary") || key.lastIndexOf("Value");
-            let keyBulkDataURI = `${key.substring(0, valuePos)}BulkDataURI`;
-            let keyLastStr = key.substring(key.length - 1, key.length);
-            let binaryData ="";
-            if (_.isNumber(keyLastStr)) {
-                let valueKey = key.substring(0, key.length - 2);
-                binaryData = _.get(data, valueKey);
-                data = _.omit(data, [valueKey]);
-            } else {
-                binaryData = _.get(data, key);
-                data = _.omit(data, [key]);
-            }
+            let binaryData = "";
 
             let shortInstanceUID = sh.unique(instanceUID);
-            let relativeFilename = `files/bulkData/${shortInstanceUID}/${key}.raw`;
+            let relativeFilename = `files/bulkData/${shortInstanceUID}/`;
+            if (_.get(data, `${key}.Value.0`) ) {
+                binaryData = _.get(data, `${key}.Value.0`);
+                data = _.omit(data, [`${key}.Value`]);
+                _.set(data, `${key}.BulkDataURI`, `http://${process.env.DICOMWEB_HOST}${port}/api/dicom/instance/${instanceUID}/bulkData/${key}.Value.0`);
+                relativeFilename += `${ key }.Value.0.raw`
+            } else if (_.get(data, `${key}.InlineBinary`)) {
+                binaryData = _.get(data, `${key}.InlineBinary`);
+                data = _.omit(data, [`${key}.InlineBinary`]);
+                _.set(data, `${key}.BulkDataURI`, `http://${process.env.DICOMWEB_HOST}${port}/api/dicom/instance/${instanceUID}/bulkData/${key}.InlineBinary`);
+                relativeFilename += `${key}.InlineBinary.raw`
+            }
+
+            
             let filename = path.join(process.env.DICOM_STORE_ROOTPATH, relativeFilename);
             mkdirp.sync(path.join(process.env.DICOM_STORE_ROOTPATH, `files/bulkData/${shortInstanceUID}`));
             fs.writeFileSync(filename, binaryData);
@@ -258,7 +360,7 @@ async function replaceBinaryData(data) {
                 upsert: true
             });
             
-            _.set(data, keyBulkDataURI, `http://${process.env.DICOMWEB_HOST}${port}/api/dicom/instance/${instanceUID}/bulkData/${key}`);
+            
             
         }
 
@@ -319,7 +421,11 @@ async function getFHIRIntegrateDICOMJson(dicomJson , filename, fhirData) {
         }
         delete dicomJson["7fe00010"];
         let jpegFile = filename.replace(/\.dcm/gi, '');
-        generateJpeg(dicomJson, filename, jpegFile);
+        let sopClass = dcm2jsonV8.dcmString(dicomJson, "00080016");
+        if (!notImageSOPClass.includes(sopClass)) {
+            generateJpeg(dicomJson, filename, jpegFile);
+        }
+        
         let QIDOLevelKeys = Object.keys(QIDORetAtt);
         let QIDOAtt = Object.assign({}, QIDORetAtt);
         for (let i = 0; i < QIDOLevelKeys.length; i++) {
@@ -375,6 +481,7 @@ async function getFHIRIntegrateDICOMJson(dicomJson , filename, fhirData) {
     }
 }
 /* Failure Reason
+http://dicom.nema.org/medical/dicom/current/output/chtml/part02/sect_J.4.2.html
 A7xx - Refused out of Resources
 
     The STOW-RS Service did not store the instance because it was out of resources.
@@ -409,9 +516,9 @@ function getSOPSeq(referencedSOPClassUID, referencedSOPInstanceUID) {
 }
 
 
-function checkIsSameStudyId(req, fhirData) {
+function checkIsSameStudyId(req, dicomJson) {
     let inputID = req.params.studyID;
-    let dataStudyID = fhirData.identifier[0].value.substring(8);
+    let dataStudyID = dcm2jsonV8.dcmString(dicomJson, "0020000D");
     return inputID == dataStudyID;
 }
 
@@ -419,7 +526,6 @@ module.exports = async (req, res) => {
     //store the successFiles;
     let successFiles = [];
     let successFHIR = [];
-    let successFilesStorePath = [];
     let STOWMessage = {
         "00081190": {  //Study retrive URL
             "vr": "UT",
@@ -455,15 +561,17 @@ module.exports = async (req, res) => {
                 //if env FHIR_NEED_PARSE_PATIENT is true then post the patient data
                 for (let i = 0; i < uploadedFiles.length; i++) {
                     if (!uploadedFiles[i].name) uploadedFiles[i].name = `${uuid.v4()}.dcm`;
-                    let FHIRData = await saveUploadDicom(uploadedFiles[i].path, uploadedFiles[i].name);
-                    if (!FHIRData) {
-                        continue;
+                    //1. convert DICOM to JSON
+                    let dicomToJsonResponse = await convertDICOMFileToJSONModule(uploadedFiles[i].path);
+                    if (!dicomToJsonResponse.status) {
+                        return sendServerWrongMessage(res, `The server have exception with file:${uploadedFiles[i].name} , error : can not convert DICOM to JSON Module, success Files: ${JSON.stringify(successFiles , null ,4)}`);
                     }
-                    let sopClass = FHIRData.series[0].instance[0].sopClass.code.substring(8);
-                    let sopInstanceUID = FHIRData.series[0].instance[0].uid;
+
+                    let sopClass = dcm2jsonV8.dcmString(dicomToJsonResponse.dicomJson, "00080016");
+                    let sopInstanceUID = dcm2jsonV8.dcmString(dicomToJsonResponse.dicomJson, "00080018");
                     let sopSeq = getSOPSeq(sopClass, sopInstanceUID);
                     if (req.params.studyID) {
-                        if (!checkIsSameStudyId(req, FHIRData)) {
+                        if (!checkIsSameStudyId(req, fhirDICOM)) {
                             let failureMessage = {
                                 "00081197": {
                                     vr: "US",
@@ -476,26 +584,52 @@ module.exports = async (req, res) => {
                             continue;
                         }
                     }
-                    let port = process.env.DICOMWEB_PORT || "";
-                    port = (port) ? `:${port}` : "";
-                    STOWMessage["00081190"].Value.push(...FHIRData.dicomJson["00081190"].Value);
-                    STOWMessage["00081190"].Value = _.uniq(STOWMessage["00081190"].Value);
-                    let retriveInstanceUrl = {
-                        "00081190": FHIRData.series[0].instance[0].dicomJson["00081190"]
+                    //2. if not conflict study UID or no exception when convert to DICOM
+                    //then save DICOM file
+                    let storedDICOMObject = await saveDICOMFile(uploadedFiles[i].path, uploadedFiles[i].name,  dicomToJsonResponse.storeFullPath);
+                    if (storedDICOMObject.status) {
+                        //3. Convert DICOM to FHIR ImagingStudy
+                        let fhirImagingStudyData = await FHIR_Imagingstudy_model.DCMJson2FHIR(dicomToJsonResponse.dicomJson);
+                        if (!fhirImagingStudyData) {
+                            return sendServerWrongMessage(res, `The server have exception with file:${uploadedFiles[i].name} , error : can not convert DICOM to FHIR ImagingStudy`);
+                        }
+                        let fhirDICOM = await getFHIRIntegrateDICOMJson(dicomToJsonResponse.dicomJson, storedDICOMObject.storeFullPath, fhirImagingStudyData);
+                        if (!fhirDICOM) {
+                            return sendServerWrongMessage(res, `The server have exception with file:${uploadedFiles[i].name} , error : can not integrate FHIR with DICOM JSON`);
+                        }
+
+                        fhirDICOM.series[0].instance[0].store_path = path.join(dicomToJsonResponse.storePath, uploadedFiles[i].name);
+
+                        let port = process.env.DICOMWEB_PORT || "";
+                        port = (port) ? `:${port}` : "";
+                        STOWMessage["00081190"].Value.push(...fhirDICOM.dicomJson["00081190"].Value);
+                        STOWMessage["00081190"].Value = _.uniq(STOWMessage["00081190"].Value);
+                        let retriveInstanceUrl = {
+                            "00081190": fhirDICOM.series[0].instance[0].dicomJson["00081190"]
+                        }
+                        Object.assign(sopSeq, retriveInstanceUrl);
+                        STOWMessage["00081199"]["Value"].push(sopSeq);
+                        let FHIRmerge = await dicom2FHIR(fhirDICOM);
+
+                        if (!FHIRmerge) {
+                            return sendServerWrongMessage(res, `The server have exception with file:${uploadedFiles[i].name} , error : can not store FHIR ImagingStudy object to database`);
+                        }
+
+                        let storeToMongoDBStatus = await dicom2mongodb(FHIRmerge);
+                        if (!storeToMongoDBStatus) {
+                            return sendServerWrongMessage(res, `The server have exception with file:${uploadedFiles[i].name} , error : can not store object to database`);
+                        }
+                        let baseFileName = path.basename(uploadedFiles[i].name);
+                        successFHIR.push(baseFileName);
+                        successFiles.push(baseFileName);
+                    } else {
+                        return sendServerWrongMessage(res, `The server have exception with file:${uploadedFiles[i].name} , error : ${storedDICOMObject.error.toString()}`);
                     }
-                    Object.assign(sopSeq, retriveInstanceUrl);
-                    STOWMessage["00081199"]["Value"].push(sopSeq);
-                    let FHIRmerge = await dicom2FHIR(FHIRData);
-                    await dicom2mongodb(FHIRmerge);
-                    let baseFileName = path.basename(uploadedFiles[i].name);
-                    successFHIR.push(baseFileName);
-                    successFiles.push(baseFileName);
-                    successFilesStorePath.push(FHIRData.series[0].instance[0].store_path);
+                    
                 }
                 res.header("Content-Type", "application/json");
                 let resMessage = {
                     result: successFiles,
-                    //storePath : successFilesStorePath ,
                     successFHIR: successFHIR
                 }
                 Object.assign(resMessage, STOWMessage);
@@ -503,7 +637,7 @@ module.exports = async (req, res) => {
                 return res.status(retCode).send(resMessage);
             } catch (err) {
                 err = err.message || err;
-                console.log('/dicom-web/studies "STOW Api" err, ', err);
+                console.error('/dicom-web/studies "STOW Api" err, ', err);
                 console.log(successFiles);
                 return res.status(500).send(err)
             }

@@ -100,7 +100,7 @@ const dcm2jsonV8 = {
         let data = _.get(json, tag);
         //console.log("d" , data);
         let value = _.get(data, "Value.0");
-        console.log(value);
+        //console.log(value);
         return value;
     }
 }

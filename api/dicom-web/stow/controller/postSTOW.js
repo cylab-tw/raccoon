@@ -150,27 +150,6 @@ async function generateJpeg(dicomJson, dicomFile, jpegFile) {
     }
 }
 
-// async function saveDicomFile(fhirData, tempFilename, filename) {
-//     let started_date = "";
-//     if (fhirData.started) started_date = new Date(fhirData.started).toISOString()
-//     else started_date = new Date().toISOString();
-
-//     let started_date_split = started_date.split('-');
-//     let year = started_date_split[0];
-//     let month = started_date_split[1];
-//     let uid = fhirData.series[0].uid;
-//     let uuid = sh.unique(uid);
-//     let new_store_path = `files/${year}/${month}/${uuid}/${filename}`
-//     fhirData.series[0].instance[0].store_path = new_store_path;
-//     let newStorePathWithRoot = path.join(process.env.DICOM_STORE_ROOTPATH, new_store_path);
-//     if (await fileFunc.mkdir_Not_Exist(newStorePathWithRoot)) {
-//         await moveFile(tempFilename, newStorePathWithRoot, {
-//             overwrite: true
-//         });
-//         return newStorePathWithRoot;
-//     }
-//     return undefined;
-// }
 
 /**
  * @typedef convertDICOMFileToJSONModuleReturnObject
@@ -648,56 +627,43 @@ module.exports = async (req, res) => {
 
 
 module.exports.STOWWithoutRoute = async (filename) => {
-    //store the successFiles;
-    let successFiles = [];
-    let successFHIR = [];
-    let successFilesStorePath = [];
-    let STOWMessage = {
-        "00081190": {  //Study retrive URL
-            "vr": "UT",
-            "Value": []
-        },
-        "00081198": {  //Failed SOP Sequence
-            "vr": "SQ",
-            "Value": [] // Use SOPSeq
-        },
-        "00081199": { //ReferencedSOPSequence
-            "vr": "SQ",
-            "Value": [] // Use SOPSeq
-        }
-    }
     try {
-        
-        let FHIRData = await saveUploadDicom(filename, path.basename(filename));
-        if (!FHIRData) {
+        let dicomToJsonResponse = await convertDICOMFileToJSONModule(filename);
+        if (!dicomToJsonResponse.status) {
+            console.error(`The server have exception with file:${filename} , error : can not convert DICOM to JSON Module`);
             return false;
         }
-        let sopClass = FHIRData.series[0].instance[0].sopClass.code.substring(8);
-        let sopInstanceUID = FHIRData.series[0].instance[0].uid;
-        let sopSeq = getSOPSeq(sopClass, sopInstanceUID);
-        let port = process.env.DICOMWEB_PORT || "";
-        port = (port) ? `:${port}` : "";
-        STOWMessage["00081190"].Value.push(...FHIRData.dicomJson["00081190"].Value);
-        STOWMessage["00081190"].Value = _.uniq(STOWMessage["00081190"].Value);
-        let retriveInstanceUrl = {
-            "00081190": FHIRData.series[0].instance[0].dicomJson["00081190"]
-        }
-        Object.assign(sopSeq, retriveInstanceUrl);
-        STOWMessage["00081199"]["Value"].push(sopSeq);
-        let FHIRmerge = await dicom2FHIR(FHIRData);
 
-        await dicom2mongodb(FHIRmerge);
-        let baseFileName = path.basename(filename);
-        successFHIR.push(baseFileName);
-        successFiles.push(baseFileName);
-        successFilesStorePath.push(FHIRData.series[0].instance[0].store_path);
-        let resMessage = {
-            result: successFiles,
-            //storePath : successFilesStorePath ,
-            successFHIR: successFHIR
+        let storedDICOMObject = await saveDICOMFile(filename, path.basename(filename), dicomToJsonResponse.storeFullPath);
+        if (storedDICOMObject.status) {
+            let fhirImagingStudyData = await FHIR_Imagingstudy_model.DCMJson2FHIR(dicomToJsonResponse.dicomJson);
+            if (!fhirImagingStudyData) {
+                consol.error(`The server have exception with file:${filename} , error : can not convert DICOM to FHIR ImagingStudy`);
+                return false;
+            }
+            let fhirDICOM = await getFHIRIntegrateDICOMJson(dicomToJsonResponse.dicomJson, storedDICOMObject.storeFullPath, fhirImagingStudyData);
+            if (!fhirDICOM) {
+                console.error(`The server have exception with file:${filename} , error : can not integrate FHIR with DICOM JSON`);
+                return false;
+            }
+            fhirDICOM.series[0].instance[0].store_path = path.join(dicomToJsonResponse.storePath, path.basename(filename));
+
+            let FHIRmerge = await dicom2FHIR(fhirDICOM);
+            if (!FHIRmerge) {
+                console.error(`The server have exception with file:${filename} , error : can not store FHIR ImagingStudy object to database`);
+                return false;
+            }
+
+            let storeToMongoDBStatus = await dicom2mongodb(FHIRmerge);
+            if (!storeToMongoDBStatus) {
+                console.error(`The server have exception with file:${filename} , error : can not store object to database`);
+                return false;
+            }
+            return true;
+        } else {
+            console.error(`The server have exception with file:${filename} , error : can not convert DICOM to JSON Module`);
+            return false;
         }
-        Object.assign(resMessage, STOWMessage);
-        return resMessage;
     } catch (err) {
         err = err.message || err;
         console.log('/dicom-web/studies "STOW Api" err, ', err);

@@ -233,7 +233,7 @@ async function getFHIRUseJson(json) {
             var study_series_obj = new ImagingStudy_Series();
             study_series_obj.uid = DCMstring(json, '0020000E');
             study_series_obj.number = DCMstring(json, '00200011');
-            study_series_obj.modality.code = DCMstring(json, 'x00080060');
+            study_series_obj.modality.code = DCMstring(json, '00080060');
             study_series_obj.description = DCMstring(json, '0008103E');
             study_series_obj.numberOfInstances = DCMstring(json, '00201209');
             study_series_obj.bodySite.display = DCMstring(json, '00180015');

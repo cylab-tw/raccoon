@@ -108,6 +108,8 @@ imageMSApp.controller('imageMSCtrl' , function ($scope , imageMSService , common
                 }
             }
             console.log($scope.dataList);
+            $scope.isOpenSeries = false;
+            $scope.isOpenInstance = false;
             raccoon.unblockUI();
         });
     }

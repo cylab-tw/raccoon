@@ -61,10 +61,10 @@ async function handleImageICCProfile(param, magick, instanceID) {
                 ]
             });
             if(!iccProfileBinaryFile) throw new Error("The Image dose not have icc profile tag");
-            let dest = `temp/${ uuid.v4() }.icc`
-            fs.copyFileSync(path.join(process.env.DICOM_STORE_ROOTPATH, iccProfileBinaryFile.filename), dest)
+            let iccProfileSrc = path.join(process.env.DICOM_STORE_ROOTPATH, iccProfileBinaryFile.filename);
+            let dest = path.join(process.env.DICOM_STORE_ROOTPATH, iccProfileBinaryFile.filename + `.icc`);
+            if (!fs.existsSync(dest)) fs.copyFileSync(iccProfileSrc, dest)
             await magick.iccProfile(dest);
-            fs.unlink(dest, (err)=> {});
         },
         "srgb": async ()=> {
             await magick.iccProfile(path.join(process.cwd(), "models/DICOMWeb/iccprofiles/sRGB.icc"));

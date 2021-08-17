@@ -18,7 +18,10 @@ router.get('/studies/:studyID/series/:seriesID/instances/:instanceID/frames/:fra
 
 router.get('/studies/:studyID/series/:seriesID/instances/:instanceID/frames/:frameNumber/rendered' , validateParams({
     frameNumber : Joi.number().integer().min(1)
-} , "params" , {allowUnknown : true}) , require('./controller/wado-rs-framenumber-rendered'));
+} , "params" , {allowUnknown : true}), validateParams({
+    quality: Joi.number().integer().min(1).max(100),
+    iccprofile: Joi.string().default("no").valid("no", "yes", "srgb", "adobergb", "rommrgb","test")
+}, "query", { allowUnknown: false }) , require('./controller/wado-rs-framenumber-rendered'));
 //#endregion
 
 //#region metadata

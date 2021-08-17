@@ -210,13 +210,14 @@ async function xml2dcm (filename , outputFilename) {
 async function getFrameImage (imagesPath , frameNumber ,otherOptions=[]) {
     let images = `${process.env.DICOM_STORE_ROOTPATH}${imagesPath}`;
     let jpegFile = images.replace(/\.dcm\b/gi , `.${frameNumber-1}.jpg`);
-    /*if (fs.existsSync(jpegFile)) {
+    if (fs.existsSync(jpegFile)) {
         let rs = fs.createReadStream(jpegFile);
         return {
-            statu : true , 
-            imageStream : rs
+            status : true , 
+            imageStream : rs,
+            imagePath: jpegFile
         };
-    }*/
+    }
     if (process.env.ENV == "windows") {
         execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${images} ${jpegFile} --frame ${frameNumber} ${otherOptions.join(" ")}`;
     } else if (process.env.ENV == "linux") {

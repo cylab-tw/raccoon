@@ -190,6 +190,7 @@ async function convertDICOMFileToJSONModule(filename) {
         if (tempPerFrameFunctionalGroupSQ) {
             _.set(dicomJson, "52009230", tempPerFrameFunctionalGroupSQ);
         }
+        mkdirp.sync(fullStorePath,0755);
         fs.writeFileSync(metadataFullStorePath, JSON.stringify(dicomJson, null, 4));
         dicomJson = _.omit(dicomJson, ["52009230"]);
         return {
@@ -302,28 +303,31 @@ async function replaceBinaryData(data) {
         for (let key of binaryKeys) {
             let instanceUID = _.get(data, `00080018.Value.0`);
             let binaryData = "";
-
+            let binaryValuePath = "";
             let shortInstanceUID = sh.unique(instanceUID);
             let relativeFilename = `files/bulkData/${shortInstanceUID}/`;
             if (_.get(data, `${key}.Value.0`) ) {
-                binaryData = _.get(data, `${key}.Value.0`);
+                binaryValuePath = `${key}.Value.0`;
+                binaryData = _.get(data, binaryValuePath);
                 data = _.omit(data, [`${key}.Value`]);
-                _.set(data, `${key}.BulkDataURI`, `http://${process.env.DICOMWEB_HOST}${port}/api/dicom/instance/${instanceUID}/bulkData/${key}.Value.0`);
-                relativeFilename += `${ key }.Value.0.raw`
+                _.set(data, `${key}.BulkDataURI`, `http://${process.env.DICOMWEB_HOST}${port}/api/dicom/instance/${instanceUID}/bulkData/${binaryValuePath}`);
+                relativeFilename += `${ binaryValuePath }.raw`
             } else if (_.get(data, `${key}.InlineBinary`)) {
-                binaryData = _.get(data, `${key}.InlineBinary`);
-                data = _.omit(data, [`${key}.InlineBinary`]);
-                _.set(data, `${key}.BulkDataURI`, `http://${process.env.DICOMWEB_HOST}${port}/api/dicom/instance/${instanceUID}/bulkData/${key}.InlineBinary`);
-                relativeFilename += `${key}.InlineBinary.raw`
+                binaryValuePath = `${key}.InlineBinary`
+                binaryData = _.get(data, `${binaryValuePath}`);
+                data = _.omit(data, [`${binaryValuePath}`]);
+                _.set(data, `${key}.BulkDataURI`, `http://${process.env.DICOMWEB_HOST}${port}/api/dicom/instance/${instanceUID}/bulkData/${binaryValuePath}`);
+                relativeFilename += `${binaryValuePath}.raw`
             }
 
             
             let filename = path.join(process.env.DICOM_STORE_ROOTPATH, relativeFilename);
             mkdirp.sync(path.join(process.env.DICOM_STORE_ROOTPATH, `files/bulkData/${shortInstanceUID}`));
-            fs.writeFileSync(filename, binaryData);
+            fs.writeFileSync(filename, Buffer.from(binaryData, "base64"));
             let bulkData = {
                 instanceUID: instanceUID,
                 filename: relativeFilename,
+                binaryValuePath: binaryValuePath
             }
 
             await mongodb["dicomBulkData"].updateOne({
@@ -332,7 +336,7 @@ async function replaceBinaryData(data) {
                         instanceUID: instanceUID
                     },
                     {
-                        filename: new RegExp(relativeFilename, "gi")
+                        binaryValuePath: binaryValuePath
                     }
                 ]
             }, bulkData , {

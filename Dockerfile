@@ -6,14 +6,14 @@ RUN echo \
  deb http://security.debian.org/debian-security buster/updates main \
  deb http://debian.csie.ntu.edu.tw/debian/ buster-updates main' > /etc/apt/sources.list
 
+#install python
 RUN apt-get update -y && apt-get install python -y
-
 RUN apt-get install python3-pip -y
 RUN pip3 install --upgrade pip
 RUN pip3 install pydicom opencv-python Pillow flask matplotlib highdicom
 
 RUN apt-get install software-properties-common -y
-RUN apt-get update ##[edited]
+RUN apt-get update
 RUN apt-get install 'ffmpeg'\
     'libsm6'\ 
     'libxext6'  -y
@@ -21,7 +21,8 @@ RUN apt-get update && apt-get install -y dcmtk \
 cmake \
 make \
 swig \
-netcat
+netcat \
+imagemagick
 
 #Build gdcm
 RUN wget -O gdcm.tar.gz https://sourceforge.net/projects/gdcm/files/gdcm%202.x/GDCM%202.8.9/gdcm-2.8.9.tar.gz

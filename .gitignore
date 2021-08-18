@@ -33,3 +33,6 @@ models/dcmtk/linux-lib
 
 #ignore pycache
 __pycache__/
+
+#ignore my temp scripts
+tempScript

@@ -19,6 +19,11 @@ run `node server.js`
 - **MongoDB**
 - **Anaconda**
 - **GDCM enviroment in Anaconda** (Use pydicom==1.1.0)
+- **[imagemagick](https://imagemagick.org/script/download.php)**
+>```bash
+>sudo apt-get install imagemagick #ubuntu
+>```
+
 ```bash
 npm install
 npm run build #This will download dcmtk executable binaries to ./models/dcmtk and generate example dotenv file.

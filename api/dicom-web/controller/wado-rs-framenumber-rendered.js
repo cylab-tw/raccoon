@@ -33,9 +33,6 @@ async function getInstance (iParam) {
  */
 function handleImageQuality(param, magick) {
     if (param.quality) {
-        // imageSharp = imageSharp.jpeg({
-        //     quality: param.quality
-        // });
         magick.quality(param.quality);
     }
 }
@@ -133,15 +130,13 @@ module.exports = async function (req , res) {
             if (req.params.frameNumber > dicomNumberOfFrames) {
                 return sendBadRequestMessage(res, `Bad frame number , This instance NumberOfFrames is : ${dicomNumberOfFrames} , But request ${req.params.frameNumber}`);
             }
-            console.time("get frame image");
+
             let getFrameImageStatus = await getFrameImage(imagePath, req.params.frameNumber);
-            console.timeEnd("get frame image");
             if (getFrameImageStatus.status) {
                 //let imageStream = getFrameImageStatus.imageStream;
                 let imagePath = getFrameImageStatus.imagePath;
                 let magick = new Magick(imagePath);
-                //await imageSharp.toFile("test.jpg");
-                await handleImageQuality(req.query, magick);
+                handleImageQuality(req.query, magick);
                 await handleImageICCProfile(req.query, magick, req.params.instanceID);
                 console.log(magick.magickCommand);
                 console.time("do magick");

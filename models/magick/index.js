@@ -27,7 +27,7 @@ class Magick {
     /**
      * @param {number} q
      */
-    async quality(q) {
+    quality(q) {
         try {
             this.magickCommand.push("-quality");
             this.magickCommand.push(q);
@@ -40,7 +40,7 @@ class Magick {
         }
     }
 
-    async iccProfile(profile) {
+    iccProfile(profile) {
         try {
             this.magickCommand.push("-profile");
             this.magickCommand.push(profile);
@@ -50,6 +50,19 @@ class Magick {
             console.error(e);
             throw e;
         }
+    }
+
+    crop(left, top, width, height) {
+        left = (left < 0) ? `-${left}` : `+${left}`;
+        top = (top < 0) ? `-${top}` : `+${top}`;
+        this.magickCommand.push("-crop");
+        
+        this.magickCommand.push(`${width}x${height}${left}${top}`)
+    }
+
+    resize(width, height) {
+        this.magickCommand.push("-resize");
+        this.magickCommand.push(`${width}x${height}!`);
     }
     
     async execCommand() {

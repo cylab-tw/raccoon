@@ -7,6 +7,7 @@ const { getFrameImage, dcmtkSupportTransferSyntax } = require('../../../models/d
 let { getJpeg } = require('../../../models/python/index');
 const sharp = require('sharp');
 let DICOMWebHandleError = require('../../../models/DICOMWeb/httpMessage.js');
+const Magick = require('../../../models/magick/index.js');
 
 module.exports = async(req, res) => 
 {
@@ -58,21 +59,20 @@ module.exports = async(req, res) =>
 /**
  * 
  * @param {*} param 
- * @param {sharp.Sharp} imageSharp 
+ * @param {Magick} magick
  */
-function handleImageQuality (param, imageSharp) {
-    if(param.imageQuality) {
-        imageSharp = imageSharp.clone().jpeg({
-            quality: param.imageQuality
-        });
+function handleImageQuality(param, magick) {
+    if (param.imageQuality) {
+        magick.quality(param.quality);
     }
 }
 /**
  * 
  * @param {*} param 
  * @param {sharp.Sharp} imageSharp 
+ * @param {Magick} magika
  */
-async function handleRegion(param, imageSharp) {
+async function handleRegion(param, imageSharp, magika) {
     if (param.region) {
         let [xMin , yMin ,xMax , yMax ] = param.region.split(",").map(v=> parseFloat(v));
         let imageMetadata = await imageSharp.metadata();
@@ -82,35 +82,25 @@ async function handleRegion(param, imageSharp) {
         let extractTop = imageHeight * yMin;
         let extractWidth = imageWidth * xMax - extractLeft;
         let extractHeight = imageHeight * yMax - extractTop;
-        imageSharp = imageSharp.extract({
-            left: parseInt(extractLeft),
-            top: parseInt(extractTop),
-            width: parseInt(extractWidth),
-            height: parseInt(extractHeight)
-        });
+        magika.crop(extractLeft, extractTop, extractWidth, extractHeight);
     }
 }
 /**
  * 
  * @param {*} param 
- * @param {sharp.Sharp} imageSharp 
+ * @param {sharp.Sharp} imageSharp
+ * @param {Magick} magick 
  */
-async function handleRowsAndColumns(param, imageSharp) {
+async function handleRowsAndColumns(param, imageSharp, magick) {
     let imageMetadata = await imageSharp.metadata();
     let rows = Number(param.rows);
     let columns = Number(param.columns);
     if (param.rows && param.columns) {
-        imageSharp.resize(rows , columns , {
-            fit: "fill"
-        });
+        magick.resize(rows, columns);
     } else if (param.rows) {
-        imageSharp.resize(rows , imageMetadata.height, {
-            fit: "fill"
-        })
+        magick.resize(rows, imageMetadata.height);
     } else if (param.columns) {
-        imageSharp.resize(imageMetadata.width, columns, {
-            fit: "fill"
-        });
+        magick.resize(imageMetadata.width, columns);
     }
 }
 
@@ -148,10 +138,13 @@ async function handleFrameNumber (param , res , dicomFile) {
             }
         }
         let imageSharp = sharp(finalJpegFile);
-        handleImageQuality(param, imageSharp);
-        await handleRegion(param, imageSharp);
-        await handleRowsAndColumns(param, imageSharp);
-        return res.end(await imageSharp.toBuffer(), 'binary');
+        let magick = new Magick(finalJpegFile);
+        handleImageQuality(param, magick);
+        await handleRegion(param, imageSharp, magick);
+        await handleRowsAndColumns(param, imageSharp, magick);
+        //return res.end(await imageSharp.toBuffer(), 'binary');
+        await magick.execCommand();
+        return res.end(magick.toBuffer(), 'binary');
     } catch(e) {
         console.error(e);
         res.set('content-type' , 'application/json');

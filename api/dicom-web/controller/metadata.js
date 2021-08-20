@@ -237,13 +237,13 @@ async function getInstanceStorePath(params) {
                 }
             },
             {
+                $unwind: '$series.instance'
+            },
+            {
                 $match:
                 {
                     'series.instance.dicomJson.00080018.Value': params.instanceID
                 }
-            },
-            {
-                $unwind: '$series.instance'
             },
             {
                 $group:

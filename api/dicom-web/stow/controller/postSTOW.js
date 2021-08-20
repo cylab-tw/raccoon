@@ -24,6 +24,7 @@ const { storeImagingStudy } = require('../../../FHIR/ImagingStudy/controller/pos
 const { getDeepKeys } = require('../../../Api_function');
 const mkdirp = require('mkdirp');
 const notImageSOPClass = require('../../../../models/DICOMWeb/notImageSOPClass');
+const flat = require('flat');
 
 //browserify
 //https://github.com/node-formidable/formidable/blob/6baefeec3df6f38e34c018c9e978329ae68b4c78/src/Formidable.js#L496
@@ -82,7 +83,6 @@ async function dicomPatient2MongoDB(data) {
 
 async function generateJpeg(dicomJson, dicomFile, jpegFile) {
     try {
-        console.time("generate jpeg");
         let studyUID = _.get(dicomJson, '0020000D.Value.0');
         let seriesUID = _.get(dicomJson, '0020000E.Value.0');
         let instanceUID = _.get(dicomJson, '00080018.Value.0');
@@ -121,12 +121,10 @@ async function generateJpeg(dicomJson, dicomFile, jpegFile) {
                     execCmdList = new Array();
                 }
             }
-            console.timeEnd("generate jpeg");
         } else {
             for (let i = 1; i <= frameNumber; i++) {
                 await getJpeg[process.env.ENV].getJpegByPydicom(dicomFile, i);
             }
-            console.timeEnd("generate jpeg");
         }
         await insertDicomToJpegTask({
             studyUID: studyUID,
@@ -167,15 +165,23 @@ async function generateJpeg(dicomJson, dicomFile, jpegFile) {
 async function convertDICOMFileToJSONModule(filename) {
     try {
         let dicomJson = await dcm2jsonV8.exec(filename);
-        let perFrameFunctionalGroupSQ = _.get(dicomJson, "52009230");
-        let tempPerFrameFunctionalGroupSQ = "";
-        if (perFrameFunctionalGroupSQ) {
-            tempPerFrameFunctionalGroupSQ = _.cloneDeep(perFrameFunctionalGroupSQ);
-            dicomJson = _.omit(dicomJson, ["52009230"]);
-            perFrameFunctionalGroupSQ = undefined;
+        flat(dicomJson);
+        let bigValueTags = ["52009230", "00480200"];
+        let tempBigTagValue = {};
+        for (let bigValueTag of bigValueTags) {
+            let bigValue = _.get(dicomJson, bigValueTag);
+            if (bigValue) {
+                _.set(tempBigTagValue, `${bigValueTag}`, _.cloneDeep(bigValue));
+            } else {
+                _.set(tempBigTagValue, `${bigValueTag}`, undefined);
+            }
+            bigValue = undefined;
         }
+        dicomJson = _.omit(dicomJson, bigValueTags);
+        dicomJson = await replaceBinaryData(dicomJson);
         let started_date = "";
         started_date = dcm2jsonV8.dcmString(dicomJson, '00080020') + dcm2jsonV8.dcmString(dicomJson, '00080030');
+        if (!started_date) started_date = Date.now();
         started_date = moment(started_date, "YYYYMMDDhhmmss").toISOString();
         let started_date_split = started_date.split('-');
         let year = started_date_split[0];
@@ -184,15 +190,17 @@ async function convertDICOMFileToJSONModule(filename) {
         let shortUID = sh.unique(uid);
         let relativeStorePath = `files/${year}/${month}/${shortUID}/`;
         let fullStorePath = path.join(process.env.DICOM_STORE_ROOTPATH, relativeStorePath);
-
-        let instanceUID = dcm2jsonV8.dcmString(dicomJson, '00080018')
+        let instanceUID = dcm2jsonV8.dcmString(dicomJson, '00080018');
         let metadataFullStorePath = path.join(fullStorePath, `${instanceUID}.metadata.json`);
-        if (tempPerFrameFunctionalGroupSQ) {
-            _.set(dicomJson, "52009230", tempPerFrameFunctionalGroupSQ);
+
+        for (let keys in tempBigTagValue) {
+            if (tempBigTagValue[keys]) {
+                _.set(dicomJson, keys, tempBigTagValue[keys]);
+            }
         }
-        mkdirp.sync(fullStorePath,0755);
+        mkdirp.sync(fullStorePath, 0755);
         fs.writeFileSync(metadataFullStorePath, JSON.stringify(dicomJson, null, 4));
-        dicomJson = _.omit(dicomJson, ["52009230"]);
+        dicomJson = _.omit(dicomJson, bigValueTags);
         return {
             status: true,
             storePath: relativeStorePath,
@@ -247,55 +255,14 @@ async function saveDICOMFile(tempFilename, filename, dest) {
     }
 }
 
-async function saveUploadDicom(tempFilename, filename) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            let maxSize = 500 * 1024 * 1024;
-            let fileSize = fs.statSync(tempFilename).size;
-            let fhirData = "";
-            let dcmJson = "";
-            dcmJson = await dcm2jsonV8.exec(tempFilename);
-            dcmJson = _.omit(dcmJson, ["52009230"]);
-            if (_.isUndefined(newStoredFilename)) {
-                return resolve(false);
-            }
-            if (fileSize > maxSize) {
-                if (_.isString(tempFilename)) {
-                    fhirData = await FHIR_Imagingstudy_model.DCMJson2FHIR(dcmJson);
-                }
-            } else {
-                fhirData = await FHIR_Imagingstudy_model.DCM2FHIR(tempFilename).catch((err) => {
-                    console.error(err);
-                    fs.unlinkSync(tempFilename);
-                    return resolve(false);
-                });
-            }
-            if (!fhirData) {
-                fs.unlinkSync(tempFilename);
-                return resolve(false);
-            }
-            let newStoredFilename = await saveDICOMFile(fhirData, tempFilename, filename);
-            if (_.isUndefined(newStoredFilename)) {
-                return resolve(false);
-            }
-            fhirData = await getFHIRIntegrateDICOMJson(dcmJson, newStoredFilename, fhirData);
-            return resolve(fhirData);
-        } catch(e) {
-            console.error(e)
-            resolve(false);
-        }
-    });
-}
-
 async function replaceBinaryData(data) {
     try {
-        let keys = getDeepKeys(data);
         let binaryKeys = [];
-        for (let key of keys) {
+        let flatDicomJson = flat(data);
+        for (let key in flatDicomJson) {
             if (key.includes("7FE00010")) continue;
-            let keyData = _.get(data, key);
-            if (keyData == "OW" || keyData == "OB") {
-                binaryKeys.push(key.substring(0 , key.lastIndexOf(".vr")));
+            if (flatDicomJson[key] == "OW" || flatDicomJson[key] == "OB") {
+                binaryKeys.push(key.substring(0, key.lastIndexOf(".vr")));
             }
         }
         let port = process.env.DICOMWEB_PORT || "";
@@ -342,11 +309,12 @@ async function replaceBinaryData(data) {
             }, bulkData , {
                 upsert: true
             });
-            
-            
-            
         }
-
+        data["7FE00010"] = {
+            "vr": "OW",
+            "BulkDataURI": `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${data['0020000D'].Value[0]}/series/${data['0020000E'].Value[0]}/instances/${data['00080018'].Value[0]}`
+        }
+        return data;
     } catch(e) {
         console.error(e);
         throw e;
@@ -356,7 +324,6 @@ async function replaceBinaryData(data) {
 function insertMetadata(metadata) {
     return new Promise(async (resolve) => {
         try {
-            await replaceBinaryData(metadata);
             await mongodb.dicomMetadata.updateOne({
                 'studyUID': metadata.studyUID,
                 'seriesUID': metadata.seriesUID,

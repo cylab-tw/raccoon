@@ -81,7 +81,7 @@ function dcm2json(filename) {
     });
 }
 
-const dcm2jsonC = require('bindings')('dcm2json');
+const dcm2jsonC = require('dicom-to-json');
 const dcm2jsonV8 = {
     exec : function (dcmfile) {
         return new Promise((resolve) => {

@@ -41,6 +41,7 @@
     "debug": "^4.1.1",
     "dicom": "^0.4.4",
     "dicom-parser": "^1.8.7",
+    "dicom-to-json": "^1.0.0",
     "dotenv": "^6.0.0",
     "ejs": "^3.1.2",
     "express": "^4.16.3",
@@ -78,7 +79,7 @@
     "sharp": "^0.28.3",
     "shorthash": "0.0.2",
     "stream-to-array": "^2.3.0",
-    "uuid": "^8.3.0",
+    "uuid": "^8.3.2",
     "xlsx": "^0.17.0"
   },
   "devDependencies": {

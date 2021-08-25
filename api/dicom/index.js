@@ -39,4 +39,9 @@ router.get('/qido/studies/' ,validateParams({
 
 router.get('/instance/:instanceUID/bulkdata/:objKey' , require('./controller/bulkData.js'));
 
+router.get('/dicomToJpegTask', validateParams({
+    limit: Joi.number().integer(),
+    offset: Joi.number().integer()
+}, "query", { allowUnknown: true }) , require('./controller/dicomToJpegTask'))
+
 module.exports = router;

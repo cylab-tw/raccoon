@@ -92,7 +92,9 @@ async function generateJpeg(dicomJson, dicomFile, jpegFile) {
             instanceUID: instanceUID,
             status: false,
             message: "processing",
-            taskTime: new Date()
+            taskTime: new Date(),
+            finishedTime: null,
+            fileSize: (fs.statSync(dicomFile).size / 1024 / 1024).toFixed(3)
         });
         let windowCenter = _.get(dicomJson, '00281050.Value.0');
         let windowWidth = _.get(dicomJson, '00281051.Value.0');

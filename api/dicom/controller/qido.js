@@ -5,50 +5,81 @@ const {ToRegex} = require("../../Api_function");
 const _ = require('lodash');
 const mongodb = require("../../../models/mongodb/index.js");
 
+
+function addPatientNameQuery (query, imageQuery) {
+    if (_.get(query, "PatientName", false)) {
+        _.set(imageQuery, "$or",[
+            {
+                "dicomJson.00100010.Value.Alphabetic": query.PatientName
+            },
+            {
+                "dicomJson.00100010.Value.familyName": query.PatientName
+            },
+            {
+                "dicomJson.00100010.Value.givenName": query.PatientName,
+            },
+            {
+                "dicomJson.00100010.Value.middleName": query.PatientName,
+            },
+            {
+                "dicomJson.00100010.Value.prefix": query.PatientName,
+            },
+            {
+                "dicomJson.00100010.Value.suffix": query.PatientName
+            }
+        ]);
+    }
+}
+
+function addPatientIdQuery(query, imageQuery) {
+    if (_.get(query, "PatientID", false)) {
+        imageQuery["subject.reference"] = query.PatientID;
+    }
+}
+
+function addStaredQuery(query, imageQuery) {
+    if (_.get(query, "StudyDate", false)) {
+        imageQuery["started"] = query.StudyDate;
+    }
+}
+
+function addModalityQuery(query, imageQuery) {
+    if (_.get(query, "ModalitiesInStudy", false)) {
+        imageQuery["series.modality.code"] = query.ModalitiesInStudy;
+    }
+}
+
+function addIdentifierQuery(query, imageQuery) {
+    if (_.get(query, "StudyInstanceUID", false)) {
+        imageQuery["identifier.value"] = query.StudyInstanceUID;
+    }
+}
+
 module.exports = async function (req ,res)
 {
     try {
-        let image_Query = {
-            $or : [
-                {
-                    "dicomJson.00100010.Value.Alphabetic" : req.query.PatientName 
-                }, 
-                {
-                    "dicomJson.00100010.Value.familyName" : req.query.PatientName 
-                },
-                {
-                    "dicomJson.00100010.Value.givenName" : req.query.PatientName ,
-                } ,
-                {
-                    "dicomJson.00100010.Value.middleName" : req.query.PatientName ,
-                } ,
-                {
-                    "dicomJson.00100010.Value.prefix" : req.query.PatientName ,
-                },
-                {
-                    "dicomJson.00100010.Value.suffix" : req.query.PatientName 
-                }
-            ] ,
-            "started":req.query.StudyDate ,
-            "series.modality.code":req.query.ModalitiesInStudy , 
-            "identifier.value" : req.query.StudyInstanceUID ,
-            "subject.reference" : req.query.PatientID 
-        };
+        let image_Query = {};
+        addPatientNameQuery(req.query, image_Query);
+        addPatientIdQuery(req.query, image_Query);
+        addModalityQuery(req.query, image_Query);
+        addStaredQuery(req.query, image_Query);
+        addIdentifierQuery(req.query, image_Query);
         image_Query = await api_func.Refresh_Param(image_Query);
         image_Query = await api_func.cleanDoc(image_Query);
-       // await ToRegex(image_Query);
+        await ToRegex(image_Query);
         let andQuery = {
             $and : []
         };
        
-        await mongoDateQuery(image_Query,"started",true);
+        await mongoDateQuery(image_Query,"started",false);
         for (let i in image_Query) {
             let q = {
                 [i] : image_Query[i]
             };
             andQuery.$and.push(q);
         }
-        andQuery = await api_func.cleanDoc(andQuery);
+        //andQuery = await api_func.cleanDoc(andQuery);
+        if (andQuery.$and.length <= 0) andQuery = {};
         await ToRegex(andQuery);
         let viewAndSearchMode = req.query.viewAndSearchMode;
         let searchModeFunc = {

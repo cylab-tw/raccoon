@@ -35,6 +35,12 @@ router.get('/reportContent'  , function (req ,res) {
   });
 });
 
+router.get('/dicomToJpegTask' , function(req, res) {
+  res.sendFile('dicomToJpegTask.html' , {
+    root: __dirname + '../../../public/html'
+  });
+});
+
 
 module.exports = router;
 function isLoggedIn(req, res, next) {

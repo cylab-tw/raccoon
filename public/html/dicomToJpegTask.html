@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="dicomToJpegTaskApp">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>raccoon | DICOM To Jpeg Task</title>
+    <!--#region bootstrap-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <!--#endregion-->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/css/tempusdominus-bootstrap-4.min.css">
+    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"
+        integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+
+<body ng-controller="dicomToJpegTaskCtrl">
+    <ng-include src="'/navbar.html'"></ng-include>
+    <div class="container">
+        <h1>DICOM To JPEG Task</h1>
+        <div class="ro">
+            <div class="form-group">
+                <label for="selectStatus"></label>
+                <select class="custom-select" name="selectStatus" id="selectStatus" ng-model="query.status">
+                    <option value="false">processing</option>
+                    <option value="true">finished</option>
+                </select>
+            </div>
+            <button class="btn btn-block btn-warmBlue" ng-click="getDicomToJpegTask();">query</button>
+        </div>
+        <div class="row">
+            <div class="col 12">
+                <table class="table tale-striped table-responsive table-hover">
+                    <tr>
+                        <th>studyUID</th>
+                        <th>seriesUID</th>
+                        <th>instanceUID</th>
+                        <th>status</th>
+                        <th>start time</th>
+                        <th>end time</th>
+                        <th>process time</th>
+                    </tr>
+                    <tr ng-repeat="item in dicomToJpegTaskList">
+                        <td>{{item.studyUID}}</td>
+                        <td>{{item.seriesUID}}</td>
+                        <td>{{item.instanceUID}}</td>
+                        <td>{{item.status}}</td>
+                        <td>{{item.taskTime}}</td>
+                        <td>{{item.finishedTime}}</td>
+                        <th>{{item.diffTime}} Mins</th>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 col-sm-12" ng-show="dicomToJpegTaskList.length > 0">
+                <span>顯示資料 第{{(resultPerPage*(resultCurPage-1))+1 }}筆~第{{resultCurPage*resultPerPage}}筆</span>
+                <ul uib-pagination total-items="resultCount" ng-model="resultCurPage" boundary-link-numbers="true"
+                    rotate="true" max-size="3" boundary-links="true" class="pagination-sm"></ul>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+<!--#region jquery-->
+<script type="text/javascript" src="../scripts/external/jquery.js"></script>
+<script src="../scripts/external/jquery-blockUI.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.json-viewer@1.4.0/json-viewer/jquery.json-viewer.js"></script>
+<!--#endregion-->
+<!--#region bootstrap-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"
+    integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous">
+</script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous">
+</script>
+
+<!--#endregion -->
+<!--#region angularjs-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.9/angular.min.js"></script>
+<script src="../scripts/external/angularjs/ui-bootstrap-tpls-3.0.6.min.js"></script>
+<!--#endregion-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+
+<!--#region tempusdominus-bootstrap-->
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/js/tempusdominus-bootstrap-4.min.js">
+</script>
+<!--#endregion-->
+<script src="../scripts/config.js"></script>
+<script src="../scripts/common.js"></script>
+<script src="../scripts/ngCommon.js"></script>
+<script src="../scripts/dicomToJpegTask/dicomToJpegTask.js"></script>

@@ -1,3 +1,7 @@
+body {
+  margin-top: 4rem;
+}
+
 /*main layout*/
 .left_div {
   float: left;
@@ -64,4 +68,15 @@ a:focus {
 
 .btn {
   margin-bottom: 5px;
+}
+
+.btn-warmBlue {
+  color: #fff;
+  background-color: #6675df;
+  border-color: #6675df;
+}
+
+.btn-warmBlue:hover {
+  background: #4752C4;
+  color: #fff;
 }

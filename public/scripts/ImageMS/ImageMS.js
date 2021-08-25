@@ -164,7 +164,8 @@ imageMSApp.controller('imageMSCtrl' , function ($scope , imageMSService , common
     });
 //#region dowload file function
     $scope.downloadStudy = function (iItem) {
-        let url = `${envConfig.WADO.http}://${envConfig.WADO.hostName}:${envConfig.WADO.port}/${envConfig.WADO.api}/studies/${iItem.studyID}`;
+        let port = raccoon.getPort(envConfig.WADO.port);
+        let url = `${envConfig.WADO.http}://${envConfig.WADO.hostName}${port}/${envConfig.WADO.api}/studies/${iItem.studyID}`;
         console.log(url);
         imageMSService.downloadZip(url).then(function (res) {
             console.log(res);
@@ -185,7 +186,8 @@ imageMSApp.controller('imageMSCtrl' , function ($scope , imageMSService , common
 
     $scope.downloadSeries = function (iItem) {
         console.log(iItem);
-        let url = `${envConfig.WADO.http}://${envConfig.WADO.hostName}/${envConfig.WADO.api}/studies/${$scope.openSeries.studyID}/series/${iItem.uid}`;
+        let port = raccoon.getPort(envConfig.WADO.port);
+        let url = `${envConfig.WADO.http}://${envConfig.WADO.hostName}${port}/${envConfig.WADO.api}/studies/${$scope.openSeries.studyID}/series/${iItem.uid}`;
         console.log(url);
         imageMSService.downloadZip(url).then(function (res) {
             if (res.status != 200) {
@@ -204,7 +206,8 @@ imageMSApp.controller('imageMSCtrl' , function ($scope , imageMSService , common
     }
 
     $scope.downloadInstance = function (iItem) {
-        let url = `${envConfig.WADO.http}://${envConfig.WADO.hostName}/api/dicom/wado/?requestType=WADO&studyUID=${$scope.openInstance.studyID}`;
+        let port = raccoon.getPort(envConfig.WADO.port);
+        let url = `${envConfig.WADO.http}://${envConfig.WADO.hostName}${port}/api/dicom/wado/?requestType=WADO&studyUID=${$scope.openInstance.studyID}`;
         let downloadUrl = `${url}&seriesUID=${$scope.openInstance.seriesID}&objectUID=${iItem.uid}&contentType=application/dicom`;
         let a = document.createElement('a');
         a.href = downloadUrl;
@@ -214,8 +217,8 @@ imageMSApp.controller('imageMSCtrl' , function ($scope , imageMSService , common
 //#endregion
     
     $scope.openFHIRJson = function (item) {
-        console.log(item);
-        let url =`http://${envConfig.FHIR.hostName}:${envConfig.FHIR.port}/${envConfig.FHIR.api}/ImagingStudy/${item.id}`
+        let port = raccoon.getPort(envConfig.FHIR.port);
+        let url =`${envConfig.FHIR.http}://${envConfig.FHIR.hostName}${port}/${envConfig.FHIR.api}/ImagingStudy/${item.id}`
         window.open(url, "_blank"); 
         //let a = document.createElement('a');
         //a.href = url;

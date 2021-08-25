@@ -115,6 +115,10 @@ async function sleep(ms = 1) {
         unblockUI : () => {
             $.unblockUI();
             $("body").css("overflow" , "auto");
+        },
+        getPort: (iPort) => {
+            let port = (iPort == "443" || iPort == "80") ? "" : `:${iPort}`
+            return port;
         }
     }
     window.raccoon = raccoon;

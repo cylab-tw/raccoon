@@ -64,6 +64,20 @@ class Magick {
         this.magickCommand.push("-resize");
         this.magickCommand.push(`${width}x${height}!`);
     }
+
+    /**
+     *  reflect the scanlines in the vertical direction. The image will be mirrored upside-down.
+     */
+    flip() {
+        this.magickCommand.push("-flip");
+    }
+    
+    /**
+     * Reflect the scanlines in the horizontal direction, just like the image in a vertical mirror.
+     */
+    flop() {
+        this.magickCommand.push("-flop");
+    }
     
     async execCommand() {
         try {

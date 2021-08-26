@@ -104,6 +104,53 @@ async function handleRowsAndColumns(param, imageSharp, magick) {
     }
 }
 
+/**
+ *
+ * @param {*} param The req.query
+ * @param {Magick} magick
+ * @param {string} instanceID
+ */
+async function handleImageICCProfile(param, magick, instanceID) {
+    let iccProfileAction = {
+        "no": async () => { },
+        "yes": async () => {
+            let iccProfileBinaryFile = await mongodb.dicomBulkData.findOne({
+                $and: [
+                    {
+                        binaryValuePath: "00480105.Value.0.00282000.InlineBinary"
+                    },
+                    {
+                        instanceUID: instanceID
+                    }
+                ]
+            });
+            if (!iccProfileBinaryFile) throw new Error("The Image dose not have icc profile tag");
+            let iccProfileSrc = path.join(process.env.DICOM_STORE_ROOTPATH, iccProfileBinaryFile.filename);
+            let dest = path.join(process.env.DICOM_STORE_ROOTPATH, iccProfileBinaryFile.filename + `.icc`);
+            if (!fs.existsSync(dest)) fs.copyFileSync(iccProfileSrc, dest)
+            await magick.iccProfile(dest);
+        },
+        "srgb": async () => {
+            await magick.iccProfile(path.join(process.cwd(), "models/DICOMWeb/iccprofiles/sRGB.icc"));
+        },
+        "adobergb": async () => {
+            await magick.iccProfile(path.join(process.cwd(), "models/DICOMWeb/iccprofiles/adobeRGB.icc"));
+        },
+        "rommrgb": async () => {
+            await magick.iccProfile(path.join(process.cwd(), "models/DICOMWeb/iccprofiles/rommRGB.icc"));
+        },
+    }
+    try {
+        if (param.iccprofile) {
+            await iccProfileAction[param.iccprofile]();
+        }
+    } catch (e) {
+        console.error("set icc profile error:", e);
+        throw e;
+    }
+
+}
+
 async function handleFrameNumber (param , res , dicomFile) {
     try {
         if (!_.isNumber(param.frameNumber)) {
@@ -142,6 +189,7 @@ async function handleFrameNumber (param , res , dicomFile) {
         handleImageQuality(param, magick);
         await handleRegion(param, imageSharp, magick);
         await handleRowsAndColumns(param, imageSharp, magick);
+        await handleImageICCProfile(param, magick, param.objectUID);
         //return res.end(await imageSharp.toBuffer(), 'binary');
         await magick.execCommand();
         return res.end(magick.toBuffer(), 'binary');

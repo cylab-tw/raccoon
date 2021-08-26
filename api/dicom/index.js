@@ -29,8 +29,9 @@ router.get('/wado/' , validateParams({
         return helper.message("invalid region parameter, region=xmin,ymin,xmax,ymin");
     }),
     rows: Joi.number().min(1),
-    columns: Joi.number().min(1)
-} , "query" , {allowUnknown : true}),require('api/dicom/controller/wado'));
+    columns: Joi.number().min(1),
+    iccprofile: Joi.string().default("no").valid("no", "yes", "srgb", "adobergb", "rommrgb")
+} , "query" , {allowUnknown : false}),require('api/dicom/controller/wado'));
 
 router.get('/qido/studies/' ,validateParams({
     limit : Joi.number().integer() , 

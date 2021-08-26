@@ -20,7 +20,7 @@ router.get('/studies/:studyID/series/:seriesID/instances/:instanceID/frames/:fra
     frameNumber : Joi.number().integer().min(1)
 } , "params" , {allowUnknown : true}), validateParams({
     quality: Joi.number().integer().min(1).max(100),
-    iccprofile: Joi.string().default("no").valid("no", "yes", "srgb", "adobergb", "rommrgb","test")
+    iccprofile: Joi.string().default("no").valid("no", "yes", "srgb", "adobergb", "rommrgb")
 }, "query", { allowUnknown: false }) , require('./controller/wado-rs-framenumber-rendered'));
 //#endregion
 

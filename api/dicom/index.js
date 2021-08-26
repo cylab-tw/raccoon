@@ -16,10 +16,10 @@ router.get('/wado/' , validateParams({
     imageQuality: Joi.number().integer().min(1).max(100),
     region: Joi.string().custom( (v,helper) => {
         let [xMin , yMin ,xMax , yMax ] = v.split(",");
-        if(Joi.number().min(0).max(1).validate(xMin) && 
-               Joi.number().min(0).max(1).validate(yMin) &&
-               Joi.number().min(0).max(1).validate(xMax) &&
-               Joi.number().min(0).max(1).validate(yMax) &&
+        if(!Joi.number().min(0).max(1).validate(xMin).error && 
+               !Joi.number().min(0).max(1).validate(yMin).error &&
+               !Joi.number().min(0).max(1).validate(xMax).error &&
+               !Joi.number().min(0).max(1).validate(yMax).error &&
                v.split(",").length == 4
         ) {
             if (Number(xMin) > Number(xMax)) return helper.message(`invalid region parameter, xMin : ${xMin} > xMax : ${xMax}`);

@@ -70,9 +70,9 @@ function handleImageQuality(param, magick) {
  * 
  * @param {*} param 
  * @param {sharp.Sharp} imageSharp 
- * @param {Magick} magika
+ * @param {Magick} magick
  */
-async function handleRegion(param, imageSharp, magika) {
+async function handleRegion(param, imageSharp, magick) {
     if (param.region) {
         let [xMin , yMin ,xMax , yMax ] = param.region.split(",").map(v=> parseFloat(v));
         let imageMetadata = await imageSharp.metadata();
@@ -82,7 +82,7 @@ async function handleRegion(param, imageSharp, magika) {
         let extractTop = imageHeight * yMin;
         let extractWidth = imageWidth * xMax - extractLeft;
         let extractHeight = imageHeight * yMax - extractTop;
-        magika.crop(extractLeft, extractTop, extractWidth, extractHeight);
+        magick.crop(extractLeft, extractTop, extractWidth, extractHeight);
     }
 }
 /**

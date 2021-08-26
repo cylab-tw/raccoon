@@ -1,4 +1,4 @@
-const { sendBadRequestMessage } = require('../../../models/DICOMWeb/httpMessage');
+const { sendBadRequestMessage, sendNotFoundMessage } = require('../../../models/DICOMWeb/httpMessage');
 const { getFrameImage } = require('../../../models/dcmtk');
 const mongoFunc = require('../../../models/mongodb/func');
 const mongodb = require('../../../models/mongodb');
@@ -61,16 +61,16 @@ async function handleImageICCProfile(param, magick, instanceID) {
             let iccProfileSrc = path.join(process.env.DICOM_STORE_ROOTPATH, iccProfileBinaryFile.filename);
             let dest = path.join(process.env.DICOM_STORE_ROOTPATH, iccProfileBinaryFile.filename + `.icc`);
             if (!fs.existsSync(dest)) fs.copyFileSync(iccProfileSrc, dest)
-            await magick.iccProfile(dest);
+            magick.iccProfile(dest);
         },
         "srgb": async ()=> {
-            await magick.iccProfile(path.join(process.cwd(), "models/DICOMWeb/iccprofiles/sRGB.icc"));
+            magick.iccProfile(path.join(process.cwd(), "models/DICOMWeb/iccprofiles/sRGB.icc"));
         },
         "adobergb": async () => {
-            await magick.iccProfile(path.join(process.cwd(), "models/DICOMWeb/iccprofiles/adobeRGB.icc"));
+            magick.iccProfile(path.join(process.cwd(), "models/DICOMWeb/iccprofiles/adobeRGB.icc"));
         },
         "rommrgb": async ()=> {
-            await magick.iccProfile(path.join(process.cwd(), "models/DICOMWeb/iccprofiles/rommRGB.icc"));
+            magick.iccProfile(path.join(process.cwd(), "models/DICOMWeb/iccprofiles/rommRGB.icc"));
         },
     }
     try {
@@ -84,6 +84,37 @@ async function handleImageICCProfile(param, magick, instanceID) {
     
 }
 
+/**
+ *
+ * @param {*} param
+ * @param {sharp.Sharp} imageSharp
+ * @param {Magick} magick
+ */
+async function handleViewport(param, imageSharp, magick) {
+    if (param.viewport) {
+        let imageMetadata = await imageSharp.metadata();
+        let viewportSplit = param.viewport.split(",").map(v => Number(v));
+        if (viewportSplit.length == 2) {
+            let [vw, vh] = viewportSplit;
+            magick.resize(vw, vh);
+        } else {
+            let [vw, vh, sx, sy, sw, sh] = viewportSplit;
+            magick.resize(vw, vh);
+            if (sw == 0) sw = imageMetadata.width - sx;
+            if (sh == 0) sh = imageMetadata.height - sy;
+
+            if (sw < 0) {
+                magick.flip();
+                sw = Math.abs(sw);
+            }
+            if (sh < 0) {
+                magick.flop();
+                sh = Math.abs(sw);
+            }
+            magick.crop(sx, sy, sw, sh);
+        }
+    }
+}
 
 /**
  * 
@@ -135,9 +166,11 @@ module.exports = async function (req , res) {
             if (getFrameImageStatus.status) {
                 //let imageStream = getFrameImageStatus.imageStream;
                 let imagePath = getFrameImageStatus.imagePath;
+                let imageSharp = sharp(imagePath);
                 let magick = new Magick(imagePath);
                 handleImageQuality(req.query, magick);
                 await handleImageICCProfile(req.query, magick, req.params.instanceID);
+                await handleViewport(req.query, imageSharp, magick);
                 console.log(magick.magickCommand);
                 console.time("do magick");
                 await magick.execCommand();
@@ -150,6 +183,7 @@ module.exports = async function (req , res) {
             }
             return sendBadRequestMessage(res, `Can not get instance frame image`);
         }
+        return sendNotFoundMessage(req , res);
     } catch(e) {
         console.error(e);
     }

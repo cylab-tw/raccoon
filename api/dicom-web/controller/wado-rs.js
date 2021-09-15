@@ -65,6 +65,7 @@ module.exports = async function (req , res) {
             return  sendNotSupportMessage(req ,res);
         }
         try {
+            res.set("content-type" , `multipart/related; type="${type}"`);
             let resWriteStatus =  await multipartFunc[type][getFunc](req.params , res , type);
             if (resWriteStatus) {
                 res.end();

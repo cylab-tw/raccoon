@@ -234,6 +234,7 @@ async function getFrameImage (imagesPath , frameNumber ,otherOptions=[]) {
             };
         }
     } catch(e) {
+        console.error(e);
         return {
             status : false ,
             imageStream : e,

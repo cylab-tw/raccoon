@@ -14,7 +14,7 @@ const { QIDORetAtt } = require('../../../../models/FHIR/dicom-tag');
 
 const { dcm2jpegCustomCmd, dcm2jsonV8, dcmtkSupportTransferSyntax, dcm2json } = require('../../../../models/dcmtk');
 const moment = require('moment');
-const formidable = require('../../../../models/formidable');
+const formidable = require('formidable');
 const { sendServerWrongMessage } = require('../../../../models/DICOMWeb/httpMessage');
 const moveFile = require('move-file');
 const uuid = require('uuid');
@@ -82,10 +82,10 @@ async function dicomPatient2MongoDB(data) {
 }
 
 async function generateJpeg(dicomJson, dicomFile, jpegFile) {
+    let studyUID = _.get(dicomJson, '0020000D.Value.0');
+    let seriesUID = _.get(dicomJson, '0020000E.Value.0');
+    let instanceUID = _.get(dicomJson, '00080018.Value.0');
     try {
-        let studyUID = _.get(dicomJson, '0020000D.Value.0');
-        let seriesUID = _.get(dicomJson, '0020000E.Value.0');
-        let instanceUID = _.get(dicomJson, '00080018.Value.0');
         await insertDicomToJpegTask({
             studyUID: studyUID,
             seriesUID: seriesUID,
@@ -119,7 +119,7 @@ async function generateJpeg(dicomJson, dicomFile, jpegFile) {
                 }
                 execCmdList.push(execCmd);
                 if (i % 4 === 0) {
-                    await Promise.all(execCmdList.map(cmd => dcm2jpegCustomCmd(cmd)))
+                    await Promise.allSettled(execCmdList.map(cmd => dcm2jpegCustomCmd(cmd)))
                     execCmdList = new Array();
                 }
             }
@@ -141,7 +141,7 @@ async function generateJpeg(dicomJson, dicomFile, jpegFile) {
             studyUID: studyUID,
             seriesUID: seriesUID,
             instanceUID: instanceUID,
-            status: true,
+            status: false,
             message: e.toString(),
             finishedTime: new Date()
         });

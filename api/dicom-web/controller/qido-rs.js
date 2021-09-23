@@ -172,7 +172,6 @@ async function getInstanceDicomJson(iQuery , iParam , limit , skip) {
     let level =  ['study' , 'series' , 'instance'];
     let mongoAgg = await getMongoAgg(iQuery , unwindField , level , limit , skip);
     let docs = await mongoFunc.aggregate_Func('ImagingStudy',mongoAgg);
-    console.log(docs);
     return docs;
 }
 //#endregion

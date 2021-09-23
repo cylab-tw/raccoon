@@ -35,9 +35,12 @@ module.exports = async (req, res) => {
             .countDocuments(queryParameter);
         for (let index in dicomToJpegTaskList) {
             let item = dicomToJpegTaskList[index]._doc;
+            item.diffTime = undefined;
             item.taskTime = moment(item.taskTime).format("YYYY-MM-DD HH:mm:ss");
             item.finishedTime = moment(item.finishedTime).format("YYYY-MM-DD HH:mm:ss");
-            item.diffTime = (moment(item.finishedTime).diff(moment(item.taskTime) , "minute", true)).toFixed(2);
+            if (item.status) {
+                item.diffTime = (moment(item.finishedTime).diff(moment(item.taskTime), "minute", true)).toFixed(2);
+            }
         }
         return res.send({
             data: dicomToJpegTaskList,

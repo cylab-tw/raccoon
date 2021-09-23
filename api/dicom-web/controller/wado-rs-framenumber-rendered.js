@@ -171,10 +171,7 @@ module.exports = async function (req , res) {
                 handleImageQuality(req.query, magick);
                 await handleImageICCProfile(req.query, magick, req.params.instanceID);
                 await handleViewport(req.query, imageSharp, magick);
-                console.log(magick.magickCommand);
-                console.time("do magick");
                 await magick.execCommand();
-                console.timeEnd("do magick")
                 res.set("content-type", "image/jpeg");
                 //return imageStream.pipe(res);
 

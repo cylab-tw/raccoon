@@ -165,7 +165,7 @@ UploadApp.controller("UploadCtrl", function ($scope, $location, $window, UploadS
             let myBlob = formDataToBlob(file.FormData);
             let m = myBlob.type.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
             let boundary = m[1] || m[2];
-            xhr.setRequestHeader("Content-Type", `multipart/related; type="application/dicom"; boundary=------------------------${boundary}`);
+            xhr.setRequestHeader("Content-Type", `multipart/related; type="application/dicom"; boundary="${boundary}"`);
             xhr.send(myBlob);
         })
     }

@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/cylab-tw/raccoon/compare/v1.1.0...v1.2.0) (2021-09-29)
+
+
+### Features
+
+* `wado-uri` handle `iccprofile` parameter ([9185b72](https://github.com/cylab-tw/raccoon/commit/9185b72be68082ce738c483346ecb764a6b044b1))
+* add dicom to jpeg task api ([6ca0d19](https://github.com/cylab-tw/raccoon/commit/6ca0d193014b1df0f6d63cc485f18b8c048a8b25))
+* add file size field in dicomToJpegTask ([529e84a](https://github.com/cylab-tw/raccoon/commit/529e84a1820cb4dcac49a0cd7fa61b4cc31e2b9f))
+* add flip and flop ([fc77d65](https://github.com/cylab-tw/raccoon/commit/fc77d653e747a799a35a23ecf6c420a298dece10))
+* handle viewport parameter ([b77ea8c](https://github.com/cylab-tw/raccoon/commit/b77ea8c2a27ac4aed94530af9eb1b385de2ec2f1))
+* **front-end:** add dicom to jpeg task page ([3c9a839](https://github.com/cylab-tw/raccoon/commit/3c9a8392467f783ded5fb362b4f5fbeeb33dd643))
+* read metadata file instead of mongodb metadata data ([e690008](https://github.com/cylab-tw/raccoon/commit/e69000824be53f6053b0becddf5aedb78704f397))
+* use imagemagick to handle quality and iccprofile ([18d21f7](https://github.com/cylab-tw/raccoon/commit/18d21f7b480ad87f0c1da4fc43a567c2b69d67bc))
+* use magick instead of sharp to handle image ([7faaedb](https://github.com/cylab-tw/raccoon/commit/7faaedba2dd739a9685ef830adf9a66ac9f02bfb))
+* use prebuild dicomtojson package ([74665d5](https://github.com/cylab-tw/raccoon/commit/74665d53b7441aac4e0961fedfcdd721fab28f8d))
+
+
+### Bug Fixes
+
+* create folder when it is not exist ([131fe00](https://github.com/cylab-tw/raccoon/commit/131fe00ee28f0fc2dffaf3d2c11e9e332fe6b268))
+* date query will lose by cleandoc ([3eef6c5](https://github.com/cylab-tw/raccoon/commit/3eef6c5f33ddb3d41978dd85c8d45464632dd747))
+* icc profile binary save as `.icc` extension ([9f31226](https://github.com/cylab-tw/raccoon/commit/9f312264c4d564c5e663b359ef0b4f5ebb88a4d3))
+* incorrect aggregate sequence ([ef04b82](https://github.com/cylab-tw/raccoon/commit/ef04b8243b45a3a446beefaefc85c779c0b31322))
+* incorrect STOW-RS request ([431889f](https://github.com/cylab-tw/raccoon/commit/431889f8dd10d8a72566d47cae93a606fbdeb015))
+* incorrect tag when get modality of dicom json ([87b4064](https://github.com/cylab-tw/raccoon/commit/87b40644a0b6eb178465361dec4e4d43f790f564))
+* missing error log in getFrameImage function ([49d890d](https://github.com/cylab-tw/raccoon/commit/49d890dedcb433c1570acd5b72921005358b67a6))
+* resolve 80 and 443 port in url ([2c576ba](https://github.com/cylab-tw/raccoon/commit/2c576ba3bbe5631361b3bb7a73cb1168bc48bec5))
+* resolve the dicom to jpeg task have difftime when status if false ([3960138](https://github.com/cylab-tw/raccoon/commit/3960138db3177ea8990173fc391a596b2408c60e))
+* response missing content-type in header ([0b39ffa](https://github.com/cylab-tw/raccoon/commit/0b39ffa416997a2fc11a2fb90fc57b3328151f4b))
+* studyUID is not defined in catch ([8d64478](https://github.com/cylab-tw/raccoon/commit/8d64478951cac679ef79bd3eb5ed8eb707240386))
+
 ## 1.1.0 (2021-08-15)
 
 

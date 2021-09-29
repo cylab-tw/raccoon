@@ -523,7 +523,7 @@ module.exports = async (req, res) => {
                     let sopInstanceUID = dcm2jsonV8.dcmString(dicomToJsonResponse.dicomJson, "00080018");
                     let sopSeq = getSOPSeq(sopClass, sopInstanceUID);
                     if (req.params.studyID) {
-                        if (!checkIsSameStudyId(req, fhirDICOM)) {
+                        if (!checkIsSameStudyId(req, dicomToJsonResponse.dicomJson)) {
                             let failureMessage = {
                                 "00081197": {
                                     vr: "US",

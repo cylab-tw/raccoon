@@ -37,10 +37,11 @@ function addPatientIdQuery(query, imageQuery) {
     }
 }
 
-function addStaredQuery(query, imageQuery) {
+async function addStaredQuery(query, imageQuery) {
     if (_.get(query, "StudyDate", false)) {
         imageQuery["started"] = query.StudyDate;
     }
+    await mongoDateQuery(imageQuery, "started", false);
 }
 
 function addModalityQuery(query, imageQuery) {
@@ -58,20 +59,21 @@ function addIdentifierQuery(query, imageQuery) {
 module.exports = async function (req ,res)
 {
     try {
+        req.query = await api_func.Refresh_Param(req.query);
         let image_Query = {};
         addPatientNameQuery(req.query, image_Query);
         addPatientIdQuery(req.query, image_Query);
         addModalityQuery(req.query, image_Query);
-        addStaredQuery(req.query, image_Query);
+        await addStaredQuery(req.query, image_Query);
         addIdentifierQuery(req.query, image_Query);
-        image_Query = await api_func.Refresh_Param(image_Query);
-        image_Query = await api_func.cleanDoc(image_Query);
+        //image_Query = await api_func.Refresh_Param(image_Query);
+        //image_Query = await api_func.cleanDoc(image_Query);
         await ToRegex(image_Query);
         let andQuery = {
             $and : []
         };
        
-        await mongoDateQuery(image_Query,"started",false);
+        
         for (let i in image_Query) {
             let q = {
                 [i] : image_Query[i]

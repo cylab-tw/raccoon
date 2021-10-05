@@ -100,6 +100,7 @@ async function writeImageMultipart (res , imagesPath , type) {
 }
 async function writeframesMultipart (req , res , imagesPath ,type , frameList) {
     const BOUNDORY = `${uuid.v4()}-${uuid.v4()}`;
+    res.set('content-type', `multipart/related; type=${type};boundary=${BOUNDORY}`);
     let images = `${process.env.DICOM_STORE_ROOTPATH}${imagesPath[0]}`;
     let jpegFile = images.replace(/\.dcm\b/gi , "");
     let minFrameNumber = _.min(frameList);

@@ -65,7 +65,6 @@ module.exports = async function (req , res) {
             return  sendNotSupportMessage(req ,res);
         }
         try {
-            res.set("content-type" , `multipart/related; type="${type}"`);
             let resWriteStatus =  await multipartFunc[type][getFunc](req.params , res , type);
             if (resWriteStatus) {
                 res.end();
@@ -218,15 +217,16 @@ let multipartFunc = {
                 let imagesPath = await mongoFunc.getStudyImagesPath(iParam);
                 if (imagesPath) {
                     const BOUNDARY = `${uuid.v4()}-${uuid.v4()}`;
+                    res.set("content-type", `multipart/related; type="${type}"; boundary=${BOUNDARY}`);
                     for (let i= 0 ; i < imagesPath.length ; i++) {
                         console.log(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`);
                         let fileBuffer = await streamToBuffer(fs.createReadStream(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`));
-                        res.write(`${i==0? "":"\n\n"}--${BOUNDARY}\n`);
-                        res.write(`Content-Type: ${type}\n`);
-                        res.write('Content-length: ' + fileBuffer.length + '\n\n');
+                        res.write(`${i==0? "":"\r\n\r\n"}--${BOUNDARY}\r\n`);
+                        res.write(`Content-Type: ${type}\r\n`);
+                        res.write('Content-length: ' + fileBuffer.length + '\r\n\r\n');
                         res.write(fileBuffer);
                     }
-                    res.write(`\n--${BOUNDARY}--`);
+                    res.write(`\r\n--${BOUNDARY}--`);
                     return resolve(true);
                 }
                 return resolve(false);
@@ -237,15 +237,16 @@ let multipartFunc = {
                 let imagesPath = await mongoFunc.getSeriesImagesPath(iParam);
                 if (imagesPath) {
                     const BOUNDARY = `${uuid.v4()}-${uuid.v4()}`;
+                    res.set("content-type", `multipart/related; type="${type}"; boundary=${BOUNDARY}`);
                     for (let i= 0 ; i < imagesPath.length ; i++) {
                         console.log(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`);
                         let fileBuffer = await streamToBuffer(fs.createReadStream(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`));
-                        res.write(`${i==0? "":"\n\n"}--${BOUNDARY}\n`);
-                        res.write(`Content-Type: ${type}\n`);
-                        res.write('Content-length: ' + fileBuffer.length + '\n\n');
+                        res.write(`${i==0? "":"\r\n\r\n"}--${BOUNDARY}\r\n`);
+                        res.write(`Content-Type: ${type}\r\n`);
+                        res.write('Content-length: ' + fileBuffer.length + '\r\n\r\n');
                         res.write(fileBuffer);
                     }
-                    res.write(`\n--${BOUNDARY}--`);
+                    res.write(`\r\n--${BOUNDARY}--`);
                     return resolve(true);
                 }
                 return resolve(false);
@@ -256,13 +257,14 @@ let multipartFunc = {
                 let imagesPath = await mongoFunc.getInstanceImagePath(iParam);
                 if (imagesPath) {
                     const BOUNDARY = `${uuid.v4()}-${uuid.v4()}`;
+                    res.set("content-type", `multipart/related; type="${type}"; boundary=${BOUNDARY}`);
                     let fileBuffer = await streamToBuffer(fs.createReadStream(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[0]}`));
                     console.log(imagesPath[0]);
-                    res.write(`--${BOUNDARY}\n`);
-                    res.write(`Content-Type: ${type}\n`);
-                    res.write('Content-length: ' + fileBuffer.length + '\n\n');
+                    res.write(`--${BOUNDARY}\r\n`);
+                    res.write(`Content-Type: ${type}\r\n`);
+                    res.write('Content-length: ' + fileBuffer.length + '\r\n\r\n');
                     res.write(fileBuffer);
-                    res.write(`\n--${BOUNDARY}--`);
+                    res.write(`\r\n--${BOUNDARY}--`);
                     return resolve(true);
                 }
                 return resolve(false);

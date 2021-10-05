@@ -47,10 +47,12 @@ async function dicom2FHIR(data) {
 
 async function dicomEndpoint2MongoDB(data) {
     return new Promise((resolve, reject) => {
+        let port = process.env.FHIRSERVER_PORT || "";
+        port = (port) ? `:${port}` : "";
         let options =
         {
             method: "PUT",
-            url: `http://${process.env.FHIRSERVER_HOST}:${process.env.SERVER_PORT}/api/fhir/Endpoint/${data.id}`,
+            url: `${process.env.FHIRSERVER_HTTP}://${process.env.FHIRSERVER_HOST}${port}/api/fhir/Endpoint/${data.id}`,
             json: true,
             body: data
         }
@@ -65,9 +67,11 @@ async function dicomEndpoint2MongoDB(data) {
 
 async function dicomPatient2MongoDB(data) {
     return new Promise(async (resolve) => {
+        let port = process.env.FHIRSERVER_PORT || "";
+        port = (port) ? `:${port}` : "";
         let patient = DCM2Patient.DCMJson2Patient(data);
         let Insert_Patient_options = {
-            url: `http://${process.env.FHIRSERVER_HOST}:${process.env.SERVER_PORT}/api/fhir/Patient/${patient.id}`,
+            url: `${process.env.FHIRSERVER_HTTP}://${process.env.FHIRSERVER_HOST}${port}/api/fhir/Patient/${patient.id}`,
             method: "PUT",
             json: true,
             body: patient

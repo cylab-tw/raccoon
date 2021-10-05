@@ -1,132 +1,141 @@
 const mongodb = require('models/mongodb');
-const _ =require('lodash');
+const _ = require('lodash');
 const mongoFunc = require('../../../models/mongodb/func');
 const fs = require('fs');
 const path = require('path');
+const { sendNotFoundMessage, sendServerWrongMessage } = require('../../../models/DICOMWeb/httpMessage');
 
 const returnProject = {
-    $project : {
-        _id : 0 , 
-        __v : 0 ,
-        studyUID : 0 ,
-        seriesUID : 0 ,
-        instanceUID : 0
+    $project: {
+        _id: 0,
+        __v: 0,
+        studyUID: 0,
+        seriesUID: 0,
+        instanceUID: 0
     }
 };
 
-module.exports = async function (req , res ) {
-    let getMetaFunc = [getStudyInstanceStorePath, getSeriesInstanceStorePath , getInstanceStorePath];
-    let errorMessage = {
-        message : "cannot found"
-    }
-    let keys = Object.keys(req.params);
-    let item = await getMetaFunc[keys.length -1](req.params);
-    for (let i of keys) {
-        errorMessage.message = `${errorMessage.message} ${keys}:${req.params[i]}`
-    }
-    if (item.length <= 0) return res.status(404).json(errorMessage);
-    if (item) {
-        let resMetadata = [];
-        for (let instance of item) {
-            let fullPath = path.join(process.env.DICOM_STORE_ROOTPATH, instance.path);
-            let metadataStorePath = path.join(path.dirname(fullPath), `${instance.instanceUID}.metadata.json`);
-            let metadataJsonStr = fs.readFileSync(metadataStorePath , {encoding: 'utf8'});
-            let metadataJson = JSON.parse(metadataJsonStr);
-            resMetadata.push(metadataJson);
+module.exports = async function (req, res) {
+    try {
+        let getMetaFunc = [getStudyInstanceStorePath, getSeriesInstanceStorePath, getInstanceStorePath];
+        let errorMessage = {
+            message: "cannot found"
         }
-        res.setHeader('Content-Type' , 'application/dicom+json');
-        return res.send(resMetadata);
+        let keys = Object.keys(req.params);
+        let item = await getMetaFunc[keys.length - 1](req.params);
+        for (let i of keys) {
+            errorMessage.message = `${errorMessage.message} ${keys}:${req.params[i]}`
+        }
+        if (item.length <= 0) return res.status(404).json(errorMessage);
+        if (item) {
+            let resMetadata = [];
+            for (let instance of item) {
+                let fullPath = path.join(process.env.DICOM_STORE_ROOTPATH, instance.path);
+                let metadataStorePath = path.join(path.dirname(fullPath), `${instance.instanceUID}.metadata.json`);
+                if (!fs.existsSync(metadataStorePath)) {
+                    return sendNotFoundMessage(req, res);
+                }
+                let metadataJsonStr = fs.readFileSync(metadataStorePath, { encoding: 'utf8' });
+                let metadataJson = JSON.parse(metadataJsonStr);
+                resMetadata.push(metadataJson);
+            }
+            res.setHeader('Content-Type', 'application/dicom+json');
+            return res.send(resMetadata);
+        }
+        res.setHeader('Content-Type', 'application/dicom+json');
+        return res.status(404).json(errorMessage);
+    } catch (e) {
+        console.error(e);
+        return sendServerWrongMessage(res, e);
     }
-    res.setHeader('Content-Type' , 'application/dicom+json');
-    return res.status(404).json(errorMessage);
 }
 
 
-async function getStudyMetadata (params) {
+async function getStudyMetadata(params) {
     const metadataQuery = [
         {
-            $match : {
-                $and : [
+            $match: {
+                $and: [
                     {
-                        studyUID : params.studyID
+                        studyUID: params.studyID
                     }
                 ]
-                
-            } 
-        } ,
+
+            }
+        },
         returnProject
-         , 
+        ,
         {
-            $group : {
-                "_id" : "$seriesUID" , 
-                "metadata" : {
-                    $push : "$$ROOT"
+            $group: {
+                "_id": "$seriesUID",
+                "metadata": {
+                    $push: "$$ROOT"
                 }
             }
         }
     ]
-    let agg = await mongoFunc.aggregate_Func("dicomMetadata" , metadataQuery)
+    let agg = await mongoFunc.aggregate_Func("dicomMetadata", metadataQuery)
     return agg;
 }
-async function getSeriesMetadata (params) {
+async function getSeriesMetadata(params) {
     const metadataQuery = [
         {
-            $match : {
-                $and : [
+            $match: {
+                $and: [
                     {
-                        studyUID : params.studyID
-                    } ,
+                        studyUID: params.studyID
+                    },
                     {
-                        seriesUID : params.seriesID
+                        seriesUID: params.seriesID
                     }
                 ]
-                
-            } 
-        } ,
+
+            }
+        },
         returnProject
-         , 
+        ,
         {
-            $group : {
-                "_id" : "$seriesUID" , 
-                "metadata" : {
-                    $push : "$$ROOT"
+            $group: {
+                "_id": "$seriesUID",
+                "metadata": {
+                    $push: "$$ROOT"
                 }
             }
         }
     ]
-    let agg = await mongoFunc.aggregate_Func("dicomMetadata" , metadataQuery)
+    let agg = await mongoFunc.aggregate_Func("dicomMetadata", metadataQuery)
     return agg;
 }
-async function getInstanceMetadata (params) {
+async function getInstanceMetadata(params) {
     const metadataQuery = [
         {
-            $match : {
-                $and : [
+            $match: {
+                $and: [
                     {
-                        studyUID : params.studyID
-                    } ,
+                        studyUID: params.studyID
+                    },
                     {
-                        seriesUID : params.seriesID
-                    } ,
+                        seriesUID: params.seriesID
+                    },
                     {
-                        instanceUID : params.instanceID
+                        instanceUID: params.instanceID
                     }
                 ]
-                
-            } 
-        } ,
+
+            }
+        },
         returnProject
-        , 
+        ,
         {
-            $group : {
-                "_id" : "$instanceUID" , 
-                "metadata" : {
-                    $push : "$$ROOT"
+            $group: {
+                "_id": "$instanceUID",
+                "metadata": {
+                    $push: "$$ROOT"
                 }
             }
         }
     ]
-    let agg = await mongoFunc.aggregate_Func("dicomMetadata" , metadataQuery)
+    let agg = await mongoFunc.aggregate_Func("dicomMetadata", metadataQuery)
     return agg;
 }
 
@@ -152,7 +161,7 @@ async function getStudyInstanceStorePath(params) {
                     _id: null,
                     instanceStorePathList:
                     {
-                        $push: 
+                        $push:
                         {
                             path: "$series.instance.store_path",
                             instanceUID: "$series.instance.uid"

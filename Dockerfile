@@ -60,6 +60,7 @@ COPY . /nodejs/raccoon/
 RUN npm rebuild
 RUN npm install pm2@latest -g
 RUN npm install
+ENV DCMDICTPATH="/nodejs/raccoon/models/dcmtk/dicom.dic"
 EXPOSE 8081
 CMD ["pm2-runtime" , "start" , "ecosystem.config.js"]
 

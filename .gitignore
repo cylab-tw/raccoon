@@ -27,9 +27,9 @@ temp/*
 build/
 
 #ignore dcmtk and compiled dcmtk
-dcmtk/
 dcmtk-build/
 models/dcmtk/linux-lib
+!models/dcmtk/dicom.dic
 
 #ignore pycache
 __pycache__/

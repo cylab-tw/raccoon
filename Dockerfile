@@ -33,6 +33,15 @@ RUN make -j8 && make install
 WORKDIR /gdcm-build/bin
 RUN cp gdcm.py gdcmswig.py _gdcmswig.so /usr/local/lib/python3.9/dist-packages 
 
+# Build iconv
+WORKDIR /
+RUN wget -O libiconv.tar.gz https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.16.tar.gz
+RUN tar xzvf libiconv.tar.gz
+WORKDIR /libiconv-1.16
+RUN ./configure
+RUN make && make install
+
+
 # #Build official dcmtk
 # WORKDIR /
 # RUN wget https://github.com/DCMTK/dcmtk/archive/refs/tags/DCMTK-3.6.6.tar.gz

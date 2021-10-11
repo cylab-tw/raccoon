@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.1](https://github.com/cylab-tw/raccoon/compare/v1.2.0...v1.2.1) (2021-10-11)
+
+### Bug Fixes
+
+* missing boundary in response headers ([06312ef](https://github.com/cylab-tw/raccoon/commit/06312efcf13d46f6f3cc72ecdd88428c299a4291))
+* not response when error occur ([f999810](https://github.com/cylab-tw/raccoon/commit/f999810719a4019a2491a6ba6fcedde25113ab0b))
+* replace http to config FHIRSERVER_HTTP ([6a38ccc](https://github.com/cylab-tw/raccoon/commit/6a38ccc5437f1b7f4a4b916c56bb55c41eb09833))
+
+
+### Build
+
+* **dockerfile:**  add iconv compile in env ([30de6b9](https://github.com/cylab-tw/raccoon/commit/30de6b9628e7e70caa9f6651fbe68a127e4d279f))
+* **dockerfile:** fix the dcmtk Tag not found in data dictionary in docker env ([9bc47c0](https://github.com/cylab-tw/raccoon/commit/9bc47c0910050baefb8e5df4b1c156240203aff8))
+
 ## [1.2.0](https://github.com/cylab-tw/raccoon/compare/v1.1.0...v1.2.0) (2021-09-29)
 
 

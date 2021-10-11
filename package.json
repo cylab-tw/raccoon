@@ -1,6 +1,6 @@
 {
   "name": "Raccoon",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "DICOMWeb&FHIR server",
   "main": "server.js",
   "scripts": {
@@ -14,7 +14,45 @@
     "skip": {
       "tag": true,
       "commit": true
-    }
+    },
+    "types": [
+      {
+        "type": "feat",
+        "section": "Features"
+      },
+      {
+        "type": "fix",
+        "section": "Bug Fixes"
+      },
+      {
+        "type": "chore",
+        "hidden": true
+      },
+      {
+        "type": "docs",
+        "hidden": true
+      },
+      {
+        "type": "style",
+        "hidden": true
+      },
+      {
+        "type": "refactor",
+        "hidden": true
+      },
+      {
+        "type": "perf",
+        "hidden": true
+      },
+      {
+        "type": "test",
+        "hidden": true
+      },
+      {
+        "type": "build",
+        "section": "Build"
+      }
+    ]
   },
   "keywords": [
     "DICOMWeb",

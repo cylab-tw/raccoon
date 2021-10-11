@@ -6,7 +6,7 @@
 **Raccoon** is a noSQL-based medical image archive for managing the DICOM images is primarily maintained by the [Imaging Informatics Labs](https://cylab.dicom.tw). It uses the MongoDB to manage the DICOM images and provide RESTful API, supported both FHIR ImagingStudy and [DICOMweb](https://www.dicomstandard.org/dicomweb/") to store, query/retrieve, and manage DICOM images.  Raccoon is bulit on the top of the [Burni FHIR Server](https://github.com/Chinlinlee/Burni) to manage the FHIR resourcs related to medical images 
 
 ## Install
-* Before starting Raccoon, MongoDB must be installed.
+* Before starting Raccoon, MongoDB,imagemagick must be installed.
 * This project uses the submodule with <a href="https://github.com/cylab-tw/bluelight/">BlueLight</a>. If you want to use it, run `git submodule init` and `git submodule update` when the first time.
 
 After installation and configure. 
@@ -20,14 +20,10 @@ run `node server.js`
 - **Anaconda**
 - **GDCM enviroment in Anaconda** (Use pydicom==1.1.0)
 - **[imagemagick](https://imagemagick.org/script/download.php)**
->```bash
->sudo apt-get install imagemagick #ubuntu
->```
 
 ```bash
 npm install
 npm run build #This will download dcmtk executable binaries to ./models/dcmtk and generate example dotenv file.
-node-gyp rebuild #Build nodev8 dcmtk dcm2json
 ```
 ### Linux
 #### Test OS
@@ -35,11 +31,14 @@ node-gyp rebuild #Build nodev8 dcmtk dcm2json
 #### requirement
 - **MongoDB**
 - **GDCM** (Use pydicom==1.1.0)
+- imagemagick
+>```bash
+>sudo apt-get install imagemagick #ubuntu
+>```
+
 ```bash
 npm install
 npm run build #This will download dcmtk using apt-get install and generate example dotenv file.
-bash complie_dcmtk.sh  #Important!!! use in nodev8 dcm2json(complie the custom dcmtk)
-node-gyp rebuild #Build nodev8 dcmtk dcm2json
 ```
 ### dotenv Configuration
 ```bash
@@ -68,6 +67,9 @@ FHIR_NEED_PARSE_PATIENT = true #STOW will generate Patient data using DICOMTag. 
 
 CONDA_PATH = "C:\\Users\\chinHPlaptop\\anaconda3\\Scripts\\conda.exe"
 CONDA_GDCM_ENV_NAME = "gdcm"
+
+USE_DCM2JPEG_PYTHONAPI = true
+DCM2JPEG_PYTHONAPI_PORT = 5000
 ```
 
 ## Client Configuration
@@ -101,7 +103,7 @@ var envConfig = {
 ## usage
 
 ### DICOMweb
-QIDO、WADO、STOW : `/api/dicom-web/studies`
+QIDO-RS、WADO-RS、STOW-RS : `/api/dicom-web/studies`
 
 WADO-URI : `/api/dicom/wado`
 
@@ -127,7 +129,7 @@ metadata : `/api/fhir/metadata`
   - QIDO-RS: (JSON)
   - WAOD-RS
   - WADO-URI: supported both: DICOM and JPEG
-  - STOW
+  - STOW-RS
 
 ### FHIR Resources
 * Raccoon can act a FHIR server supporting the following FHIR resources and FHIR API which can be found in FHIR **metadata** services

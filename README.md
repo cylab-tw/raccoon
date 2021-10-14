@@ -103,7 +103,7 @@ var envConfig = {
 ## usage
 
 ### DICOMweb
-QIDO-RS、WADO-RS、STOW-RS : `/api/dicom-web/studies`
+QIDO-RS、WADO-RS、STOW-RS : `/dicom-web/studies`
 
 WADO-URI : `/api/dicom/wado`
 

@@ -1,13 +1,14 @@
-const {dicomjson} = require('../../../models/FHIR/dicom-tag');
-const {QIDORetAtt} = require('../../../models/FHIR/dicom-tag');
+const { dicomjson } = require('../../../models/FHIR/dicom-tag');
+const { QIDORetAtt } = require('../../../models/FHIR/dicom-tag');
 const mongoFunc = require('../../../models/mongodb/func');
-const {ToRegex} = require('../../Api_function');
+const { ToRegex } = require('../../Api_function');
 const {mongoDateQuery} = require('../../../models/mongodb/func');
-const {Refresh_Param} = require('../../Api_function');
-const {textSpaceToOrCond} = require('../../Api_function');
-const _ =require('lodash');
+const { Refresh_Param } = require('../../Api_function');
+const { textSpaceToOrCond } = require('../../Api_function');
+const _ = require('lodash');
 const moment = require('moment');
 const { setRetrieveURL } = require('../../../models/DICOMWeb');
+const mongodb = require('../../../models/mongodb');
 
 module.exports = async function (req , res) {
     console.log(req.query);
@@ -60,24 +61,27 @@ module.exports = async function (req , res) {
         }
         /*let QIDOFunc = {"studyID" :getStudyDicomJson , "studyIDseriesID":getSeriesDicomJson , "studyIDseriesIDinstanceID": getInstanceDicomJson};*/
         let QIDOFunc = [getStudyDicomJson , getSeriesDicomJson , getInstanceDicomJson];
-        let docs =  await QIDOFunc[keys.length](newQS , req.params , parseInt(limit)  , parseInt(skip));
-        for (let i  in docs) {
-            let studyDate = _.get(docs[i] , "00080020.Value");
+        let QIDOResult =  await QIDOFunc[keys.length](newQS , req.params , parseInt(limit)  , parseInt(skip));
+        if (!QIDOResult.status) {
+            return res.status(500).send(QIDOResult.data);
+        }
+        for (let i in QIDOResult.data) {
+            let studyDate = _.get(QIDOResult.data[i] , "00080020.Value");
             if (studyDate) {
                 for (let j in studyDate) {
                     let studyDateYYYYMMDD = moment(studyDate[j] ).format( "YYYYMMDD").toString();
                     studyDate[j] = studyDateYYYYMMDD;
                 }
-                _.set(docs[i] , "00080020.Value" , studyDate);
+                _.set(QIDOResult.data[i] , "00080020.Value" , studyDate);
             }
-            docs[i] = await sortField(docs[i]);
+            QIDOResult.data[i] = await sortField(QIDOResult.data[i]);
         }
-        if (docs.length == 0 ) {
+        if (QIDOResult.data.length == 0 ) {
             return res.status(204).send([]);
         }
         res.setHeader('Content-Type' , 'application/dicom+json');
-        setRetrieveURL(docs , keys.length);
-        return res.status(200).json(docs);
+        setRetrieveURL(QIDOResult.data , keys.length);
+        return res.status(200).json(QIDOResult.data);
     }
 }
 
@@ -124,55 +128,121 @@ async function useImageSearch (iQuery,record_Query) {
 
 //#region 獲取各階層的DICOMJSON
 async function getStudyDicomJson(iQuery , iParam = "" , limit , skip) {
-    let studyLevelKey = Object.keys(QIDORetAtt.study);
-    let retStudyLevel  = {}
-
-    /*for (let i  = 0 ; i < studyLevelKey.length ; i++) {
-        retStudyLevel[`dicomJson.${studyLevelKey[i]}`] = 1
+    let result = {
+        data : '' ,
+        status: false
     }
+    try {
+        let studyLevelKey = Object.keys(QIDORetAtt.study);
+        let retStudyLevel = {}
 
-    retStudyLevel['_id']  = 0;*/
+        /*for (let i  = 0 ; i < studyLevelKey.length ; i++) {
+            retStudyLevel[`dicomJson.${studyLevelKey[i]}`] = 1
+        }
+    
+        retStudyLevel['_id']  = 0;*/
 
-    retStudyLevel = await getLevelDicomJson("" ,['study'] ,false );
+        retStudyLevel = await getLevelDicomJson("", ['study'], false);
 
-    iQuery = await getMongoOrQs(iQuery);
-    iQuery = iQuery.$match;
-    //console.log(JSON.stringify(iQuery , null ,4));
-    let docs = await mongoFunc.findFilterFields('ImagingStudy' , iQuery , retStudyLevel , limit ,skip);
-    let retDocs = [];
-    for (let  i = 0 ; i < docs.length ; i++) {
-        retDocs.push(docs[i]._doc.dicomJson);
+        iQuery = await getMongoOrQs(iQuery);
+        iQuery = iQuery.$match;
+        //console.log(JSON.stringify(iQuery , null ,4));
+        let docs = await mongoFunc.findFilterFields('ImagingStudy', iQuery, retStudyLevel, limit, skip);
+        let retDocs = [];
+        for (let i = 0; i < docs.length; i++) {
+            let dicomJsonItem = docs[i]._doc.dicomJson;
+            let modalitiesInStudyDoc = await mongodb.dicomMetadata.aggregate([
+                {
+                    $match : 
+                    {
+                        studyUID: dicomJsonItem["0020000D"].Value[0]
+                    }
+                },
+                {
+                    $unwind: "$00080060.Value"
+                },
+                {
+                    $group: {
+                        _id : "$studyUID",
+                        modalitiesInStudy:
+                        {
+                            $addToSet: "$00080060.Value"
+                        }
+                    }
+                }
+            ]);
+            let modalitiesInStudy = {
+                vr: "CS" ,
+                Value: [...modalitiesInStudyDoc[0].modalitiesInStudy]
+            }
+            _.set(dicomJsonItem, "00080061", modalitiesInStudy);
+            retDocs.push(dicomJsonItem);
+        }
+        result.data = retDocs;
+        result.status = true;
+        return result;
+    } catch (e) {
+        console.error("get Study DICOM error" , e);
+        result.data = e;
+        result.status = false;
+        return result;
     }
-    return retDocs;
 }
 async function getSeriesDicomJson(iQuery , iParam , limit , skip) {
-    let qs =  {
-        "identifier.value" : `urn:oid:${iParam.studyID}`
+    let result = {
+        data: '',
+        status: false
     }
-    iQuery = Object.assign(iQuery , qs);
-    let unwindField =  [{
-        $unwind : '$series'
-    }];
-    let level = ['study' , 'series']
-    let mongoAgg = await getMongoAgg(iQuery , unwindField , level , limit , skip);
-    let docs = await mongoFunc.aggregate_Func('ImagingStudy',mongoAgg);
-    return docs;
+    try {
+        let qs = {
+            "identifier.value": `urn:oid:${iParam.studyID}`
+        }
+        iQuery = Object.assign(iQuery, qs);
+        let unwindField = [{
+            $unwind: '$series'
+        }];
+        let level = ['study', 'series']
+        let mongoAgg = await getMongoAgg(iQuery, unwindField, level, limit, skip);
+        let docs = await mongoFunc.aggregate_Func('ImagingStudy', mongoAgg);
+        result.data = docs;
+        result.status = true;
+        return result;
+    } catch (e) {
+        console.error("get Series DICOM Json error:" , e);
+        result.data = e;
+        result.status = false;
+        return result;
+    }
+
 }
 async function getInstanceDicomJson(iQuery , iParam , limit , skip) {
-    let qs =  {
-        "identifier.value" : `urn:oid:${iParam.studyID}` , 
-        "series.uid" : iParam.seriesID
+    let result = {
+        data: '',
+        status: false
     }
-    iQuery = Object.assign(iQuery , qs);
-    let unwindField = [{
-        $unwind : '$series'
-    },  {
-        $unwind : '$series.instance'
-    }];
-    let level =  ['study' , 'series' , 'instance'];
-    let mongoAgg = await getMongoAgg(iQuery , unwindField , level , limit , skip);
-    let docs = await mongoFunc.aggregate_Func('ImagingStudy',mongoAgg);
-    return docs;
+    try {
+        let qs = {
+            "identifier.value": `urn:oid:${iParam.studyID}`,
+            "series.uid": iParam.seriesID
+        }
+        iQuery = Object.assign(iQuery, qs);
+        let unwindField = [{
+            $unwind: '$series'
+        }, {
+            $unwind: '$series.instance'
+        }];
+        let level = ['study', 'series', 'instance'];
+        let mongoAgg = await getMongoAgg(iQuery, unwindField, level, limit, skip);
+        let docs = await mongoFunc.aggregate_Func('ImagingStudy', mongoAgg);
+        result.data = docs;
+        result.status = true;
+        return result;
+    } catch(e) {
+        console.error("get instance dicom json error:" , e);
+        result.data = e;
+        result.status = false;
+        return result;
+    }
 }
 //#endregion
 

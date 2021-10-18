@@ -28,7 +28,7 @@ services:
       done;
       echo "db is ready!";
       npm install;
-      pm2-runtime start ecosystem.config.js;
+      pm2-runtime start ecosystem.config.js --node-args="--max-old-space-size=4096";
       '
     volumes :
       - ./:/nodejs/raccoon

@@ -322,6 +322,13 @@ const DICOMJsonKeyFunc = {
     } ,
     "timeFormat" : () => {
 
+    },
+    "series.dicomJson.00080020.Value" : async (value) => {
+        let nowKey = "series.dicomJson.00080020.Value";
+        await mongoDateQuery(value, nowKey, false);
+        for (let i in value[nowKey]) {
+            value[nowKey][i] = new Date(value[nowKey][i]).toISOString();
+        }
     }
 }
 function checkIsOr (value , keyName)  {

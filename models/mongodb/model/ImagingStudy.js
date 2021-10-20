@@ -77,8 +77,12 @@ module.exports = function (mongodb) {
         dicomJson : {
             type : Object ,
             "00080020" : {
-                vr : String , 
-                Value : [Date]
+                vr : {
+                    type: String
+                }, 
+                Value : {
+                    type: [Date]
+                }
             } ,
             default : void 0
         }

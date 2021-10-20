@@ -25,7 +25,7 @@ module.exports = function (mongodb) {
             default: void 0
         },
         name: {
-            type: [String],
+            type: String,
             default: void 0
         },
         alias: {

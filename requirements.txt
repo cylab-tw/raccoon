@@ -1,0 +1,8 @@
+highdicom==0.8.0
+numpy==1.19.2
+opencv-python==4.4.0.44
+pydicom==2.2.0
+wincertstore==0.2
+Flask==1.1.2
+Pillow==8.3.1
+matplotlib==3.3.4

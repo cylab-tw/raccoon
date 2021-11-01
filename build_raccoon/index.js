@@ -120,7 +120,7 @@ CONDA_GDCM_ENV_NAME = "gdcm"
         genDCMTK : async ()=> {
             console.log("Doloading DCMTK");
             let fetchRes = await fetch("https://dicom.offis.de/download/dcmtk/dcmtk365/bin/dcmtk-3.6.5-win64-dynamic.zip");
-            const DCMTKFilestream = fs.createWriteStream("./build/dcmtk.zip");
+            const DCMTKFilestream = fs.createWriteStream("./build_raccoon/dcmtk.zip");
             fetchRes.body.pipe(DCMTKFilestream);
             fetchRes.body.on("error" , function (err) {
                 console.error("download DCMTK failure");
@@ -129,10 +129,10 @@ CONDA_GDCM_ENV_NAME = "gdcm"
             });
             DCMTKFilestream.on("finish" , function () {
                 console.log("Finished Donload DCMTK");
-                let dcmtkZip = new AdmZip("./build/dcmtk.zip");
+                let dcmtkZip = new AdmZip("./build_raccoon/dcmtk.zip");
                 dcmtkZip.extractAllToAsync("./models/dcmtk/" , true);
                 console.log("Finished Extract DCMTK");
-                fs.unlinkSync("./build/dcmtk.zip");
+                fs.unlinkSync("./build_raccoon/dcmtk.zip");
             });
         }
     }

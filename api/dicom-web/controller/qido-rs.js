@@ -171,11 +171,13 @@ async function getStudyDicomJson(iQuery , iParam = "" , limit , skip) {
                     }
                 }
             ]);
-            let modalitiesInStudy = {
-                vr: "CS" ,
-                Value: [...modalitiesInStudyDoc[0].modalitiesInStudy]
+            if (modalitiesInStudyDoc.length > 0 ) {
+                let modalitiesInStudy = {
+                    vr: "CS" ,
+                    Value: [...modalitiesInStudyDoc[0].modalitiesInStudy]
+                }
+                _.set(dicomJsonItem, "00080061", modalitiesInStudy);
             }
-            _.set(dicomJsonItem, "00080061", modalitiesInStudy);
             retDocs.push(dicomJsonItem);
         }
         result.data = retDocs;

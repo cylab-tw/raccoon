@@ -23,8 +23,8 @@ function main () {
     glob("**/*.dcm" , {cwd : filePath} , async function (err,  matches) {
         for(file of matches) {
             let status = await STOWWithoutRoute(path.join(filePath ,file));
-            if (status.result.length >0 ) {
-              successFiles.push(...status.result);
+            if (status) {
+              successFiles.push(filePath);
             }
         }
         console.log(successFiles);

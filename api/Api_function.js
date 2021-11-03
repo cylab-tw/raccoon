@@ -17,7 +17,7 @@ module.exports.Refresh_Param = async function (queryParameter) {
 }
 
 module.exports.strToRegex = function (str) {
-    str = str.replace(/[\\(\\)\\-\\_\\+\\=\\\/\\.]/g, '\\$&');
+    str = str.replace(/[\\(\\)\\-\\_\\+\\=\\\/\\.\\^]/g, '\\$&');
     str = str.replace(/[\*]/g, '\\.$&');
     return new RegExp(str, 'gi');
 }
@@ -26,7 +26,7 @@ module.exports.ToRegex = async function (i_Item) {
         let keys = Object.keys(i_Item);
         for (let i = 0; i < keys.length; i++) {
             if (typeof (i_Item[keys[i]]) == "string") {
-                i_Item[keys[i]] = i_Item[keys[i]].replace(/[\\(\\)\\-\\_\\+\\=\\\/\\.]/g, '\\$&');
+                i_Item[keys[i]] = i_Item[keys[i]].replace(/[\\(\\)\\-\\_\\+\\=\\\/\\.\\^]/g, '\\$&');
                 i_Item[keys[i]] = i_Item[keys[i]].replace(/[\*]/g, '\\.$&');
                 i_Item[keys[i]] = new RegExp(i_Item[keys[i]], 'gi');
             } else if (_.isObject(i_Item[keys[i]])) {

@@ -50,6 +50,7 @@ module.exports = async function (req , res) {
         }
         //將搜尋欄位改成全是dicomTag代碼
         let newQS = await qsDICOMTag(qs);
+        console.log(changeAllQueryStringToDICOMTag(qs));
         newQS = await Refresh_Param(newQS);
         let keys = Object.keys(req.params);
         let paramsStr = "";
@@ -390,7 +391,7 @@ async function getMongoOrQs (iQuery) {
                 try {
                     await DICOMJsonKeyFunc[nowKey](value[x]);
                 } catch (e) {
-
+                    
                 }
                 console.log("to mongo or query", value[x]);
                 
@@ -464,6 +465,32 @@ async function getLevelDicomJson (iQuery , retLevel , isAgg = true) {
 
 
 
+//#region keep consistency with DICOM tag, change all query key to dicom numerical tag
+function changeAllQueryStringToDICOMTag (iParams) {
+    let keys = Object.keys(iParams);
+    let qs = {};
+    for (let i = 0 ; i< keys.length ;i++) {
+        let keyName = keys[i];
+        let keyNameSplit = keyName.split('.');
+        let DICOMTagKeyNames = [];
+        for (let x= 0 ; x< keyNameSplit.length ; x++) {
+            if (dicomjson.dicom[keyNameSplit[x]]) {
+                DICOMTagKeyNames.push(dicomjson.dicom[keyNameSplit[x]]);
+            } else if (dicomjson.tag[keyNameSplit[x]]) {
+                DICOMTagKeyNames.push(keyNameSplit[x]);
+            }
+        }
+        if (DICOMTagKeyNames.length == 0) {
+            continue;
+        }
+        let fullDICOMTag = DICOMTagKeyNames.join('.');
+        qs[fullDICOMTag] = iParams[keyName];
+    }
+    return qs;
+}
+
+
+//#endregion
 
 //#region 將搜尋條件全轉為DICOM TAG的數字
 async function qsDICOMTag(iParam) {

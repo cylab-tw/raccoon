@@ -331,9 +331,17 @@ function insertMetadata(metadata) {
     return new Promise(async (resolve) => {
         try {
             await mongodb.dicomMetadata.updateOne({
-                'studyUID': metadata.studyUID,
-                'seriesUID': metadata.seriesUID,
-                'instanceUID': metadata.instanceUID
+                $and: [
+                    {
+                        'studyUID': metadata.studyUID,
+                    },
+                    {
+                        'seriesUID': metadata.seriesUID
+                    },
+                    {
+                        'instanceUID': metadata.instanceUID
+                    }
+                ]
             }, metadata, {
                 upsert: true
             });

@@ -11,7 +11,7 @@ const { setRetrieveURL } = require('../../../models/DICOMWeb');
 const mongodb = require('../../../models/mongodb');
 
 module.exports = async function (req , res) {
-    console.log(req.query);
+    console.log("do QIDO-RS: query", req.query);
     let limit = req.query.limit || 100 ;
     let skip = req.query.offset || 0;
     delete req.query["limit"];
@@ -61,6 +61,7 @@ module.exports = async function (req , res) {
         }
         /*let QIDOFunc = {"studyID" :getStudyDicomJson , "studyIDseriesID":getSeriesDicomJson , "studyIDseriesIDinstanceID": getInstanceDicomJson};*/
         let QIDOFunc = [getStudyDicomJson , getSeriesDicomJson , getInstanceDicomJson];
+        console.log("qs: ", newQS);
         let QIDOResult =  await QIDOFunc[keys.length](newQS , req.params , parseInt(limit)  , parseInt(skip));
         if (!QIDOResult.status) {
             return res.status(500).send(QIDOResult.data);
@@ -322,6 +323,32 @@ const DICOMJsonKeyFunc = {
         ]}
         value[nowKey] = query;
     } ,
+    "series.dicomJson.00100010.Value" : async (value) => {
+        let nowKey = "series.dicomJson.00100010.Value";
+        let queryValue  = await ToRegex(value);
+        let query = {
+            $or : [
+            {
+                "dicomJson.00100010.Value.Alphabetic" : queryValue[nowKey]
+            }, 
+            {
+                "dicomJson.00100010.Value.familyName" : queryValue[nowKey]
+            },
+            {
+                "dicomJson.00100010.Value.givenName" : queryValue[nowKey] ,
+            } ,
+            {
+                "dicomJson.00100010.Value.middleName" :queryValue[nowKey] ,
+            } ,
+            {
+                "dicomJson.00100010.Value.prefix" : queryValue[nowKey] ,
+            },
+            {
+                "dicomJson.00100010.Value.suffix" : queryValue[nowKey]
+            }
+        ]}
+        value[nowKey] = query;
+    } ,
     "timeFormat" : () => {
 
     },
@@ -365,7 +392,7 @@ async function getMongoOrQs (iQuery) {
                 } catch (e) {
 
                 }
-                console.log(value[x]);
+                console.log("to mongo or query", value[x]);
                 
                 if (checkIsOr(value[x] , nowKey)) {
                     mongoOrs.$or.push(...(_.get(value[x][nowKey] , "$or")));

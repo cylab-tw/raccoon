@@ -274,6 +274,8 @@ async function replaceBinaryData(data) {
         let port = process.env.DICOMWEB_PORT || "";
         port = (port) ? `:${port}` : "";
         for (let key of binaryKeys) {
+            let studyUID = _.get(data, `0020000D.Value.0`);
+            let seriesUID = _.get(data, `0020000E.Value.0`);
             let instanceUID = _.get(data, `00080018.Value.0`);
             let binaryData = "";
             let binaryValuePath = "";
@@ -283,13 +285,13 @@ async function replaceBinaryData(data) {
                 binaryValuePath = `${key}.Value.0`;
                 binaryData = _.get(data, binaryValuePath);
                 data = _.omit(data, [`${key}.Value`]);
-                _.set(data, `${key}.BulkDataURI`, `http://${process.env.DICOMWEB_HOST}${port}/api/dicom/instance/${instanceUID}/bulkData/${binaryValuePath}`);
+                _.set(data, `${key}.BulkDataURI`, `http://${process.env.DICOMWEB_HOST}${port}/${proces.env.DICOMWEB_API}/studies/${studyUID}/series/${seriesUID}/instances/${instanceUID}/bulkdata/${binaryValuePath}`);
                 relativeFilename += `${ binaryValuePath }.raw`
             } else if (_.get(data, `${key}.InlineBinary`)) {
                 binaryValuePath = `${key}.InlineBinary`
                 binaryData = _.get(data, `${binaryValuePath}`);
                 data = _.omit(data, [`${binaryValuePath}`]);
-                _.set(data, `${key}.BulkDataURI`, `http://${process.env.DICOMWEB_HOST}${port}/api/dicom/instance/${instanceUID}/bulkData/${binaryValuePath}`);
+                _.set(data, `${key}.BulkDataURI`, `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${studyUID}/series/${seriesUID}/instances/${instanceUID}/bulkdata/${binaryValuePath}`);
                 relativeFilename += `${binaryValuePath}.raw`
             }
 
@@ -298,6 +300,8 @@ async function replaceBinaryData(data) {
             mkdirp.sync(path.join(process.env.DICOM_STORE_ROOTPATH, `files/bulkData/${shortInstanceUID}`));
             fs.writeFileSync(filename, Buffer.from(binaryData, "base64"));
             let bulkData = {
+                studyUID: studyUID,
+                seriesUID: seriesUID,
                 instanceUID: instanceUID,
                 filename: relativeFilename,
                 binaryValuePath: binaryValuePath

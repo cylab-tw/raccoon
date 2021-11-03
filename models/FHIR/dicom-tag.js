@@ -6246,7 +6246,7 @@ module.exports.QIDORetAtt = {
             Value : []
         } ,
         "00080030" : {
-            vr : "DA" ,
+            vr: "TM" ,
             Value : [] , 
         } ,
         "00080050" : {
@@ -6274,11 +6274,11 @@ module.exports.QIDORetAtt = {
             BulkDataURI : "" , 
         } ,
         "00100010" : {
-            vr : "DA" ,
+            vr: "PN" ,
             Value : [] , 
         } ,
         "00100020" : {
-            vr : "PN" ,
+            vr: "LO" ,
             Value : [] , 
         } ,
         "00100030" : {
@@ -6336,6 +6336,7 @@ module.exports.QIDORetAtt = {
     instance : {
         "00080016" : "" , 
         "00080018" : "" ,
+        "00083002" : "" ,
         "00080056" : "" ,
         "00081190" : "" ,
         "00200013" : "" ,

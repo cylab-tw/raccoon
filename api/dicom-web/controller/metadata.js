@@ -4,6 +4,7 @@ const mongoFunc = require('../../../models/mongodb/func');
 const fs = require('fs');
 const path = require('path');
 const { sendNotFoundMessage, sendServerWrongMessage } = require('../../../models/DICOMWeb/httpMessage');
+const flat = require('flat');
 
 const returnProject = {
     $project: {
@@ -37,7 +38,12 @@ module.exports = async function (req, res) {
                 }
                 let metadataJsonStr = fs.readFileSync(metadataStorePath, { encoding: 'utf8' });
                 let metadataJson = JSON.parse(metadataJsonStr);
-                resMetadata.push(metadataJson);
+                let replacedMetadata = replaceBinaryData(metadataJson);
+                if (replacedMetadata) {
+                    resMetadata.push(replacedMetadata);
+                } else {
+                    resMetadata.push(metadataJson);
+                }
             }
             res.setHeader('Content-Type', 'application/dicom+json');
             return res.send(resMetadata);
@@ -49,7 +55,33 @@ module.exports = async function (req, res) {
         return sendServerWrongMessage(res, e);
     }
 }
-
+function replaceBinaryData(data) {
+    try {
+        let binaryKeys = [];
+        let flatDicomJson = flat(data);
+        for (let key in flatDicomJson) {
+            if (key.includes("7FE00010")) continue;
+            if (flatDicomJson[key] == "OW" || flatDicomJson[key] == "OB") {
+                binaryKeys.push(key.substring(0, key.lastIndexOf(".vr")));
+            }
+        }
+        let port = process.env.DICOMWEB_PORT || "";
+        port = (port) ? `:${port}` : "";
+        for (let key of binaryKeys) {
+            if (_.get(data, `${key}.BulkDataURI`) ) {
+                let oldBulkDataURI = _.get(data, `${key}.BulkDataURI`);
+                let oldBulkDataURISplit = oldBulkDataURI.split("/");
+                let newHost = `${process.env.DICOMWEB_HOST}${port}`;
+                oldBulkDataURISplit[2] = newHost;
+                _.set(data, `${key}.BulkDataURI`, oldBulkDataURISplit.join("/"));
+            }
+        }
+        return data;
+    } catch (e) {
+        console.error(e);
+        return false;
+    }
+}
 
 async function getStudyMetadata(params) {
     const metadataQuery = [

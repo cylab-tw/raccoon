@@ -60,7 +60,7 @@ function replaceBinaryData(data) {
         let binaryKeys = [];
         let flatDicomJson = flat(data);
         for (let key in flatDicomJson) {
-            if (key.includes("7FE00010")) continue;
+            //if (key.includes("7FE00010")) continue;
             if (flatDicomJson[key] == "OW" || flatDicomJson[key] == "OB") {
                 binaryKeys.push(key.substring(0, key.lastIndexOf(".vr")));
             }

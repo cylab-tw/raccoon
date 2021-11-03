@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 module.exports = function (app, passport) {
 
-  app.set('json spaces', 4);
+  //app.set('json spaces', 4);
 
   app.get('/login', function (req, res) {
     if (req.user) {

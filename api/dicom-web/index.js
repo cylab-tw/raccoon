@@ -14,6 +14,11 @@ router.get('/studies/:studyID/series/:seriesID' ,require('./controller/wado-rs')
 router.get('/studies/:studyID/series/:seriesID/instances/:instanceID' , require('./controller/wado-rs'));
 //#endregion
 
+//#region wado-rs-bulkdata
+router.get('/studies/:studyUID/series/:seriesUID/instances/:instanceUID/bulkdata/:objKey' , require('./controller/wado-rs-instances-bulkdata'));
+
+//#endregion
+
 //#region frameNumber
 router.get('/studies/:studyID/series/:seriesID/instances/:instanceID/frames/:frameList' , require('./controller/wado-rs-framenumber'));
 

@@ -50,7 +50,6 @@ module.exports = async function (req , res) {
         }
         //將搜尋欄位改成全是dicomTag代碼
         let newQS = await qsDICOMTag(qs);
-        console.log(changeAllQueryStringToDICOMTag(qs));
         newQS = await Refresh_Param(newQS);
         let keys = Object.keys(req.params);
         let paramsStr = "";
@@ -60,7 +59,6 @@ module.exports = async function (req , res) {
         if (!paramsStr) {
             paramsStr = "studyID";
         }
-        /*let QIDOFunc = {"studyID" :getStudyDicomJson , "studyIDseriesID":getSeriesDicomJson , "studyIDseriesIDinstanceID": getInstanceDicomJson};*/
         let QIDOFunc = [getStudyDicomJson , getSeriesDicomJson , getInstanceDicomJson];
         console.log("qs: ", newQS);
         let QIDOResult =  await QIDOFunc[keys.length](newQS , req.params , parseInt(limit)  , parseInt(skip));
@@ -148,7 +146,8 @@ async function getStudyDicomJson(iQuery , iParam = "" , limit , skip) {
 
         iQuery = await getMongoOrQs(iQuery);
         iQuery = iQuery.$match;
-        //console.log(JSON.stringify(iQuery , null ,4));
+        console.log("final query", JSON.stringify(iQuery , null ,4));
+
         let docs = await mongoFunc.findFilterFields('ImagingStudy', iQuery, retStudyLevel, limit, skip);
         let retDocs = [];
         for (let i = 0; i < docs.length; i++) {
@@ -391,7 +390,7 @@ async function getMongoOrQs (iQuery) {
                 try {
                     await DICOMJsonKeyFunc[nowKey](value[x]);
                 } catch (e) {
-                    
+
                 }
                 console.log("to mongo or query", value[x]);
                 
@@ -464,34 +463,6 @@ async function getLevelDicomJson (iQuery , retLevel , isAgg = true) {
 //#endregion
 
 
-
-//#region keep consistency with DICOM tag, change all query key to dicom numerical tag
-function changeAllQueryStringToDICOMTag (iParams) {
-    let keys = Object.keys(iParams);
-    let qs = {};
-    for (let i = 0 ; i< keys.length ;i++) {
-        let keyName = keys[i];
-        let keyNameSplit = keyName.split('.');
-        let DICOMTagKeyNames = [];
-        for (let x= 0 ; x< keyNameSplit.length ; x++) {
-            if (dicomjson.dicom[keyNameSplit[x]]) {
-                DICOMTagKeyNames.push(dicomjson.dicom[keyNameSplit[x]]);
-            } else if (dicomjson.tag[keyNameSplit[x]]) {
-                DICOMTagKeyNames.push(keyNameSplit[x]);
-            }
-        }
-        if (DICOMTagKeyNames.length == 0) {
-            continue;
-        }
-        let fullDICOMTag = DICOMTagKeyNames.join('.');
-        qs[fullDICOMTag] = iParams[keyName];
-    }
-    return qs;
-}
-
-
-//#endregion
-
 //#region 將搜尋條件全轉為DICOM TAG的數字
 async function qsDICOMTag(iParam) {
     return new Promise ((resolve)=> {
@@ -513,13 +484,16 @@ async function qsDICOMTag(iParam) {
             if (newKeyNames.length == 1) {
                 continue;
             }
-            for (let seriesTag of Object.keys(QIDORetAtt.series)) {
-                if (newKeyNames.find(v => v == seriesTag)) {
+            let studyTags = Object.keys(QIDORetAtt.study);
+            let seriesTags = Object.keys(QIDORetAtt.series);
+            let instanceTags = Object.keys(QIDORetAtt.instance);
+            for (let seriesTag of seriesTags) {
+                if (newKeyNames.find(v => v == seriesTag) && !studyTags.includes(seriesTag)) {
                     newKeyNames = [ "series", ...newKeyNames]
                 }
             }
-            for (let instanceTag of Object.keys(QIDORetAtt.instance)) {
-                if (newKeyNames.find(v => v == instanceTag)) {
+            for (let instanceTag of instanceTags) {
+                if (newKeyNames.find(v => v == instanceTag) && !studyTags.includes(instanceTag) && !seriesTags.includes(instanceTag)) {
                     newKeyNames = [ "series", "instance", ...newKeyNames]
                 }
             }

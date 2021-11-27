@@ -112,11 +112,11 @@ WADO-URI : `/api/dicom/wado`
 base : `/api/fhir/{resource}`
 metadata : `/api/fhir/metadata`
 
-
 ## About
 * Raccoon支援DICOMWeb標準傳輸協定，包含QIDO-RS, WADO-RS, WADO-URI, STOW等。
 * 支援各種Transfer Syntax 以及SOP Class影像
-* 通過台灣醫學資訊聯測 MI-TW 2020 - 項目: WG4 - 影像DICOMWeb Query/Retrieve Source
+* 通過台灣醫學資訊聯測 MI-TW 2020 - 項目: Track #4 - 醫學影像影像 DICOMWeb Query/Retrieve Source
+* 通過台灣醫學資訊聯測 MI-TW 2021 - 項目: Track #6 - 數位病理影像 DICOMWeb Query/Retrieve Source
 
 ## Key Features
 ### Cybersecurity
@@ -139,9 +139,18 @@ metadata : `/api/fhir/metadata`
   - **endpoint**
 * **Note**: Raccoon is focused on medical imaging-related resources, not all FHIR resources, bulit on the top of the [Simple-Express-FHIR-Server](https://github.com/Chinlinlee/Simple-Express-FHIR-Server). If you are interesting in FHIR soultion, please visit [Simple-Express-FHIR-Server](https://github.com/Chinlinlee/Simple-Express-FHIR-Server).
 
+## Supported SOP Classes (particular)
+### Image
+* General image storages, e.g., CT, MR, X-ray, etc.
+* Multiframe Image Storage - partical support
+* Specifal SOP Class: VL Microscopic Image Storage: [DICOM WSI](http://dicom.nema.org/Dicom/DICOMWSI/)
+  
+### Non-Image
+* GSPS, Segementation, SR, etc.   
+* Supplement 222: Whole Slide Microscopy Bulk Annotations Storage SOP Class
+
 ## Supported library
 * Raccoon DICOM Server uses several open source libraries as following:
-  - <a href="https://github.com/cornerstonejs/dicomParser">dicomParser</a> for parsing DICOM tags.
   - <a href="https://github.com/DCMTK/dcmtk">dcmtk</a> use dcm2json to generating DICOM json and use dcmj2pnm to create jpeg image.
   - <a href="http://gdcm.sourceforge.net/">gdcm</a> and <a href="https://pydicom.github.io">pydicom</a> convert DICOM JPEG2000 to jpeg for the retrieve option of the WADO-URI service
 
@@ -150,11 +159,13 @@ metadata : `/api/fhir/metadata`
 * Raccoon provides a tool to convert DICOM objects included in a study to a FHIR ImagingStudy resources stored as a MononDB document.
 * We hava another [FHIR Server](https://github.com/cylien/Simple-Express-FHIR-Server), is designed to creating a tiny FHIR server supported specified FHIR resources.
 
-# To do list
-* DICOM Whole Slide Image. Referenced standard: [DICOM WSI](http://dicom.nema.org/Dicom/DICOMWSI/)
+# Roadmap
+* Dockerize
+* DICOM Protocol: C-ECHO SCP, C-STORE SCP, C-MOVE SCP.
 * IHE Invoke Image Display (IID) Profile [RAD-106]
 * DICOM Supplement 219 - JSON Representation of DICOM Structured Reports. Referenced standard: [DICOM Sup 219](https://www.dicomstandard.org/News-dir/ftsup/docs/sups/Sup219.pdf)
-
+* Write a new proposal of FHIR Implementation Guide of Raccoon modified from FHIR ImagingStudy Core Resource which lacks many tags commonly used in PACS.
+  
 # Acknowledgement
 * This project is supported by a grant from the Ministry of Science and Technology Taiwan.
 * Thanks [琦雯Queenie](https://www.cakeresume.com/Queenie0814?locale=zh-TW), [Queenie's github](https://github.com/Queenie0814) for contributing the logo design. 

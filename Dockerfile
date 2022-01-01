@@ -1,44 +1,45 @@
 FROM node:14-bullseye-slim
 # install gcc
-RUN apt update -y && apt install -y gcc
-
-
-#install python
-RUN apt-get install python python3-pip -y && \
-pip3 install --upgrade pip && pip3 install pydicom opencv-python Pillow flask matplotlib highdicom
-
-#install other dependencies, dcmtk, cmake, netcat, imagemagick etc.
-RUN apt-get install software-properties-common -y && \
-apt-get update -y && \
-apt-get install 'ffmpeg'\
-    'libsm6'\ 
-    'libxext6' \
-    dcmtk \
-    cmake \
-    make \
-    swig \
-    netcat \
-    imagemagick \
-    wget -y
+RUN apt update -y
+RUN apt install -qq -y --no-install-recommends \
+gcc \
+libc6-dev \
+python \
+python3-pip \
+python3-gdcm \
+libgdcm3.0 \
+ffmpeg \
+libsm6 \
+libxext6 \
+dcmtk \
+cmake \
+make \
+swig \
+netcat \
+imagemagick \
+wget
+RUN pip3 install --upgrade pip
+RUN pip3 install pydicom opencv-python Pillow flask matplotlib highdicom
 
 #Build gdcm
-RUN wget -O gdcm.tar.gz https://sourceforge.net/projects/gdcm/files/gdcm%202.x/GDCM%202.8.9/gdcm-2.8.9.tar.gz && tar xzvf gdcm.tar.gz
-RUN mkdir gdcm-build
-WORKDIR /gdcm-build
-RUN cmake ../gdcm-2.8.9 -DGDCM_BUILD_SHARED_LIBS=ON -DGDCM_WRAP_PYTHON=ON -DGDCM_DOCUMENTATION=OFF -DGDCM_BUILD_EXAMPLES=OFF -DGDCM_BUILD_TESTING=OFF ; exit 0
-RUN make -j8 && make install 
-WORKDIR /gdcm-build/bin
-RUN cp gdcm.py gdcmswig.py _gdcmswig.so /usr/local/lib/python3.9/dist-packages 
-RUN rm -rf /gdcm.tar.gz
+#RUN wget -O gdcm.tar.gz https://sourceforge.net/projects/gdcm/files/gdcm%202.x/GDCM%202.8.9/gdcm-2.8.9.tar.gz
+#RUN tar xzvf gdcm.tar.gz
+#RUN cd /
+#RUN mkdir gdcm-build
+#WORKDIR /gdcm-build
+#RUN cmake ../gdcm-2.8.9 -DGDCM_BUILD_SHARED_LIBS=ON -DGDCM_WRAP_PYTHON=ON -DGDCM_DOCUMENTATION=OFF -DGDCM_BUILD_EXAMPLES=OFF -DGDCM_BUILD_TESTING=OFF ; exit 0
+#RUN make -j8 && make install 
+#WORKDIR /gdcm-build/bin
+#RUN cp gdcm.py gdcmswig.py _gdcmswig.so /usr/local/lib/python3.9/dist-packages 
 
 # Build iconv
 WORKDIR /
 RUN wget -O libiconv.tar.gz https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.16.tar.gz && tar xzvf libiconv.tar.gz
 WORKDIR /libiconv-1.16
-RUN ./configure
-RUN make && make install
+RUN ./configure && make && make install
 RUN rm -rf /libiconv.tar.gz
 
+RUN apt-get purge -y wget
 
 # #Build official dcmtk
 # WORKDIR /

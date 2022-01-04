@@ -13,7 +13,7 @@ multipartFunc["image/jpeg"] = {
                 let maxFrameNumber = _.max(frameList);
                 let minFrameNumber = _.min(frameList);
                 if (minFrameNumber <= 0) {
-                    DICOMWebHandleError.sendBadRequestMessage(res , `Bad frame number , This instance NumberOfFrames is : ${dicomNumberOfFrames} , But request ${minFrameNumber}`);
+                    DICOMWebHandleError.sendBadRequestMessage(res, `Invalid frame number ,The number must be positive and greater than zero , The number must >=0 , But request ${minFrameNumber}`);
                     return resolve(false);
                 }
                 let dicomJson = await mongodb.ImagingStudy.findOne({

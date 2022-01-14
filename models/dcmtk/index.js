@@ -87,6 +87,8 @@ const dcm2jsonV8 = {
         return new Promise((resolve) => {
             try {
                 dcm2jsonC(dcmfile , function (data) {
+                    data = data.replace(/,\\u0000/g, '');
+                    data = data.replace(/\\u0000/g, '');
                     let obj = JSON.parse(data);
                     return resolve(obj);
                 })

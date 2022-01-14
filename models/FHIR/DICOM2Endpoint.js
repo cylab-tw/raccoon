@@ -30,7 +30,7 @@ async function DCM2Endpoint(filename)
             "payloadMimeType": [
                 "application/dicom"
             ],
-            "address": `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${dataset.string("x0020000d")}`
+            "address": `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}`
         }
         return resolve(endpoint);
     });
@@ -58,7 +58,7 @@ function DCM2Endpoint_readFile(filename)
         "payloadMimeType": [
             "application/dicom"
         ],
-        "address": `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${dataset.string("x0020000d")}`
+        "address": `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}`
     }
     return endpoint;
 }
@@ -82,7 +82,7 @@ function DCM2Endpoint_imagingStudy(imagingStudy)
         "payloadMimeType": [
             "application/dicom"
         ],
-        "address": `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}/studies/${imagingStudy.identifier[0].value.substring(8)}`
+        "address": `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}`
     }
     return endpoint;
 }

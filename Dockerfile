@@ -1,4 +1,5 @@
 FROM node:14-bullseye-slim
+RUN sed -i '/bullseye-updates/d' /etc/apt/sources.list  # Now archived
 # install gcc
 RUN apt update -y
 RUN apt install -qq -y --no-install-recommends \

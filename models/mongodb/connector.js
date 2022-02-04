@@ -21,9 +21,10 @@ module.exports = exports = function (config) {
         if (index == 0) {
             databaseUrl += `mongodb://${host}:${ports[0]}`;
         } else {
-            databaseUrl += `,${dbName}`;
+            databaseUrl += `,${host}:${ports[index]}`;
         }
     });
+    databaseUrl += `/${dbName}`;
 
     console.log(databaseUrl);
     mongoose.connect(databaseUrl, {

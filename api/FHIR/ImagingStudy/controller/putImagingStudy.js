@@ -3,6 +3,24 @@ const mongodb = require('models/mongodb');
 const mongoFunc = require('models/mongodb/func');
 const mongoose = require('mongoose');
 
+const FHIRFilter = {
+    _id: 0,
+    __v: 0,
+    'identifier._id': 0,
+    'subject._id': 0,
+    'subject.identifier._id': 0,
+    'series.modality._id': 0,
+    'series.bodySite._id': 0,
+    'series._id': 0,
+    'series.instance._id': 0,
+    'series.instance.store_path': 0,
+    'dicomJson': 0,
+    'series.dicomJson': 0,
+    'series.instance.dicomJson': 0,
+    'series.instance.metadata': 0,
+    report: 0,
+    patient: 0
+}
 module.exports = async function (req, res) {
     let reqData = req.body;
     let sendData =
@@ -16,37 +34,10 @@ module.exports = async function (req, res) {
     }
     delete reqData["_id"];
     let [updateStatus, doc] = await mongoUpdate({ id: req.params.id }, reqData);
-    return sendData[updateStatus.toString()](doc.id);
-   /* if (reqData["series"]) {
-        if (reqData.series[0].instance) {
-            let [insertStatus, doc] = await InsertImagingStudy(reqData, req.params.id);
-            return sendData[insertStatus.toString()](doc.id);
-        } else {
-            let [updateStatus, doc] = await mongoUpdate({ id: req.params.id }, reqData);
-            return sendData[updateStatus.toString()](doc.id);
-        }
-    } else {
-        let [updateStatus, doc] = await mongoUpdate({ id: req.params.id }, reqData);
-        return sendData[updateStatus.toString()](doc.id);
-    }*/
-
-    /*let reqBody = req.body;
-    let queryParameter = JSON.parse(JSON.stringify(reqBody));
-    if (queryParameter["id"]) {
-      delete queryParameter["id"];
-    }
-    const id = req.params.id;
-  
-    if (id) {
-      mongodb.ImagingStudy.findOneAndUpdate({ id: id }, {
-        $set: queryParameter
-      }, (err, doc) => {
-        if (err) {
-          return res.status(500).json({ "message": "error" });
-        }
-        return res.status(200).json(doc.value);
-      });
-    }*/
+    let updatedDoc = await mongodb.ImagingStudy.findOne({
+        _id : doc.value._doc._id
+    }, FHIRFilter);
+    return sendData[updateStatus.toString()](updatedDoc);
 };
 module.exports.putFHIRImagingStudyWithoutReq = async function (id , data) {
     delete data["_id"];
@@ -62,7 +53,7 @@ async function mongoUpdate(query, data) {
             if (err) {
                 console.error(err);
                 return reject([false , err]);
-            }
+            } 
             return resolve([true, doc]);
         });
     });

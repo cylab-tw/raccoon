@@ -88,7 +88,7 @@ const osFunc = {
                     if (files.length > 0 ) {
                         envText = `
 MONGODB_NAME="dbName"
-MONGODB_HOSTS=["localhost"]
+MONGODB_HOSTS=["mongodb"]
 MONGODB_PORTS=[27017]
 MONGODB_USER="user"
 MONGODB_PASSWORD="password"
@@ -97,7 +97,7 @@ MONGODB_SLAVEMODE=false
 SERVER_HOST= "localhost"
 SERVER_PORT=80
 
-DICOM_STORE_ROOTPATH='C:/'
+DICOM_STORE_ROOTPATH='/dicomFiles'
 DICOMWEB_HOST = "localhost"
 DICOMWEB_PORT = 80
 DICOMWEB_API = "dicom-web"

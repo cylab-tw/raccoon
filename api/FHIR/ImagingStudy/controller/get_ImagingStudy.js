@@ -2,6 +2,8 @@
 const mongodb = require('models/mongodb');
 const _ = require('lodash');
 const {createBundle} = require('models/FHIR/func');
+const {handleError} = require('../../../../models/FHIR/httpMessage');
+const queryBuild = require('../../../../models/FHIR/queryBuild');
 const FHIRFilter = {
     _id: 0,
     __v: 0,
@@ -35,13 +37,16 @@ module.exports = async function (req, res) {
         }
     });
     queryParameter.$and = [];
-    Object.keys(queryParameter).forEach(key => {
+    for (let key in queryParameter) {
         try {
             paramsSearch[key](queryParameter);
         } catch (e) {
-
+            if (key != "$and") {
+                console.log(e);
+                return res.status(400).send(handleError.processing(`Unknown search parameter ${key}`))
+            }
         }
-    });
+    }
     if (queryParameter.$and.length == 0) {
         delete queryParameter["$and"];
     }
@@ -113,4 +118,13 @@ const paramsSearch = {
         });
         delete query["_id"];
     }
+}
+paramsSearch["identifier"] = (query) => {
+    let buildResult = queryBuild.tokenQuery(query["identifier"], "value", "identifier", "");
+    for (let i in buildResult) {
+        query.$and.push({
+            [i]: buildResult[i]
+        });
+    }
+    delete query['identifier'];
 }

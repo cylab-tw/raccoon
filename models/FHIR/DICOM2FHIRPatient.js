@@ -29,10 +29,10 @@ async function DCM2Patient(filename)
     let pName = dataset.string('x00100010');
     let pGender = dataset.string('x00100040') || "unknown";
     let FHIRGender = {
-        "M" : "male" , 
-        "F" : "female" , 
-        "O" : "other" , 
-        "UNKNOWN" : "unknown"
+        "M": "male",
+        "F": "female",
+        "O": "other",
+        "UNKNOWN": "unknown"
     }
     pGender = FHIRGender[pGender.toUpperCase()];
     let pBD = dataset.string('x00100030');
@@ -90,11 +90,11 @@ async function DCM2Patient(filename)
     }
     let Patient = 
     {
-        resourceType : "Patient" , 
-        id : dataset.string('x00100020') || "unknown",
-        gender : pGender , 
-        active : true  ,
-        name :[
+        resourceType: "Patient",
+        id: dataset.string('x00100020') || "unknown",
+        gender: pGender,
+        active: true,
+        name: [
             pJson
         ]
     }

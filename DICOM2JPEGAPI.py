@@ -3,7 +3,6 @@ import flask
 from flask import *
 from werkzeug.utils import secure_filename
 
-import DICOM2JPEG
 import DICOM2JPEGFrame
 
 app = flask.Flask(__name__)

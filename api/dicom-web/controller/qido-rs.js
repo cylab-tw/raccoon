@@ -9,80 +9,66 @@ const _ = require('lodash');
 const moment = require('moment');
 const { setRetrieveURL } = require('../../../models/DICOMWeb');
 const mongodb = require('../../../models/mongodb');
-
+/**
+ * 
+ * @api {get} /dicom-web/studies QIDO-RS
+ * @apiName QIDO-RS-ROOT
+ * @apiGroup QIDO-RS
+ * 
+ * @apiSuccess (Success 200) {json} response-body DICOM JSON model
+ * 
+ * @apiQuery {String} dicom-tag-name The dicom tag name e.g. 00100010=hello
+ * 
+ * @apiExample {curl} curl
+ *    curl http://localhost:8080/dicom-web/studies?00100010=hello
+ */
 module.exports = async function (req , res) {
     console.log("do QIDO-RS: query", req.query);
     let limit = req.query.limit || 100 ;
     let skip = req.query.offset || 0;
     delete req.query["limit"];
     delete req.query["offset"];
-    if (req.query['FHIR']) {
-        let record_Query = {'Records.Records.FULLTEXT' : await textSpaceToOrCond(req.query.reportQuery)}
-        let query = {
-            PatientName : req.query.PatientName , 
-            ModalitiesInStudy : req.query.ModalitiesInStudy , 
-            StudyInstanceUID : req.query.StudyInstanceUID ,
-            PatientID : req.query.PatientID
+    let qs = _.cloneDeep(req.query);
+    let qsKeys = Object.keys(qs).sort();
+    for (let i = 0 ; i < qsKeys.length ; i++) {
+        if (!qs[qsKeys[i]] || qs['FHIR']) {
+            delete qs[qsKeys[i]];
         }
-        let FHIRParams = {
-            started:req.query.StudyDate
-        }
-        query = await qsDICOMTag(query);
-        query['started'] = FHIRParams.started;
-        query = await Refresh_Param(query);
-        record_Query = await Refresh_Param(record_Query);
-        await ToRegex(query);
-        await ToRegex(record_Query);
-        await mongoDateQuery(query,'started',false);
-        //date_Func(image_Query);
-        //console.log(image_Query);
-        let queryResult = await useImageSearch(query  , record_Query);
-        return res.send(queryResult);
-    } else {
-        let qs = _.cloneDeep(req.query);
-        //let qs = JSON.parse(JSON.stringify(req.query));
-        //res.send("qido:" + req.query);
-        let qsKeys = Object.keys(qs).sort();
-        for (let i = 0 ; i < qsKeys.length ; i++) {
-            if (!qs[qsKeys[i]] || qs['FHIR']) {
-                delete qs[qsKeys[i]];
-            }
-        }
-        //將搜尋欄位改成全是dicomTag代碼
-        let newQS = await qsDICOMTag(qs);
-        newQS = await Refresh_Param(newQS);
-        let keys = Object.keys(req.params);
-        let paramsStr = "";
-        for (let i = 0 ; i < keys.length ; i++) {
-            paramsStr += keys[i]; 
-        }
-        if (!paramsStr) {
-            paramsStr = "studyID";
-        }
-        let QIDOFunc = [getStudyDicomJson , getSeriesDicomJson , getInstanceDicomJson];
-        console.log("qs: ", newQS);
-        let QIDOResult =  await QIDOFunc[keys.length](newQS , req.params , parseInt(limit)  , parseInt(skip));
-        if (!QIDOResult.status) {
-            return res.status(500).send(QIDOResult.data);
-        }
-        for (let i in QIDOResult.data) {
-            let studyDate = _.get(QIDOResult.data[i] , "00080020.Value");
-            if (studyDate) {
-                for (let j in studyDate) {
-                    let studyDateYYYYMMDD = moment(studyDate[j] ).format( "YYYYMMDD").toString();
-                    studyDate[j] = studyDateYYYYMMDD;
-                }
-                _.set(QIDOResult.data[i] , "00080020.Value" , studyDate);
-            }
-            QIDOResult.data[i] = await sortField(QIDOResult.data[i]);
-        }
-        if (QIDOResult.data.length == 0 ) {
-            return res.status(204).send([]);
-        }
-        res.setHeader('Content-Type' , 'application/dicom+json');
-        setRetrieveURL(QIDOResult.data , keys.length);
-        return res.status(200).json(QIDOResult.data);
     }
+    //將搜尋欄位改成全是dicomTag代碼
+    let newQS = await qsDICOMTag(qs);
+    newQS = await Refresh_Param(newQS);
+    let keys = Object.keys(req.params);
+    let paramsStr = "";
+    for (let i = 0 ; i < keys.length ; i++) {
+        paramsStr += keys[i]; 
+    }
+    if (!paramsStr) {
+        paramsStr = "studyID";
+    }
+    let QIDOFunc = [getStudyDicomJson , getSeriesDicomJson , getInstanceDicomJson];
+    console.log("qs: ", newQS);
+    let QIDOResult =  await QIDOFunc[keys.length](newQS , req.params , parseInt(limit)  , parseInt(skip));
+    if (!QIDOResult.status) {
+        return res.status(500).send(QIDOResult.data);
+    }
+    for (let i in QIDOResult.data) {
+        let studyDate = _.get(QIDOResult.data[i] , "00080020.Value");
+        if (studyDate) {
+            for (let j in studyDate) {
+                let studyDateYYYYMMDD = moment(studyDate[j] ).format( "YYYYMMDD").toString();
+                studyDate[j] = studyDateYYYYMMDD;
+            }
+            _.set(QIDOResult.data[i] , "00080020.Value" , studyDate);
+        }
+        QIDOResult.data[i] = await sortField(QIDOResult.data[i]);
+    }
+    if (QIDOResult.data.length == 0 ) {
+        return res.status(204).send([]);
+    }
+    res.setHeader('Content-Type' , 'application/dicom+json');
+    setRetrieveURL(QIDOResult.data , keys.length);
+    return res.status(200).json(QIDOResult.data);
 }
 
 async function useImageSearch (iQuery,record_Query) {

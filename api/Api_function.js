@@ -56,8 +56,7 @@ module.exports.isLogin = async function (req, res, next) {
         return next();
     }
     res.status(401);
-    res.render(path.join(__dirname + "/../public/", "401.html"));
-    return res.end();
+    res.render(path.join(__dirname + "/../public/html/errors", "401.html"));
 }
 
 module.exports.isAdminLogin = async function (req, res, next) {
@@ -69,7 +68,6 @@ module.exports.isAdminLogin = async function (req, res, next) {
         return next();
     }
     res.redirect('/');
-    return res.end();
 }
 module.exports.isAdmin = async function (req, res, next) {
     let isNormalLogin = req.isAuthenticated();
@@ -79,8 +77,7 @@ module.exports.isAdmin = async function (req, res, next) {
         return next();
     }
     res.status(403);
-    res.render(path.join(__dirname + "/../public/", "403.html"));
-    return res.end();
+    res.render(path.join(__dirname + "/../public/html/errors", "403.html"));
 }
 
 module.exports.isTokenLogin = async function (req, res, next) {

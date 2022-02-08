@@ -6,7 +6,7 @@ const {isLogin} = require('../Api_function');
 const { validateParams } = require('../validator');
 const _ = require('lodash');
 
-//router.use(isLogin);
+if (process.env.ENABLE_LOGIN_ACCESS=="true") router.use(isLogin);
 
 //#region wado-rs
 router.get('/studies/:studyID' ,require('./controller/wado-rs'));

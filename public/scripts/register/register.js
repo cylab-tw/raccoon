@@ -31,11 +31,11 @@ RegisterApp.controller("RegisterCtrl" , function($scope, RegisterService)
             }
             else if (res.data.account != undefined)
             {
-                alert("註冊成功");
+                alert("successfully");
                 window.location = "/";
                 clearError();
             } else{
-                alert("註冊失敗"); 
+                alert("failure"); 
             }
         })
     }
@@ -98,7 +98,7 @@ RegisterApp.service('RegisterService' , function($http)
             {
                 acc : $scope.username , 
                 pwd : $scope.password , 
-                email : $scope.email , 
+                //email : $scope.email , 
                 fname : $scope.firstname ,
                 lname : $scope.lastname  , 
                 gender : $scope.gender , 

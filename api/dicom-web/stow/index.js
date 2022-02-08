@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {isLogin} = require('../../Api_function');
 
-//router.use(isLogin);
+if (process.env.ENABLE_LOGIN_ACCESS=="true") router.use(isLogin);
 
 router.post("/studies" , require("./controller/postSTOW"));
 

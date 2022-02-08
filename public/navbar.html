@@ -24,11 +24,15 @@
                 <div class="dropdown show">
                     <a class="nav-link dropdown-toggle active" href="#" data-toggle="dropdown" id="dropdownUser" aria-haspopup="true" aria-expanded="false">Hello，{{$parent.loggedUser}}</a>
                     <div class="dropdown-menu" aria-labelledby="dropdownUser">
-                        <a class="dropdown-item" href="/logout">Logout</a>
+                        <a class="dropdown-item" href="/logout">LOGOUT</a>
                     </div>
                 </div>
             </li>
         </ul>
-        
+        <ul class="nav navbar-nav navbar-right" ng-if="!$parent.loggedUser">
+            <li class="nav-item active">
+                <a class="nav-link" href="/login">LOGIN</a>
+            </li>
+        </ul>
     </div>
 </nav>

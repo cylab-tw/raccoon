@@ -22,7 +22,6 @@ module.exports  = async (req, res) =>
                 delete queryParameter[key];
             }
         });
-        console.log(queryParameter);
         mongodb.users.findOne({account : queryParameter['acc']},async function(err  , acc)
         {
             if (err)

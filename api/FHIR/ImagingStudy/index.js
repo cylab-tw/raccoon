@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const {validateParams} = require('../../validator');
 const joi = require('joi');
+const { isLogin } = require('../../Api_function');
+
+if (process.env.ENABLE_LOGIN_ACCESS=="true") router.use(isLogin);
 
 router.use((req, res, next) => {
     res.set('Content-Type', 'application/fhir+json');

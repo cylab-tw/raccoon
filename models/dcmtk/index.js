@@ -112,42 +112,44 @@ async function dcm2jpeg (dicomFile) {
         let execCmd = "";
         let jpegFile = dicomFile.replace('.dcm' ,'.jpg');
         if (process.env.ENV == "windows") {
-            execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${dicomFile} ${jpegFile}`;
+            execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg "${dicomFile}" "${jpegFile}"`;
         } else if (process.env.ENV == "linux") {
-            execCmd = `dcmj2pnm --write-jpeg ${dicomFile} ${jpegFile}`;
+            execCmd = `dcmj2pnm --write-jpeg "${dicomFile}" "${jpegFile}"`;
         }
         let [dcmtk , ...cmd] = execCmd.split(" ");
-        child_process.execFile(dcmtk , cmd , {
-            cwd : process.cwd() 
-        } , function (err , stdout , stderr) {
-            if (err) {
-                console.error(err);
-                theError = err;
-                return reject(new Error(err));
-            } else if (stderr) {
-                console.error(stderr);
-                theError = stderr;
-                return reject(new Error(stderr));
-            }
-            return resolve(true);
+        if (process.env.ENV == "windows") dcmtk = path.resolve(dcmtk);
+        let dcm2jpegSpawn = child_process.spawn(dcmtk , cmd , {
+            cwd: process.cwd(),
+            shell: true
+        });
+        dcm2jpegSpawn.stdout.on("data", function (data) {
+            if (data) console.log(data);
+            resolve(data);
+        });
+        dcm2jpegSpawn.stderr.on("data", function (stderr) {
+            stderr = iconv.decode(stderr, 'cp950');
+            console.error(stderr);
+            reject(new Error(stderr));
         });
     }) 
 }
 
 async function dcm2jpegCustomCmd (execCmd) {
     return new Promise((resolve , reject)=> {
-        let [dcmtk , ...cmd] = execCmd.split(" ");
-        child_process.execFile(dcmtk , cmd , {
-            cwd : process.cwd() 
-        } , function (err , stdout , stderr) {
-            if (err) {
-                console.error(err);
-                return reject(new Error(err));
-            } else if (stderr) {
-                console.error(stderr);
-                return reject(new Error(stderr));
-            }
-            return resolve(true);
+        let [dcmtk, ...cmd] = execCmd.split(" ");
+        if (process.env.ENV == "windows") dcmtk = path.resolve(dcmtk);
+        let dcm2jpegSpawn = child_process.spawn(dcmtk , cmd , {
+            cwd : process.cwd(),
+            shell: true
+        });
+        dcm2jpegSpawn.stdout.on("data" , function (data) {
+            if (data) console.log(data);
+            resolve(data);
+        });
+        dcm2jpegSpawn.stderr.on("data", function (stderr) {
+            stderr = iconv.decode(stderr, 'cp950');
+            console.error(stderr);
+            reject(new Error(stderr));
         });
     }) 
 }
@@ -221,13 +223,13 @@ async function getFrameImage (imagesPath , frameNumber ,otherOptions=[]) {
         };
     }
     if (process.env.ENV == "windows") {
-        execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${images} ${jpegFile} --frame ${frameNumber} ${otherOptions.join(" ")}`;
+        execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg "${images}" "${jpegFile}" --frame ${frameNumber} ${otherOptions.join(" ")}`;
     } else if (process.env.ENV == "linux") {
-        execCmd = `dcmj2pnm --write-jpeg ${images} ${jpegFile} --frame ${frameNumber}  ${otherOptions.join(" ")}`;
+        execCmd = `dcmj2pnm --write-jpeg "${images}" "${jpegFile}" --frame ${frameNumber}  ${otherOptions.join(" ")}`;
     }
     try {
-        let dcm2jpegStatu = await dcm2jpegCustomCmd(execCmd.trim());
-        if (dcm2jpegStatu) {
+        let dcm2jpegStatus = await dcm2jpegCustomCmd(execCmd.trim());
+        if (dcm2jpegStatus) {
             let rs = fs.createReadStream(jpegFile);
             return {
                 status : true , 

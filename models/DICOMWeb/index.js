@@ -83,8 +83,8 @@ async function writeImageMultipart (res , imagesPath , type) {
     for (let i= 0 ; i < imagesPath.length ; i++) {
         let images = `${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`;
         let jpegFile = images.replace(/\.dcm\b/gi , '.jpg');
-        let dcm2jpegStatu = await dcm2jpeg(images);
-        if (dcm2jpegStatu) {
+        let dcm2jpegStatus = await dcm2jpeg(images);
+        if (dcm2jpegStatus) {
             let fileBuffer = fs.readFileSync(jpegFile);
             let dicomFileBuffer = fs.readFileSync(images);
             let dicomDataSet = dicomParser.parseDicom(dicomFileBuffer); 
@@ -110,12 +110,12 @@ async function writeframesMultipart (req , res , imagesPath ,type , frameList) {
         frameNumberCount = 1;
     }
     if (process.env.ENV == "windows") {
-        execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${images} ${jpegFile} --frame-range ${minFrameNumber} ${frameNumberCount}`;
+        execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg "${images}" "${jpegFile}" --frame-range ${minFrameNumber} ${frameNumberCount}`;
     } else if (process.env.ENV == "linux") {
-        execCmd = `dcmj2pnm --write-jpeg ${images} ${jpegFile} --frame-range ${minFrameNumber} ${frameNumberCount}`;
+        execCmd = `dcmj2pnm --write-jpeg "${images}" "${jpegFile}" --frame-range ${minFrameNumber} ${frameNumberCount}`;
     }
-    let dcm2jpegStatu = await dcm2jpegCustomCmd(execCmd);
-    if (dcm2jpegStatu) {
+    let dcm2jpegStatus = await dcm2jpegCustomCmd(execCmd);
+    if (dcm2jpegStatus) {
         for (let x=  0 ;x < frameList.length ; x++) {
             let frameJpegFile = images.replace(/\.dcm\b/gi , `.${frameList[x]-1}.jpg`);
             let fileBuffer = fs.readFileSync(frameJpegFile);

@@ -110,15 +110,15 @@ async function generateJpeg(dicomJson, dicomFile, jpegFile) {
             for (let i = 1; i <= frameNumber; i++) {
                 if (process.env.ENV == "windows") {
                     if (windowCenter && windowWidth) {
-                        execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${dicomFile} ${jpegFile}.${i - 1}.jpg --frame ${i} +Ww ${windowCenter} ${windowWidth}`;
+                        execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg "${dicomFile}" "${jpegFile}.${i - 1}.jpg" --frame ${i} +Ww ${windowCenter} ${windowWidth}`;
                     } else {
-                        execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg ${dicomFile} ${jpegFile}.${i - 1}.jpg --frame ${i}`;
+                        execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg "${dicomFile}" "${jpegFile}.${i - 1}.jpg" --frame ${i}`;
                     }
                 } else if (process.env.ENV == "linux") {
                     if (windowCenter && windowWidth) {
-                        execCmd = `dcmj2pnm --write-jpeg ${dicomFile} ${jpegFile}.${i - 1}.jpg --frame ${i} +Ww ${windowCenter} ${windowWidth}`;
+                        execCmd = `dcmj2pnm --write-jpeg "${dicomFile}" "${jpegFile}.${i - 1}.jpg" --frame ${i} +Ww ${windowCenter} ${windowWidth}`;
                     } else {
-                        execCmd = `dcmj2pnm --write-jpeg ${dicomFile} ${jpegFile}.${i - 1}.jpg --frame ${i}`;
+                        execCmd = `dcmj2pnm --write-jpeg "${dicomFile}" "${jpegFile}.${i - 1}.jpg" --frame ${i}`;
                     }
                 }
                 execCmdList.push(execCmd);

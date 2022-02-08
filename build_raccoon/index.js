@@ -14,25 +14,28 @@ MONGODB_USER="user"
 MONGODB_PASSWORD="password"
 MONGODB_SLAVEMODE=false
 
-SERVER_HOST= "localhost"
+SERVER_HOST="localhost"
 SERVER_PORT=80
 
 DICOM_STORE_ROOTPATH='C:/'
-DICOMWEB_HOST = "localhost"
-DICOMWEB_PORT = 80
-DICOMWEB_API = "dicom-web"
+DICOMWEB_HOST="localhost"
+DICOMWEB_PORT=80
+DICOMWEB_API="dicom-web"
 
 FHIRSERVER_HTTP="http"
-FHIRSERVER_APIPATH = "api/fhir"
-FHIRSERVER_HOST = "localhost"
-FHIRSERVER_PORT = 80
-FHIR_NEED_PARSE_PATIENT = true
+FHIRSERVER_APIPATH="api/fhir"
+FHIRSERVER_HOST="localhost"
+FHIRSERVER_PORT=80
+FHIR_NEED_PARSE_PATIENT=true
 
-CONDA_PATH = "path/conda.exe"
-CONDA_GDCM_ENV_NAME = "gdcm"
+CONDA_PATH="path/conda.exe"
+CONDA_GDCM_ENV_NAME ="gdcm"
 
-USE_DCM2JPEG_PYTHONAPI = true
-DCM2JPEG_PYTHONAPI_PORT = 5000
+USE_DCM2JPEG_PYTHONAPI=true
+DCM2JPEG_PYTHONAPI_HOST=localhost
+DCM2JPEG_PYTHONAPI_PORT=5000
+
+ENABLE_LOGIN_ACCESS=false
 `
 async function main() {
     if (!fs.existsSync('./temp')) {
@@ -94,22 +97,29 @@ MONGODB_USER="user"
 MONGODB_PASSWORD="password"
 MONGODB_SLAVEMODE=false
 
-SERVER_HOST= "localhost"
+SERVER_HOST="localhost"
 SERVER_PORT=80
 
 DICOM_STORE_ROOTPATH='/dicomFiles'
-DICOMWEB_HOST = "localhost"
-DICOMWEB_PORT = 80
-DICOMWEB_API = "dicom-web"
-DCMTK_ROOT_PATH = "${(path.resolve(path.dirname(files[0]))).replace(/\\/g , '/')}"
+DICOMWEB_HOST="localhost"
+DICOMWEB_PORT=80
+DICOMWEB_API="dicom-web"
+DCMTK_ROOT_PATH="${(path.resolve(path.dirname(files[0]))).replace(/\\/g , '/')}"
 
-FHIRSERVER_APIPATH = "api/fhir"
-FHIRSERVER_HOST = "localhost"
-FHIRSERVER_PORT = 80
+FHIRSERVER_APIPATH="api/fhir"
+FHIRSERVER_HOST="localhost"
+FHIRSERVER_PORT=80
 FHIR_NEED_PARSE_PATIENT = true
 
-CONDA_PATH = "path/conda.exe"
-CONDA_GDCM_ENV_NAME = "gdcm"
+CONDA_PATH="path/conda.exe"
+CONDA_GDCM_ENV_NAME="gdcm"
+
+
+USE_DCM2JPEG_PYTHONAPI=true
+DCM2JPEG_PYTHONAPI_HOST=localhost
+DCM2JPEG_PYTHONAPI_PORT=5000
+
+ENABLE_LOGIN_ACCESS=true
 `
                         return resolve(true);
                     }

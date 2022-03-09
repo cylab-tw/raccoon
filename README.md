@@ -5,22 +5,20 @@
 
 **Raccoon** is a noSQL-based medical image archive for managing the DICOM images is primarily maintained by the [Imaging Informatics Labs](https://cylab.dicom.tw). It uses the MongoDB to manage the DICOM images and provide RESTful API, supported both FHIR ImagingStudy and [DICOMweb](https://www.dicomstandard.org/dicomweb/") to store, query/retrieve, and manage DICOM images.  Raccoon is bulit on the top of the [Burni FHIR Server](https://github.com/Chinlinlee/Burni) to manage the FHIR resourcs related to medical images 
 
-## Install
-* Before starting Raccoon, MongoDB,imagemagick must be installed.
-* This project uses the submodule with <a href="https://github.com/cylab-tw/bluelight/">BlueLight</a>. If you want to use it, run `git submodule init` and `git submodule update` when the first time.
-
-After installation and configure. 
-run `node server.js`
-
+## Installation
+* Before starting Raccoon, MongoDB, imagemagick must be installed.
+* This project uses the submodule with <a href="https://github.com/cylab-tw/bluelight/">BlueLight</a> for DICOM viewer. If you want to use it, run `git submodule init` and `git submodule update` when the first time.
+* [Node.js](https://nodejs.org/en/download/) > 14
 ### Windows
 #### Test OS
 - Windows 10 64bits
 #### requirement
-- **MongoDB**
+- [**MongoDB**](https://www.mongodb.com/try/download/community) > 4.0
 - **Anaconda**
 - **GDCM enviroment in Anaconda** (Use pydicom==1.1.0)
 - **[imagemagick](https://imagemagick.org/script/download.php)**
-
+#### Install dependencies
+- Go to project root path and run:
 ```bash
 npm install
 npm run build #This will download dcmtk executable binaries to ./models/dcmtk and generate example dotenv file.
@@ -29,20 +27,27 @@ npm run build #This will download dcmtk executable binaries to ./models/dcmtk an
 #### Test OS
 - Ubuntu v20.4
 #### requirement
-- **MongoDB**
+- [**MongoDB**](https://www.mongodb.com/try/download/community) > 4.0
 - **GDCM** (Use pydicom==1.1.0)
+>```bash
+>sudo api-get install python3-gdcm libgdcm3.0
+>```
 - imagemagick
 >```bash
 >sudo apt-get install imagemagick #ubuntu
 >```
-
+#### Install dependencies
+- Go to project root path and run:
 ```bash
 npm install
 npm run build #This will download dcmtk using apt-get install and generate example dotenv file.
 ```
-### dotenv Configuration
+## Configuration
+### Server dotenv
+- The `.env` file at project root.
+- You can copy the `.env.template` and modify it.
 ```bash
-ENV = 'windows'  #input the os type. enum: windows , linux
+ENV='windows'  #input the os type. enum: windows , linux
 
 MONGODB_NAME="Micala" 
 MONGODB_HOSTS=["mongodb"]
@@ -53,28 +58,30 @@ MONGODB_SLAVEMODE=false
 
 
 SERVER_HOST="localhost"
-SERVER_PORT=80
+SERVER_PORT=8081
 
 DICOM_STORE_ROOTPATH="C:/"  #The root path that DICOMweb STOW to store 
-DICOMWEB_HOST = "localhost" 
-DICOMWEB_PORT =80
-DICOMWEB_API ="dicom-web"
+DICOMWEB_HOST="localhost" 
+DICOMWEB_PORT=8081
+DICOMWEB_API="dicom-web"
 
-FHIRSERVER_APIPATH = "api/fhir"
-FHIRSERVER_HOST = "localhost"
-FHIRSERVER_PORT = "80"
-FHIR_NEED_PARSE_PATIENT = true #STOW will generate Patient data using DICOMTag. If you want custom FHIR patient , please change to false.
+FHIRSERVER_APIPATH="api/fhir"
+FHIRSERVER_HOST="localhost"
+FHIRSERVER_PORT=8081
+FHIR_NEED_PARSE_PATIENT=true #STOW will generate Patient data using DICOMTag. If you want custom FHIR patient , please change to false.
 
-CONDA_PATH = "C:\\Users\\chinHPlaptop\\anaconda3\\Scripts\\conda.exe"
-CONDA_GDCM_ENV_NAME = "gdcm"
+CONDA_PATH="C:\\Users\\chinHPlaptop\\anaconda3\\Scripts\\conda.exe"
+CONDA_GDCM_ENV_NAME="gdcm"
 
-USE_DCM2JPEG_PYTHONAPI = true
-DCM2JPEG_PYTHONAPI_PORT = 5000
+USE_DCM2JPEG_PYTHONAPI=true
+DCM2JPEG_PYTHONAPI_PORT=5000
+
+ENABLE_LOGIN_ACCESS=false
 ```
 
-## Client Configuration
-Config path : `public/scripts/config.js`
-Change all hostname and port with your server config.
+### Client Configuration
+- Config path : `public/scripts/config.js`
+- Change all hostname and port with your server config.
 ```javascript
 var envConfig = {
     QIDO : {
@@ -100,8 +107,67 @@ var envConfig = {
 * A simple web-based user interface is provided to manage the DICOM objects in Raccoon.
 * For DICOMWeb client, Raccoon can integrate with <a href="https://github.com/cylab-tw/bluelight/">BlueLight</a>, a lightweight Web-based DICOM Viewer.
 
-## usage
+## Deploy
+### With Node.JS
+```bash
+node server
+```
+### With docker-compose
+- The docker-compose example already in project root path.
 
+Example:
+```yml
+version: '3.4'
+services:
+  mongodb:
+    image: mongo:4.2
+    container_name : mongodb
+    restart: always
+    ports:
+      - 27017:27017
+    volumes:
+      - ./mongodb/db:/data/db
+    environment:
+      # provide your credentials here
+      - MONGO_INITDB_DATABASE=admin
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=Raccoon#Admin2Mongo
+      - MONGO_PORT=27017
+  raccoon:
+    build:
+      context : ./
+      dockerfile : Dockerfile
+    container_name: raccoon
+    command: >
+      /bin/sh -c '
+      while ! nc -z mongodb 27017;
+      do
+        echo "waiting for database ...";
+        sleep 3;
+      done;
+      echo "db is ready!";
+      npm install;
+      pm2-runtime start ecosystem.config.js --node-args="--max-old-space-size=4096";
+      '
+    volumes :
+      - ./:/nodejs/raccoon
+      - ./raccoon-storage:/dicomFiles
+      - ./raccoon-null/node_modules:/nodejs/raccoon/node_modules
+      - ./raccoon-null/build:/nodejs/raccoon/build
+      - ./raccoon-null/models:/nodejs/raccoon/models/dcmtk/linux-lib
+    ports:
+      - 8081:8081
+    depends_on:
+      - mongodb
+    tty : true
+    restart: on-failure:3
+    stdin_open : true
+```
+#### Set-up
+```bash
+docker-compose up -d
+```
+## Usage
 ### DICOMweb
 QIDO-RS、WADO-RS、STOW-RS : `/dicom-web/studies`
 
@@ -137,7 +203,7 @@ metadata : `/api/fhir/metadata`
   - **organization**
   - **ImagingStudy**
   - **endpoint**
-* **Note**: Raccoon is focused on medical imaging-related resources, not all FHIR resources, bulit on the top of the [Simple-Express-FHIR-Server](https://github.com/Chinlinlee/Simple-Express-FHIR-Server). If you are interesting in FHIR soultion, please visit [Simple-Express-FHIR-Server](https://github.com/Chinlinlee/Simple-Express-FHIR-Server).
+* **Note**: Raccoon is focused on medical imaging-related resources, not all FHIR resources, built on the top of the [Simple-Express-FHIR-Server](https://github.com/Chinlinlee/Simple-Express-FHIR-Server). If you are interesting in FHIR soultion, please visit [Simple-Express-FHIR-Server](https://github.com/Chinlinlee/Simple-Express-FHIR-Server).
 
 ## Supported SOP Classes (particular)
 ### Image

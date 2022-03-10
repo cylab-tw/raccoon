@@ -70,6 +70,7 @@ FHIRSERVER_HOST="localhost"
 FHIRSERVER_PORT=8081
 FHIR_NEED_PARSE_PATIENT=true #STOW will generate Patient data using DICOMTag. If you want custom FHIR patient , please change to false.
 
+USE_CONDA=false
 CONDA_PATH="C:\\Users\\chinHPlaptop\\anaconda3\\Scripts\\conda.exe"
 CONDA_GDCM_ENV_NAME="gdcm"
 

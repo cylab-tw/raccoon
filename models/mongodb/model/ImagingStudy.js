@@ -1,5 +1,3 @@
-const arrayUniquePlugin = require('mongoose-unique-array');
-
 const identifierSchema = require('../FHIRmodel/Identifier');
 const codingSchema = require('../FHIRmodel/Coding');
 const refSchema = require('../FHIRmodel/Reference');
@@ -230,7 +228,6 @@ module.exports = function (mongodb) {
         }
     );
 
-    ImagingStudySchema.plugin(arrayUniquePlugin);
     ImagingStudySchema.methods.getFHIRField = function () {
         let result =  this.toObject();
         delete result._id;

@@ -105,7 +105,9 @@ let condaEnvName = process.env.CONDA_GDCM_ENV_NAME;
     }
     if (!isflaskRunning) {
       if (process.env.ENV == "windows") {
-        exec(`${condaPath} run -n ${condaEnvName} python DICOM2JPEGAPI.py ${process.env.DCM2JPEG_PYTHONAPI_PORT}`, {
+        let cmd = `python DICOM2JPEGAPI.py ${process.env.DCM2JPEG_PYTHONAPI_PORT}`;
+        if (process.env.USE_CONDA === "true") cmd = `${condaPath} run -n ${condaEnvName} python DICOM2JPEGAPI.py ${process.env.DCM2JPEG_PYTHONAPI_PORT}`;
+        exec(`${cmd}`, {
           cwd: process.cwd()
         }, function (err, stdout, stderr) {
           if (err) {

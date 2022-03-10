@@ -4,4 +4,5 @@ Pillow==9.0.0
 Flask==2.0.2
 matplotlib==3.5.1
 highdicom==0.14.0
-numpy==1.22.1
+numpy>=1.21
+python-gdcm

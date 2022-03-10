@@ -41,7 +41,9 @@ const getJpeg = {
                         return resolve(true);
                     }
                 } else {
-                    exec(`${condaPath} run -n ${condaEnvName} python DICOM2JPEG.py ${store_Path}`, {
+                    let cmd = `python DICOM2JPEG.py ${store_Path}`;
+                    if(process.env.USE_CONDA === "true") cmd = `${condaPath} run -n ${condaEnvName} python DICOM2JPEG.py ${store_Path}`;
+                    exec(`${cmd}`, {
                         cwd: process.cwd()
                     }, function (err, stdout, stderr) {
                         if (err) {

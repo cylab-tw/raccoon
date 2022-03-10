@@ -1,3 +1,4 @@
+#coding:utf-8
 import pydicom
 import matplotlib.pyplot as plt
 from PIL import Image, ImageOps
@@ -101,7 +102,7 @@ if __name__ == '__main__':
     frameNumber = 1
 
     try:
-        frameNumber = sys.argv[2]
+        frameNumber = int(sys.argv[2])
     except:
         frameNumber = 1
     pass

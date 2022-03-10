@@ -15,7 +15,7 @@
 #### requirement
 - [**MongoDB**](https://www.mongodb.com/try/download/community) > 4.0
 - **Anaconda**
-- **GDCM enviroment in Anaconda** (Use pydicom==1.1.0)
+- **GDCM enviroment in Anaconda**
 - **[imagemagick](https://imagemagick.org/script/download.php)**
 #### Install dependencies
 - Go to project root path and run:
@@ -28,7 +28,7 @@ npm run build #This will download dcmtk executable binaries to ./models/dcmtk an
 - Ubuntu v20.4
 #### requirement
 - [**MongoDB**](https://www.mongodb.com/try/download/community) > 4.0
-- **GDCM** (Use pydicom==1.1.0)
+- **GDCM**
 >```bash
 >sudo api-get install python3-gdcm libgdcm3.0
 >```
@@ -49,7 +49,7 @@ npm run build #This will download dcmtk using apt-get install and generate examp
 ```bash
 ENV='windows'  #input the os type. enum: windows , linux
 
-MONGODB_NAME="Micala" 
+MONGODB_NAME="Raccoon" 
 MONGODB_HOSTS=["mongodb"]
 MONGODB_PORTS=[27017]
 MONGODB_USER="user"

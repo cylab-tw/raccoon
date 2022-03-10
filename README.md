@@ -8,7 +8,8 @@
 ## Installation
 * Before starting Raccoon, MongoDB, imagemagick must be installed.
 * This project uses the submodule with <a href="https://github.com/cylab-tw/bluelight/">BlueLight</a> for DICOM viewer. If you want to use it, run `git submodule init` and `git submodule update` when the first time.
-* [Node.js](https://nodejs.org/en/download/) > 14
+* [Node.js](https://nodejs.org/en/download/) >= 14
+* Python >= 3.7
 ### Windows
 #### Test OS
 - Windows 10 64bits

@@ -1,5 +1,3 @@
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-
 <div> 
   <div style="float: left;width: 15%;"><img src="https://repository-images.githubusercontent.com/314441601/8e680180-33da-11eb-8da5-266f5636f213" width="90px"></div>
   <div style="float: left;width: 85%;"><h1>Raccoon - Web-based DICOMWeb & FHIR ImagingStudy Server</h1> 
@@ -15,11 +13,10 @@
 * Python >= 3.7
 ### Windows
 
-<div class="alert alert-warning" role="alert">
-You can follow this <a href="https://chinlinlee.github.io/po2Aka.html">Full Installation Guide</a> 🎉 <br>
-The guide above has every detailed installation step for each required software <br>
-😄 <b>It's extremely friendly for newbie</b> 😄
-</div>
+> :yellow_heart::yellow_heart::yellow_heart:<br>
+> You can follow this <a href="https://chinlinlee.github.io/po2Aka.html">Full Installation Guide</a> 🎉 <br>
+> The guide above has every detailed installation step for each required software <br>
+> 😄 <b>It's extremely friendly for newbie</b> 😄
 
 #### Test OS
 - Windows 10 64bits
@@ -35,9 +32,9 @@ npm install
 npm run build #This will download dcmtk executable binaries to ./models/dcmtk and generate example dotenv file.
 ```
 
-<div class="alert alert-primary" role="alert">
-Windows installation ends here, scroll down to see <a href="#configuration">Configuration</a> & <a href="#deploy">Deploy</a> guide
-</div>
+> 💙💙💙 <br>
+> Windows installation ends here, scroll down to see <br>
+> <a href="#configuration">Configuration</a> & <a href="#deploy">Deploy</a> guide
 
 ### Linux
 #### Test OS

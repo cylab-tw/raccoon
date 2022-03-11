@@ -6,38 +6,41 @@
 [English](README.md) | [繁體中文](README.zh-TW.md)
 
 ---
-**Raccoon** is a noSQL-based medical image archive for managing the DICOM images is primarily maintained by the [Imaging Informatics Labs](https://cylab.dicom.tw). It uses the MongoDB to manage the DICOM images and provide RESTful API, supported both FHIR ImagingStudy and [DICOMweb](https://www.dicomstandard.org/dicomweb/") to store, query/retrieve, and manage DICOM images.  Raccoon is built on the top of the [Burni FHIR Server](https://github.com/Chinlinlee/Burni) to manage the FHIR resources related to medical images 
+**Raccoon** 是使用 no-SQL 資料庫實作的醫學影像儲存系統(DICOMweb PACS)，目前主要由[北護影像資訊學實驗室](https://cylab.dicom.tw)維護。 Raccoon 使用 MongoDB 管理 DICOM 影像並提供 [DICOMweb](https://www.dicomstandard.org/dicomweb/") 以及 FHIR ImagingStudy RESTful API 功能進行儲存、查詢、調閱。
+另外 Raccoon 使用了 [Burni FHIR Server](https://github.com/Chinlinlee/Burni)為底延伸出 FHIR 與 DICOM 結合的功能。
 
 ---
-## Installation
-* Before starting Raccoon, MongoDB, imagemagick must be installed.
-* This project uses the submodule with <a href="https://github.com/cylab-tw/bluelight/">BlueLight</a> for DICOM viewer. If you want to use it, run `git submodule init` and `git submodule update` when the first time.
+## 安裝
+* 請注意！在使用 Raccoon 前，務必安裝 MongoDB、ImageMagick
+* Raccoon 在 git submodule 額外使用了 <a href="https://github.com/cylab-tw/bluelight/">BlueLight</a> 作為 Raccoon 的 DICOM Viewer。如果您想擴充 DICOM Viewer的功能請運行 `git submodule init` 指令 `git submodule update` 安裝 BlueLight
 * [Node.js](https://nodejs.org/en/download/) >= 14
 * Python >= 3.7
 ### Windows
-
+> :yellow_heart::yellow_heart::yellow_heart:<br>
+> 您可以跟隨<a href="https://chinlinlee.github.io/po2Aka.html">完整安裝教學</a>的步驟安裝 Raccoon 🎉 <br>
+> 此篇教學列出了每項必要軟體的安裝步驟、 Raccoon 的詳細設定、 Raccoon 的部屬以及 Raccoon 的測試方法 <br>
+> 😄 <b>對新手來講是一篇非常有好的教學！</b> 😄
 #### Test OS
 - Windows 10 64bits
-#### requirement
+#### 必要軟體
 - [**MongoDB**](https://www.mongodb.com/try/download/community) > 4.0
-- **Anaconda** (Optional)
-- **GDCM environment in Anaconda** (Required when you use Anaconda)
+- **Anaconda** (非必要))
+- **GDCM environment in Anaconda** (當您使用Anaconda時，請務必確認環境支援 GDCM)
 - **[imagemagick](https://imagemagick.org/script/download.php)**
-#### Install dependencies
-- Go to project root path and run:
+#### 安裝依賴
+- 進到專案根目錄並使用 cmd 執行以下指令:
 ```bash
 npm install
-npm run build #This will download dcmtk executable binaries to ./models/dcmtk and generate example dotenv file.
+npm run build #此指令會下載 dcmtk 執行檔到 ./models/dcmtk 並產生 dotenv 檔案範例.
 ```
 
 > 💙💙💙 <br>
-> Windows installation ends here, scroll down to see <br>
-> <a href="#configuration">Configuration</a> & <a href="#deploy">Deploy</a> guide
+> 如果您是 Windows 的使用者，並已經結束安裝的步驟，您可以往下閱讀<a href="#configuration">Configuration</a> & <a href="#deploy">Deploy</a>的說明
 
 ### Linux
 #### Test OS
 - Ubuntu v20.4
-#### requirement
+#### 必要軟體
 - [**MongoDB**](https://www.mongodb.com/try/download/community) > 4.0
 - **GDCM**
 >```bash
@@ -48,7 +51,7 @@ npm run build #This will download dcmtk executable binaries to ./models/dcmtk an
 >sudo apt-get install imagemagick #ubuntu
 >```
 #### Install dependencies
-- Go to project root path and run:
+- 進到專案根目錄並使用 cmd 執行以下指令:
 ```bash
 npm install
 npm run build #This will download dcmtk using apt-get install and generate example dotenv file.
@@ -56,10 +59,10 @@ npm run build #This will download dcmtk using apt-get install and generate examp
 
 ---
 
-## Configuration
+## 設定
 ### Server dotenv
-- The `.env` file at project root.
-- You can copy the `.env.template` and modify it.
+- `.env` 檔案位於專案根目錄
+- 您可以參考 `.env.template` 進行修改
 ```bash
 ENV='windows'  #input the os type. enum: windows , linux
 
@@ -94,8 +97,8 @@ DCM2JPEG_PYTHONAPI_PORT=5000
 ENABLE_LOGIN_ACCESS=false
 ```
 
-### Client Configuration
-- Config path : `public/scripts/config.js`
+### 前端 web 設定
+- 設定檔路經 : `public/scripts/config.js`
 - Change all hostname and port with your server config.
 ```javascript
 var envConfig = {
@@ -119,19 +122,19 @@ var envConfig = {
     }
 }
 ```
-* A simple web-based user interface is provided to manage the DICOM objects in Raccoon.
+* 使用者介面提供簡單的管理功能管理 Raccoon 內的影像
 * For DICOMWeb client, Raccoon can integrate with <a href="https://github.com/cylab-tw/bluelight/">BlueLight</a>, a lightweight Web-based DICOM Viewer.
 
-## Deploy
-### With Node.JS
+## 部屬
+### 使用 Node.JS
 ```bash
 node server
 ```
 
 ---
 
-## Deploy with docker-compose
-- The docker-compose example already in project root path.
+## 使用 docker-compose
+- 您可以在專案的根目錄找到 docker-compose 的範例檔
 
 Example:
 ```yml

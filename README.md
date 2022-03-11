@@ -1,12 +1,11 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
 <div> 
   <div style="float: left;width: 15%;"><img src="https://repository-images.githubusercontent.com/314441601/8e680180-33da-11eb-8da5-266f5636f213" width="90px"></div>
   <div style="float: left;width: 85%;"><h1>Raccoon - Web-based DICOMWeb & FHIR ImagingStudy Server</h1> 
 </div>
 
 **Raccoon** is a noSQL-based medical image archive for managing the DICOM images is primarily maintained by the [Imaging Informatics Labs](https://cylab.dicom.tw). It uses the MongoDB to manage the DICOM images and provide RESTful API, supported both FHIR ImagingStudy and [DICOMweb](https://www.dicomstandard.org/dicomweb/") to store, query/retrieve, and manage DICOM images.  Raccoon is bulit on the top of the [Burni FHIR Server](https://github.com/Chinlinlee/Burni) to manage the FHIR resourcs related to medical images 
-
-## Table of Content
-[TOC]
 
 ---
 ## Installation
@@ -16,11 +15,11 @@
 * Python >= 3.7
 ### Windows
 
-:::warning
-You can follow this [Full Installation Guide](https://chinlinlee.github.io/po2Aka.html) 🎉 <br>
+<div class="alert alert-warning" role="alert">
+You can follow this <a href="https://chinlinlee.github.io/po2Aka.html">Full Installation Guide</a> 🎉 <br>
 The guide above has every detailed installation step for each required software <br>
-😄 **It's extremely friendly for newbie** 😄
-:::
+😄 <b>It's extremely friendly for newbie</b> 😄
+</div>
 
 #### Test OS
 - Windows 10 64bits
@@ -36,9 +35,9 @@ npm install
 npm run build #This will download dcmtk executable binaries to ./models/dcmtk and generate example dotenv file.
 ```
 
-:::info
-Windows installation ends here, scroll down to see [Configuration](#configuration) & [Deploy](#deploy) guide
-:::
+<div class="alert alert-primary" role="alert">
+Windows installation ends here, scroll down to see <a href="#configuration">Configuration</a> & <a href="#deploy">Deploy</a> guide
+</div>
 
 ### Linux
 #### Test OS
@@ -262,7 +261,3 @@ metadata : `/api/fhir/metadata`
 # Acknowledgement
 * This project is supported by a grant from the Ministry of Science and Technology Taiwan.
 * Thanks [琦雯Queenie](https://www.cakeresume.com/Queenie0814?locale=zh-TW), [Queenie's github](https://github.com/Queenie0814) for contributing the logo design. 
-
-<div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/12.3.2/markdown-it.min.js" integrity="sha512-TIDbN32lXOg2Mw1VcnKrQLZgfALryJogWCu/NHWtlMCR1jget+mOwMtdehBBZz2f9PKeK2AQPwVxkbl4u/1H5g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-</div>

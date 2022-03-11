@@ -5,12 +5,23 @@
 
 **Raccoon** is a noSQL-based medical image archive for managing the DICOM images is primarily maintained by the [Imaging Informatics Labs](https://cylab.dicom.tw). It uses the MongoDB to manage the DICOM images and provide RESTful API, supported both FHIR ImagingStudy and [DICOMweb](https://www.dicomstandard.org/dicomweb/") to store, query/retrieve, and manage DICOM images.  Raccoon is bulit on the top of the [Burni FHIR Server](https://github.com/Chinlinlee/Burni) to manage the FHIR resourcs related to medical images 
 
+## Table of Content
+[TOC]
+
+---
 ## Installation
 * Before starting Raccoon, MongoDB, imagemagick must be installed.
 * This project uses the submodule with <a href="https://github.com/cylab-tw/bluelight/">BlueLight</a> for DICOM viewer. If you want to use it, run `git submodule init` and `git submodule update` when the first time.
 * [Node.js](https://nodejs.org/en/download/) >= 14
 * Python >= 3.7
 ### Windows
+
+:::warning
+You can follow this [Full Installation Guide](https://chinlinlee.github.io/po2Aka.html) 🎉 <br>
+The guide above has every detailed installation step for each required software <br>
+😄 **It's extremely friendly for newbie** 😄
+:::
+
 #### Test OS
 - Windows 10 64bits
 #### requirement
@@ -24,6 +35,11 @@
 npm install
 npm run build #This will download dcmtk executable binaries to ./models/dcmtk and generate example dotenv file.
 ```
+
+:::info
+Windows installation ends here, scroll down to see [Configuration](#configuration) & [Deploy](#deploy) guide
+:::
+
 ### Linux
 #### Test OS
 - Ubuntu v20.4
@@ -43,6 +59,9 @@ npm run build #This will download dcmtk executable binaries to ./models/dcmtk an
 npm install
 npm run build #This will download dcmtk using apt-get install and generate example dotenv file.
 ```
+
+---
+
 ## Configuration
 ### Server dotenv
 - The `.env` file at project root.
@@ -114,7 +133,10 @@ var envConfig = {
 ```bash
 node server
 ```
-### With docker-compose
+
+---
+
+## Deploy with docker-compose
 - The docker-compose example already in project root path.
 
 Example:
@@ -169,6 +191,8 @@ services:
 ```bash
 docker-compose up -d
 ```
+
+---
 ## Usage
 ### DICOMweb
 QIDO-RS、WADO-RS、STOW-RS : `/dicom-web/studies`
@@ -180,6 +204,7 @@ WADO-URI : `/api/dicom/wado`
 base : `/api/fhir/{resource}`
 metadata : `/api/fhir/metadata`
 
+---
 ## About
 * Raccoon支援DICOMWeb標準傳輸協定，包含QIDO-RS, WADO-RS, WADO-URI, STOW等。
 * 支援各種Transfer Syntax 以及SOP Class影像

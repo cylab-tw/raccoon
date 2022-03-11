@@ -13,11 +13,6 @@
 * Python >= 3.7
 ### Windows
 
-> :yellow_heart::yellow_heart::yellow_heart:<br>
-> You can follow this <a href="https://chinlinlee.github.io/po2Aka.html">Full Installation Guide</a> 🎉 <br>
-> The guide above has every detailed installation step for each required software <br>
-> 😄 <b>It's extremely friendly for newbie</b> 😄
-
 #### Test OS
 - Windows 10 64bits
 #### requirement

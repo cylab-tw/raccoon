@@ -3,7 +3,7 @@
  * Created by Macy Gong.
  */
 const path = require('path');
-const mongodb = require('models/mongodb');
+const mongodb = require('./models/mongodb');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 module.exports = function (app, passport) {

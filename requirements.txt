@@ -1,6 +1,6 @@
 pydicom==2.2.2
 opencv-python==4.5.5.62
-Pillow==9.0.0
+Pillow==9.0.1
 Flask==2.0.2
 matplotlib==3.5.1
 highdicom==0.14.0

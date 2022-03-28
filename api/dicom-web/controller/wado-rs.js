@@ -1,4 +1,5 @@
 //http://dicom.nema.org/medical/dicom/2019a/output/chtml/part18/sect_6.5.html
+const { logger } = require('../../../utils/log');
 const mongoFunc = require('../../../models/mongodb/func');
 const archiver = require('archiver');
 const crypto = require('crypto');
@@ -7,7 +8,8 @@ const path= require('path');
 const uuid = require('uuid');
 const _ = require('lodash');
 const DICOMWebHandleError = require('../../../models/DICOMWeb/httpMessage');
-const { writeImageMultipart } = require('../../../models/DICOMWeb')
+const { writeImageMultipart } = require('../../../models/DICOMWeb');
+const { MultipartWriter } = require('../../../utils/multipartWriter');
 const { streamToBuffer } = require('@jorgeferrero/stream-to-buffer');
 module.exports = async function (req , res) {
     let keys = Object.keys(req.params);
@@ -213,62 +215,22 @@ async function getInstance(iParam ,res) {
 let multipartFunc = {
     "application/dicom" : {
         getStudyDicom : async function (iParam , res , type) {
-            return new Promise (async (resolve)=> {
-                let imagesPath = await mongoFunc.getStudyImagesPath(iParam);
-                if (imagesPath) {
-                    const BOUNDARY = `${uuid.v4()}-${uuid.v4()}`;
-                    res.set("content-type", `multipart/related; type="${type}"; boundary=${BOUNDARY}`);
-                    for (let i= 0 ; i < imagesPath.length ; i++) {
-                        console.log(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`);
-                        let fileBuffer = await streamToBuffer(fs.createReadStream(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`));
-                        res.write(`${i==0? "":"\r\n\r\n"}--${BOUNDARY}\r\n`);
-                        res.write(`Content-Type: ${type}\r\n`);
-                        res.write('Content-length: ' + fileBuffer.length + '\r\n\r\n');
-                        res.write(fileBuffer);
-                    }
-                    res.write(`\r\n--${BOUNDARY}--`);
-                    return resolve(true);
-                }
-                return resolve(false);
-            });
+            logger.info(`[Write DICOM files of study] [Params: ${JSON.stringify(iParam)}]`);
+            let imagesPath = await mongoFunc.getStudyImagesPath(iParam);
+            let multipartWriter = new MultipartWriter(imagesPath);
+            return multipartWriter.writeDICOMFiles(res, type);
         } , 
         getSeriesDicom : async function (iParam , res , type) {
-            return new Promise(async (resolve)=> {
-                let imagesPath = await mongoFunc.getSeriesImagesPath(iParam);
-                if (imagesPath) {
-                    const BOUNDARY = `${uuid.v4()}-${uuid.v4()}`;
-                    res.set("content-type", `multipart/related; type="${type}"; boundary=${BOUNDARY}`);
-                    for (let i= 0 ; i < imagesPath.length ; i++) {
-                        console.log(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`);
-                        let fileBuffer = await streamToBuffer(fs.createReadStream(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`));
-                        res.write(`${i==0? "":"\r\n\r\n"}--${BOUNDARY}\r\n`);
-                        res.write(`Content-Type: ${type}\r\n`);
-                        res.write('Content-length: ' + fileBuffer.length + '\r\n\r\n');
-                        res.write(fileBuffer);
-                    }
-                    res.write(`\r\n--${BOUNDARY}--`);
-                    return resolve(true);
-                }
-                return resolve(false);
-            });
+            logger.info(`[Write DICOM files of series] [Params: ${JSON.stringify(iParam)}]`);
+            let seriesImagesPath = await mongoFunc.getSeriesImagesPath(iParam);
+            let multipartWriter = new MultipartWriter(seriesImagesPath);
+            return multipartWriter.writeDICOMFiles(res, type);
         } , 
         getInstance : async function (iParam , res , type) {
-            return new Promise (async (resolve)=> {
-                let imagesPath = await mongoFunc.getInstanceImagePath(iParam);
-                if (imagesPath) {
-                    const BOUNDARY = `${uuid.v4()}-${uuid.v4()}`;
-                    res.set("content-type", `multipart/related; type="${type}"; boundary=${BOUNDARY}`);
-                    let fileBuffer = await streamToBuffer(fs.createReadStream(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[0]}`));
-                    console.log(imagesPath[0]);
-                    res.write(`--${BOUNDARY}\r\n`);
-                    res.write(`Content-Type: ${type}\r\n`);
-                    res.write('Content-length: ' + fileBuffer.length + '\r\n\r\n');
-                    res.write(fileBuffer);
-                    res.write(`\r\n--${BOUNDARY}--`);
-                    return resolve(true);
-                }
-                return resolve(false);
-            });
+            logger.info(`[Write DICOM files of instance] [Params: ${JSON.stringify(iParam)}]`);
+            let imagesPath = await mongoFunc.getInstanceImagePath(iParam);
+            let multipartWriter = new MultipartWriter(imagesPath);
+            return multipartWriter.writeDICOMFiles(res, type);
         }
     } ,
 }

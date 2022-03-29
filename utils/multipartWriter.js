@@ -14,6 +14,29 @@ class MultipartWriter {
         this.pathsOfImages = pathsOfImages;
         //this.responseData = "";
     }
+    async writeBoundary(res, isFirst=false) {
+        if (isFirst) {
+            res.write(`--${this.BOUNDARY}\r\n`);
+        } else {
+            res.write(`\r\n\r\n--${this.BOUNDARY}\r\n`);
+        }
+    }
+
+    async writeFinalBoundary(res) {
+        res.write(`\r\n--${this.BOUNDARY}--`);
+    }
+
+    async writeContentType(res, type) {
+        res.write(`Content-Type: ${type}\r\n`);
+    }
+
+    async writeContentLength(res, length) {
+        res.write('Content-length: ' + length + '\r\n\r\n');
+    }
+
+    async writeBufferData(res, buffer) {
+        res.write(buffer);
+    }
 
     async writeDICOMFiles(res, type) {
         try {
@@ -22,12 +45,12 @@ class MultipartWriter {
                 for (let i = 0; i < this.pathsOfImages.length; i++) {
                     console.log(`${DICOM_STORE_ROOTPATH}${this.pathsOfImages[i]}`);
                     let fileBuffer = await streamToBuffer(fs.createReadStream(`${DICOM_STORE_ROOTPATH}${this.pathsOfImages[i]}`));
-                    res.write(`${i == 0 ? "" : "\r\n\r\n"}--${this.BOUNDARY}\r\n`);
-                    res.write(`Content-Type: ${type}\r\n`);
-                    res.write('Content-length: ' + fileBuffer.length + '\r\n\r\n');
-                    res.write(fileBuffer);
+                    this.writeBoundary(res, i===0);
+                    this.writeContentType(res, type);
+                    this.writeContentLength(res, fileBuffer.length);
+                    this.writeBufferData(res, fileBuffer);
                 }
-                res.write(`\r\n--${this.BOUNDARY}--`);
+                this.writeFinalBoundary(res);
                 return true;
             }
             return false;

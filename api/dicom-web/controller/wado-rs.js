@@ -217,20 +217,20 @@ let multipartFunc = {
         getStudyDicom : async function (iParam , res , type) {
             logger.info(`[Write DICOM files of study] [Params: ${JSON.stringify(iParam)}]`);
             let imagesPath = await mongoFunc.getStudyImagesPath(iParam);
-            let multipartWriter = new MultipartWriter(imagesPath);
-            return multipartWriter.writeDICOMFiles(res, type);
+            let multipartWriter = new MultipartWriter(imagesPath, res);
+            return multipartWriter.writeDICOMFiles(type);
         } , 
         getSeriesDicom : async function (iParam , res , type) {
             logger.info(`[Write DICOM files of series] [Params: ${JSON.stringify(iParam)}]`);
             let seriesImagesPath = await mongoFunc.getSeriesImagesPath(iParam);
-            let multipartWriter = new MultipartWriter(seriesImagesPath);
-            return multipartWriter.writeDICOMFiles(res, type);
+            let multipartWriter = new MultipartWriter(seriesImagesPath, res);
+            return multipartWriter.writeDICOMFiles(type);
         } , 
         getInstance : async function (iParam , res , type) {
             logger.info(`[Write DICOM files of instance] [Params: ${JSON.stringify(iParam)}]`);
             let imagesPath = await mongoFunc.getInstanceImagePath(iParam);
-            let multipartWriter = new MultipartWriter(imagesPath);
-            return multipartWriter.writeDICOMFiles(res, type);
+            let multipartWriter = new MultipartWriter(imagesPath, res);
+            return multipartWriter.writeDICOMFiles(type);
         }
     } ,
 }

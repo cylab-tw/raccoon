@@ -2,7 +2,7 @@ const mongodb = require('../../../models/mongodb');
 const mongoFunc = require('../../../models/mongodb/func');
 const _ = require('lodash');
 const DICOMWebHandleError = require('../../../models/DICOMWeb/httpMessage');
-const { writeframesMultipart} = require('../../../models/DICOMWeb')
+const { MultipartWriter } = require('../../../utils/multipartWriter');
 
 let multipartFunc = {};
 multipartFunc["image/jpeg"] = {
@@ -44,9 +44,9 @@ multipartFunc["image/jpeg"] = {
                     DICOMWebHandleError.sendBadRequestMessage(res , `Bad frame number , This instance NumberOfFrames is : ${dicomNumberOfFrames} , But request ${maxFrameNumber}`);
                     return resolve(false);
                 }
-                res.set('content-type',`multipart/related; type=${type}`)
-                await writeframesMultipart(req , res , imagesPath , type , frameList)
-                return resolve(true);    
+                let multipartWriter = new MultipartWriter(imagesPath, res, req);
+                await multipartWriter.writeFrames(type, frameList);
+                return resolve(true);
             }
             DICOMWebHandleError.sendNotFoundMessage(req , res);
             return resolve(false);

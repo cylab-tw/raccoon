@@ -146,6 +146,9 @@ async function dcm2jpegCustomCmd (execCmd) {
             if (data) console.log(data);
             resolve(data);
         });
+        dcm2jpegSpawn.on("close", function() {
+            resolve(true);
+        })
         dcm2jpegSpawn.stderr.on("data", function (stderr) {
             stderr = iconv.decode(stderr, 'cp950');
             console.error(stderr);

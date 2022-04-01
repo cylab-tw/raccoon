@@ -20,8 +20,9 @@ module.exports = async function (req , res) {
     }
     let WADOFunc = {"studyID" :getStudyDicom, "studyIDseriesID": getSeriesDicom , "studyIDseriesIDinstanceID": getInstance};
     if (req.headers.accept.toLowerCase() == "application/zip") {
-        let imageFiles = await WADOFunc[paramsStr](req.params , res);
-        if (imageFiles) {
+        let wadoZip = new WADOZip(req.params, res);
+        let zipProcess = await wadoZip[`method-${paramsStr}`]();
+        if (zipProcess.status) {
             res.end();
             return;
         }
@@ -107,111 +108,6 @@ function sendNotSupportMessage(req ,res) {
     res.end();  
 }
 
-async function getStudyDicom(iParam ,res) {
-    return new Promise (async (resolve)=> {
-        let imagesPath = await mongoFunc.getStudyImagesPath(iParam);
-
-        if (imagesPath) {
-            let rndNum = crypto.randomBytes(5).toString('hex');
-            let timespam = new Date().getTime();
-            let storeZipName = `${rndNum}_${timespam}`
-            
-            res.attachment = `${storeZipName}.zip`;
-            res.setHeader('Content-Type', 'application/zip');
-            res.setHeader('Content-Disposition', `attachment; filename=${storeZipName}.zip`);
-            
-            let archive = archiver('zip', {
-                gzip: true ,
-                zlib: { level: 9 } // Sets the compression level.
-            });
-            archive.on('error', function(err) {
-                console.log(err);
-                return resolve(false);
-            });
-            archive.pipe(res);
-            let folders = [];
-            for (let i= 0 ; i < imagesPath.length ; i++) {
-                let imagesFolder = path.dirname(imagesPath[i]);
-                if (!folders.includes(imagesFolder)) {
-                    folders.push(imagesFolder);
-                }
-            }
-            for (let i = 0; i < folders.length ; i++) {
-                let folderName = path.basename(folders[i]);
-                archive.directory(`${process.env.DICOM_STORE_ROOTPATH}${folders[i]}` , folderName);
-            }
-            await archive.finalize();
-            console.log("getStudy");
-            return resolve(true);
-        }
-        return resolve(false);
-    });
-}
-
-async function getSeriesDicom(iParam , res) {
-    return new Promise(async (resolve)=> {
-        let imagesPath = await mongoFunc.getSeriesImagesPath(iParam);
-
-        if (imagesPath) {
-            let rndNum = crypto.randomBytes(5).toString('hex');
-            let timespam = new Date().getTime();
-            let storeZipName = `${rndNum}_${timespam}`
-            res.attachment = `${storeZipName}.zip`;
-            res.setHeader('Content-Type', 'application/zip');
-            res.setHeader('Content-Disposition', `attachment; filename=${storeZipName}.zip`);
-           
-            let archive = archiver('zip', {
-                gzip: true ,
-                zlib: { level: 9 } // Sets the compression level.
-            });
-            archive.on('error', function(err) {
-                console.log(err);
-                return resolve(false);
-            });
-            archive.pipe(res);
-            for (let i = 0; i < imagesPath.length ; i++) {
-                let pathSplit = imagesPath[i].split('/');
-                let storeName = pathSplit[pathSplit.length-1];
-                archive.file(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}` , {name : storeName});
-            }
-            await archive.finalize();
-            console.log("getSeries");
-            return resolve(true);
-        }
-        return resolve(false);
-    });
-}
-async function getInstance(iParam ,res) {
-    return new Promise(async (resolve) => {
-        let imagesPath = await mongoFunc.getInstanceImagePath(iParam);
-        if (imagesPath) {
-            /*res.writeHead(200 , 
-            {
-                'Content-Type' : 'application/dicom' ,
-                'Content-Disposition' :'attachment; filename=' + path.basename(imagesPath[0])
-            });*/
-            let rndNum = crypto.randomBytes(5).toString('hex');
-            let timespam = new Date().getTime();
-            let storeZipName = `${rndNum}_${timespam}`
-            res.attachment = `${storeZipName}.zip`;
-            res.setHeader('Content-Type', 'application/zip');
-            res.setHeader('Content-Disposition', `attachment; filename=${storeZipName}.zip`);
-            let archive = archiver('zip', {
-                gzip: true ,
-                zlib: { level: 9 } // Sets the compression level.
-            });
-            archive.on('error', function(err) {
-                console.log(err);
-                return resolve(false);
-            });
-            archive.pipe(res);
-            archive.file(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[0]}` , {name : path.basename(imagesPath[0])});
-            await archive.finalize();
-            return resolve(true);
-        }
-        return resolve(false);
-    });
-}
 let multipartFunc = {
     "application/dicom" : {
         getStudyDicom : async function (iParam , res , type) {
@@ -254,6 +150,139 @@ multipartFunc["image/jpeg"] = {
 
 function nl2br (str) {
     return str.replace(/\\r|\\n|\\r\\n/gi , "<br/>");
+}
+
+class WADOZip {
+    constructor(iParam, iRes) {
+        this.requestParams = iParam;
+        this.studyID = iParam.studyID;
+        this.seriesID = iParam.seriesID;
+        this.instanceID = iParam.instanceID;
+        this.res = iRes;
+        this["method-studyID"] = this.getZipOfStudyDICOMFiles;
+        this["method-studyIDseriesID"] = this.getZipOfSeriesDICOMFiles;
+        this["method-studyIDseriesIDinstanceID"] = this.getZipOfInstanceDICOMFile;
+    }
+
+    setHeaders() {
+        let rndNum = crypto.randomBytes(5).toString('hex');
+        let timestamp = new Date().getTime();
+        let storeZipName = `${rndNum}_${timestamp}`;
+
+        this.res.attachment = `${storeZipName}.zip`;
+        this.res.setHeader('Content-Type', 'application/zip');
+        this.res.setHeader('Content-Disposition', `attachment; filename=${storeZipName}.zip`);
+    }
+    async getZipOfStudyDICOMFiles() {
+        return new Promise(async (resolve)=> {
+            let imagesPath = await mongoFunc.getStudyImagesPath(this.requestParams);
+            if (imagesPath) {
+                this.setHeaders();
+
+                let archive = archiver('zip', {
+                    gzip: true,
+                    zlib: { level: 9 } // Sets the compression level.
+                });
+                archive.on('error', function (err) {
+                    console.error(err);
+                    resolve({
+                        status: false,
+                        data: err
+                    });
+                });
+                archive.pipe(this.res);
+                let folders = [];
+                for (let i = 0; i < imagesPath.length; i++) {
+                    let imagesFolder = path.dirname(imagesPath[i]);
+                    if (!folders.includes(imagesFolder)) {
+                        folders.push(imagesFolder);
+                    }
+                }
+                for (let i = 0; i < folders.length; i++) {
+                    let folderName = path.basename(folders[i]);
+                    archive.directory(`${process.env.DICOM_STORE_ROOTPATH}${folders[i]}`, folderName);
+                }
+                await archive.finalize();
+                resolve({
+                    status: true,
+                    data: "Pipe zip file of study DICOM files"
+                });
+            }
+            resolve({
+                status: false,
+                data: "Gone"
+            })
+        });
+    }
+
+    async getZipOfSeriesDICOMFiles() {
+        return new Promise(async (resolve) => {
+            let imagesPath = await mongoFunc.getSeriesImagesPath(this.requestParams);
+
+            if (imagesPath) {
+                this.setHeaders();
+
+                let archive = archiver('zip', {
+                    gzip: true,
+                    zlib: { level: 9 } // Sets the compression level.
+                });
+                archive.on('error', function (err) {
+                    console.error(err);
+                    return resolve({
+                        status: false,
+                        data: err
+                    });
+                });
+                archive.pipe(this.res);
+                for (let i = 0; i < imagesPath.length; i++) {
+                    let pathSplit = imagesPath[i].split('/');
+                    let storeName = pathSplit[pathSplit.length - 1];
+                    archive.file(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`, { name: storeName });
+                }
+                await archive.finalize();
+                return resolve({
+                    status: true,
+                    data: "Pipe zip file of study DICOM files"
+                });
+            }
+            return resolve({
+                status: false,
+                data: "gone"
+            });
+        });
+    }
+
+    async getZipOfInstanceDICOMFile() {
+        return new Promise(async (resolve) => {
+            let imagesPath = await mongoFunc.getInstanceImagePath(this.requestParams);
+            if (imagesPath) {
+                this.setHeaders();
+
+                let archive = archiver('zip', {
+                    gzip: true,
+                    zlib: { level: 9 } // Sets the compression level.
+                });
+                archive.on('error', function (err) {
+                    console.log(err);
+                    resolve({
+                        status: false,
+                        data: err
+                    });
+                });
+                archive.pipe(this.res);
+                archive.file(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[0]}`, { name: path.basename(imagesPath[0]) });
+                await archive.finalize();
+                resolve({
+                    status: true,
+                    data: "Pipe zip file of study DICOM files"
+                });
+            }
+            resolve({
+                status: false,
+                data: "Gone"
+            });
+        });
+    }
 }
 
 module.exports.multipartFunc = multipartFunc;

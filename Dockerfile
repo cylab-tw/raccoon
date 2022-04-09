@@ -25,7 +25,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 WORKDIR /
 RUN wget -O libiconv.tar.gz https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.16.tar.gz && tar xzvf libiconv.tar.gz
 WORKDIR /libiconv-1.16
-RUN ./configure && make && make install
+RUN ./configure --prefix=/usr/local/apps && make && make install
 RUN rm -rf /libiconv.tar.gz
 
 WORKDIR /
@@ -34,6 +34,7 @@ WORKDIR /nodejs/raccoon/
 
 COPY package*.json /nodejs/raccoon/
 COPY . /nodejs/raccoon/
+RUN npm set unsafe-perm true
 RUN npm rebuild
 RUN npm install pm2@latest -g
 RUN npm install

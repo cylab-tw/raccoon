@@ -18,7 +18,7 @@ module.exports = async function (req , res) {
     for (let i = 0 ; i < keys.length ; i++) {
         paramsStr += keys[i]; 
     }
-    let WADOFunc = {"studyID" :getStudyDicom, "studyIDseriesID": getSeriesDicom , "studyIDseriesIDinstanceID": getInstance};
+    let WADOFunc = {"studyID" : "", "studyIDseriesID": "" , "studyIDseriesIDinstanceID": ""};
     if (req.headers.accept.toLowerCase() == "application/zip") {
         let wadoZip = new WADOZip(req.params, res);
         let zipProcess = await wadoZip[`method-${paramsStr}`]();

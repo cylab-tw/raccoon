@@ -1,7 +1,11 @@
 {
     "appenders": {
         "console": {
-            "type": "console"
+            "type": "console",
+            "layout": {
+                "type": "pattern",
+                "pattern": "%[[%d] [%p] [file: %f] [line: %l]%] %c - %m"
+            }
         }
     },
     "categories": {
@@ -9,7 +13,8 @@
             "appenders": [
                 "console"
             ],
-            "level": "DEBUG"
+            "level": "DEBUG",
+            "enableCallStack": true
         }
     }
 }

@@ -1,7 +1,5 @@
 const mongodb = require("../../../models/mongodb");
-const _ = require('lodash');
-const uuid = require('uuid');
-const fs = require('fs');
+const { MultipartWriter } = require('../../../utils/multipartWriter');
 
 /**
  * 
@@ -9,10 +7,10 @@ const fs = require('fs');
  * @param {import('express').Response} res 
  * @returns 
  */
-module.exports = async function (req , res) {
+module.exports = async function (req, res) {
     let key = req.params.objKey;
     let instanceUID = req.params.instanceUID;
-    let metadata = await mongodb["dicomBulkData"].findOne({
+    let bulkData = await mongodb["dicomBulkData"].findOne({
         $and: [
             {
                 instanceUID: instanceUID
@@ -21,15 +19,11 @@ module.exports = async function (req , res) {
                 filename: new RegExp(key , "gi")
             }
         ]
-    });
-    let bulkData = fs.readFileSync(`${process.env.DICOM_STORE_ROOTPATH}${metadata._doc.filename}`);
+    }).exec();
 
-    const BOUNDARY = `${uuid.v4()}-${uuid.v4()}`;
-    res.set("Content-Type" , `multipart/related; type=application/octet-stream; boundary=${BOUNDARY}`);
-    res.write(`--${BOUNDARY}\r\n`);
-    res.write(`Content-Type:multipart/related; type=application/octet-stream; boundary=${BOUNDARY}\r\n`);
-    res.write('Content-length: ' + bulkData.length + '\r\n\r\n');
-    res.write(bulkData);
-    res.write(`\r\n--${BOUNDARY}--`);
+    let multipartWriter = new MultipartWriter([],res, req);
+    await multipartWriter.setHeaderMultipartRelatedContentType("application/octet-stream");
+    await multipartWriter.writeBulkData(bulkData);
+    await multipartWriter.writeFinalBoundary();
     return res.end();
 }

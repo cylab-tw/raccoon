@@ -76,4 +76,13 @@ router.get('/studies/:studyID/instances' , require('./controller/qido-rs-study-i
 router.get('/series' , require('./controller/qido-rs-series'));
 //#endregion
 
+//#region bulk data
+
+router.get('/studies/:studyID/bulkdata', require('./controller/bulkdata'));
+router.get('/studies/:studyID/series/:seriesID/bulkdata', require('./controller/bulkdata'));
+router.get('/studies/:studyID/series/:seriesID/instances/:instanceID/bulkdata', require('./controller/bulkdata'));
+
+//#endregion
+
+
 module.exports = router;

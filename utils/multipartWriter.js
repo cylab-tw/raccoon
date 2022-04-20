@@ -1,10 +1,20 @@
-const { logger } = require('../utils/log');
+const {
+    logger
+} = require('../utils/log');
 const uuid = require('uuid');
 const fs = require('fs');
 const _ = require('lodash');
 const dicomParser = require('dicom-parser');
-const { streamToBuffer } = require('@jorgeferrero/stream-to-buffer');
-const { dcm2jpegCustomCmd } = require('../models/dcmtk');
+const {
+    streamToBuffer
+} = require('@jorgeferrero/stream-to-buffer');
+const {
+    dcm2jpegCustomCmd
+} = require('../models/dcmtk');
+const {
+    URL
+} = require('url');
+const path =require('path');
 const DICOM_STORE_ROOTPATH = process.env.DICOM_STORE_ROOTPATH;
 
 class MultipartWriter {
@@ -14,7 +24,7 @@ class MultipartWriter {
      * @param {import('express').Response} res The express response
      * @param {import('express').Request} req
      */
-    constructor(pathsOfImages, res, req={}) {
+    constructor(pathsOfImages, res, req = {}) {
         this.BOUNDARY = `${uuid.v4()}-${uuid.v4()}-raccoon`;
         this.pathsOfImages = pathsOfImages;
         this.res = res;
@@ -26,11 +36,11 @@ class MultipartWriter {
      * Write the boundary
      * @param {boolean} isFirst Do not write \r\n\r\n when start if true
      */
-    async writeBoundary(isFirst=false) {
+    async writeBoundary(isFirst = false) {
         if (isFirst) {
             this.res.write(`--${this.BOUNDARY}\r\n`);
         } else {
-            this.res.write(`\r\n\r\n--${this.BOUNDARY}\r\n`);
+            this.res.write(`\r\n--${this.BOUNDARY}\r\n`);
         }
     }
 
@@ -46,7 +56,7 @@ class MultipartWriter {
      * @param {string} type 
      * @param {string} transferSyntax 
      */
-    async writeContentType(type, transferSyntax="") {
+    async writeContentType(type, transferSyntax = "") {
         if (transferSyntax) {
             this.res.write(`Content-Type: ${type};transfer-syntax=${transferSyntax}\r\n`);
         } else {
@@ -59,11 +69,16 @@ class MultipartWriter {
      * @param {number} length length of content
      */
     async writeContentLength(length) {
-        this.res.write('Content-length: ' + length + '\r\n\r\n');
+        this.res.write('Content-length: ' + length + '\r\n');
     }
 
-    async writeContentLocation() {
-        this.res.write(`Content-Location : ${this.req.protocol}://${this.req.headers.host}${this.req.originalUrl}\r\n`);
+    async writeContentLocation(subPath = "") {
+        if (subPath) {
+            let urlObj = new URL(subPath, `${this.req.protocol}://${this.req.headers.host}`);
+            this.res.write(`Content-Location: ${urlObj.href}\r\n`);
+        } else {
+            this.res.write(`Content-Location: ${this.req.protocol}://${this.req.headers.host}${this.req.originalUrl}\r\n`);
+        }
     }
 
     /**
@@ -71,6 +86,7 @@ class MultipartWriter {
      * @param {Buffer} buffer 
      */
     async writeBufferData(buffer) {
+        this.res.write("\r\n");
         this.res.write(buffer);
     }
 
@@ -82,6 +98,10 @@ class MultipartWriter {
         this.res.set("content-type", `multipart/related; type="${type}"; boundary=${this.BOUNDARY}`);
     }
 
+    /**
+     * Write the files of DICOM in multipart content
+     * @param {string} type
+     */
     async writeDICOMFiles(type) {
         try {
             if (this.pathsOfImages) {
@@ -89,7 +109,7 @@ class MultipartWriter {
                 for (let i = 0; i < this.pathsOfImages.length; i++) {
                     console.log(`${DICOM_STORE_ROOTPATH}${this.pathsOfImages[i]}`);
                     let fileBuffer = await streamToBuffer(fs.createReadStream(`${DICOM_STORE_ROOTPATH}${this.pathsOfImages[i]}`));
-                    this.writeBoundary(i===0);
+                    this.writeBoundary(i === 0);
                     this.writeContentType(type);
                     this.writeContentLength(fileBuffer.length);
                     this.writeBufferData(fileBuffer);
@@ -98,12 +118,18 @@ class MultipartWriter {
                 return true;
             }
             return false;
-        } catch(e) {
+        } catch (e) {
             logger.error(e);
             return false;
         }
     }
 
+    /**
+     * Write image files of frames in multipart content
+     * @param {string} type 
+     * @param {Array<number>} frameList 
+     * @returns 
+     */
     async writeFrames(type, frameList) {
         this.setHeaderMultipartRelatedContentType();
         let dicomFilename = `${DICOM_STORE_ROOTPATH}${this.pathsOfImages[0]}`;
@@ -130,7 +156,7 @@ class MultipartWriter {
                     untilTag: "x7fe00010"
                 });
                 let transferSyntax = dicomDataSet.string('x00020010');
-                this.writeBoundary(x==0);
+                this.writeBoundary(x == 0);
                 this.writeContentType(type, transferSyntax);
                 this.writeContentLength(fileBuffer.length);
                 this.writeContentLocation();
@@ -140,6 +166,29 @@ class MultipartWriter {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Write multipart/related of multiple bulk data.
+     * @param {import('./typeDef/bulkdata.js').BulkData} bulkDataObj
+     * @returns 
+     */
+    async writeBulkData(bulkDataObj, isFirst=true) {
+        try {
+            let filename = path.join(DICOM_STORE_ROOTPATH, bulkDataObj.filename);
+            let fileStream = fs.createReadStream(filename);
+            let fileBuffer = await streamToBuffer(fileStream);
+            this.writeBoundary(isFirst);
+            this.writeContentType("application/octet-stream");
+            this.writeContentLength(fileBuffer.length);
+            let bulkDataUrlPath = `/api/dicom/instance/${bulkDataObj.instanceUID}/bulkdata/${bulkDataObj.binaryValuePath}`;
+            this.writeContentLocation(bulkDataUrlPath);
+            this.writeBufferData(fileBuffer);
+            return true;
+        } catch (e) {
+            logger.error(e);
+            return false;
+        }
     }
 }
 

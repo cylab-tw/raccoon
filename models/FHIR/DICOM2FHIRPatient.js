@@ -101,7 +101,6 @@ async function DCM2Patient(filename)
     if (pBD) {
         Patient.birthDate = moment.utc(pBD).format("YYYY-MM-DD");
     }
-    console.log("Patient",Patient);
     return Patient;
 }
 function DCMJson2Patient(dcmJson)
@@ -183,13 +182,11 @@ function DCMJson2Patient(dcmJson)
     if (pBD) {
         Patient.birthDate = moment.utc(pBD).format("YYYY-MM-DD");
     }
-    console.log("Patient" , Patient);
     return Patient;
 }
 
 function dcmString(json , tag) {
     let data = _.get(json, tag);
-    //console.log("d" , data);
     let value = _.get(data, "Value.0");
     return value;
 }

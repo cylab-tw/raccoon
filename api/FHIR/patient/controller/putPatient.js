@@ -6,7 +6,6 @@ const errorMessage = {
 }
 
 module.exports = async function (req ,res) {
-    console.log(req.body);
     let resFunc = {
         "true" : (data) => {
             return res.status(data.code).send(data.doc);

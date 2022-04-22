@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const request = require('request');
 const _ = require('lodash');
+const { performance } = require('node:perf_hooks');
 
 const FHIR_Imagingstudy_model = require("../../../../models/FHIR/DICOM2FHIRImagingStudy");
 const { DCM2Endpoint_imagingStudy } = require("../../../../models/FHIR/DICOM2Endpoint");
@@ -12,7 +13,7 @@ const sh = require('shorthash');
 const fileFunc = require('../../../../models/file/file_Func');
 const { QIDORetAtt } = require('../../../../models/FHIR/dicom-tag');
 
-const { dcm2jpegCustomCmd, dcm2jsonV8, dcmtkSupportTransferSyntax, dcm2json } = require('../../../../models/dcmtk');
+const { dcm2jpegCustomCmd, dcm2jsonV8, dcmtkSupportTransferSyntax } = require('../../../../models/dcmtk');
 const moment = require('moment');
 const formidable = require('formidable');
 const { sendServerWrongMessage } = require('../../../../models/DICOMWeb/httpMessage');
@@ -21,10 +22,10 @@ const uuid = require('uuid');
 const { getJpeg } = require('../../../../models/python');
 const mongodb = require('../../../../models/mongodb');
 const { storeImagingStudy } = require('../../../FHIR/ImagingStudy/controller/post_convertFHIR');
-const { getDeepKeys } = require('../../../Api_function');
 const mkdirp = require('mkdirp');
 const notImageSOPClass = require('../../../../models/DICOMWeb/notImageSOPClass');
 const flat = require('flat');
+const { logger } =  require('../../../../utils/log');
 
 //browserify
 //https://github.com/node-formidable/formidable/blob/6baefeec3df6f38e34c018c9e978329ae68b4c78/src/Formidable.js#L496
@@ -32,6 +33,7 @@ const flat = require('flat');
 //https://github.com/node-formidable/formidable/blob/6baefeec3df6f38e34c018c9e978329ae68b4c78/examples/multipart-parser.js#L13
 async function dicom2mongodb(data) {
     return new Promise(async (resolve) => {
+        logger.info(`[STOW-RS] [Store ImagingStudy, ID: ${data.id}]`);
         let result = await putFHIRImagingStudyWithoutReq(data.id, data);
         if (result) return resolve(true);
         return resolve(false);
@@ -166,7 +168,7 @@ async function generateJpeg(dicomJson, dicomFile, jpegFile) {
 /**
  * 
  * @param {string} filename 
- * @return {convertDICOMFileToJSONModuleReturnObject}
+ * @return {Promise<convertDICOMFileToJSONModuleReturnObject>}
  */
 async function convertDICOMFileToJSONModule(filename) {
     try {
@@ -206,6 +208,7 @@ async function convertDICOMFileToJSONModule(filename) {
         }
         mkdirp.sync(fullStorePath, 0755);
         fs.writeFileSync(metadataFullStorePath, JSON.stringify(dicomJson, null, 4));
+        logger.info(`[STOW-RS] [Store metadata of DICOM json to ${metadataFullStorePath}]`);
         dicomJson = _.omit(dicomJson, bigValueTags);
         return {
             status: true,
@@ -237,12 +240,13 @@ async function convertDICOMFileToJSONModule(filename) {
  * @param {string} tempFilename 
  * @param {string} filename 
  * @param {string} dest
- * @return {saveDICOMFileReturnObject}
+ * @return {Promise<saveDICOMFileReturnObject>}
  */
 async function saveDICOMFile(tempFilename, filename, dest) {
-    try {
+    try { 
         await fileFunc.mkdir_Not_Exist(dest);
         let destWithFilename = path.join(dest , filename);
+        logger.info(`[STOW-RS] [Move uploaded temp file ${tempFilename} to ${destWithFilename}]`);
         await moveFile(tempFilename, destWithFilename, {
             overwrite: true
         });
@@ -286,7 +290,7 @@ async function replaceBinaryData(data) {
                 binaryData = _.get(data, binaryValuePath);
                 data = _.omit(data, [`${key}.Value`]);
                 _.set(data, `${key}.BulkDataURI`, `http://${process.env.DICOMWEB_HOST}${port}/${proces.env.DICOMWEB_API}/studies/${studyUID}/series/${seriesUID}/instances/${instanceUID}/bulkdata/${binaryValuePath}`);
-                relativeFilename += `${ binaryValuePath }.raw`
+                relativeFilename += `${ binaryValuePath }.raw`;
             } else if (_.get(data, `${key}.InlineBinary`)) {
                 binaryValuePath = `${key}.InlineBinary`
                 binaryData = _.get(data, `${binaryValuePath}`);
@@ -298,6 +302,7 @@ async function replaceBinaryData(data) {
             
             let filename = path.join(process.env.DICOM_STORE_ROOTPATH, relativeFilename);
             mkdirp.sync(path.join(process.env.DICOM_STORE_ROOTPATH, `files/bulkData/${shortInstanceUID}`));
+            logger.info(`[STOW-RS] [Store binary data to ${filename}]`);
             fs.writeFileSync(filename, Buffer.from(binaryData, "base64"));
             let bulkData = {
                 studyUID: studyUID,
@@ -509,7 +514,7 @@ module.exports = async (req, res) => {
         }
     }
     let retCode = 200;
-    console.time("Processing STOW");
+    let startSTOWTime = performance.now();
 
     new formidable.IncomingForm({
         uploadDir: path.join(process.cwd(), "/temp"),
@@ -518,7 +523,7 @@ module.exports = async (req, res) => {
         isGetBoundaryInData: true
     }).parse(req, async (err, fields, files) => {
         if (err) {
-            console.error(err);
+            logger.error(err);
             return sendServerWrongMessage(res, err);
         } else {
             let fileField = Object.keys(files).pop();
@@ -528,7 +533,10 @@ module.exports = async (req, res) => {
             try {
                 //if env FHIR_NEED_PARSE_PATIENT is true then post the patient data
                 for (let i = 0; i < uploadedFiles.length; i++) {
-                    if (!uploadedFiles[i].name) uploadedFiles[i].name = `${uuid.v4()}.dcm`;
+                    if (!uploadedFiles[i].name) {
+                        uploadedFiles[i].name = `${uuid.v4()}.dcm`;
+                        logger.info(`[STOW-RS] [Cannot find filename, name the file to ${uploadedFiles[i].name}]`);
+                    }
                     //1. convert DICOM to JSON
                     let dicomToJsonResponse = await convertDICOMFileToJSONModule(uploadedFiles[i].path);
                     if (!dicomToJsonResponse.status) {
@@ -540,6 +548,7 @@ module.exports = async (req, res) => {
                     let sopSeq = getSOPSeq(sopClass, sopInstanceUID);
                     if (req.params.studyID) {
                         if (!checkIsSameStudyId(req, dicomToJsonResponse.dicomJson)) {
+                            logger.error(`[STOW-RS] [The UID is not consist, request UID: (${req.params.studyID})]`);
                             let failureMessage = {
                                 "00081197": {
                                     vr: "US",
@@ -601,7 +610,9 @@ module.exports = async (req, res) => {
                     successFHIR: successFHIR
                 }
                 Object.assign(resMessage, STOWMessage);
-                console.timeEnd("Processing STOW");
+                let endSTOWTime = performance.now();
+                let elapsedTime = (endSTOWTime - startSTOWTime).toFixed(3);
+                logger.info(`[STOW-RS] [Finished STOW-RS, elapsed time: ${elapsedTime} ms]`);
                 return res.status(retCode).send(resMessage);
             } catch (err) {
                 err = err.message || err;

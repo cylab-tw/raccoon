@@ -9,13 +9,14 @@ const _ = require('lodash');
 const moment = require('moment');
 const { setRetrieveURL } = require('../../../models/DICOMWeb');
 const mongodb = require('../../../models/mongodb');
+const { logger } = require('../../../utils/log');
 /**
  * 
  * @api {get} /dicom-web/studies QIDO-RS
  * @apiName QIDO-RS-ROOT
  * @apiGroup QIDO-RS
  * 
- * @apiSuccess (Success 200) {json} response-body DICOM JSON model
+ * @apiSuccess (Success 200) {json} name: QIDO-RS-DICOM-JSON Content-Type: application/dicom-json response-body DICOM JSON model
  * 
  * @apiQuery {String} dicom-tag-name The dicom tag name e.g. 00100010=hello
  * 
@@ -23,7 +24,7 @@ const mongodb = require('../../../models/mongodb');
  *    curl http://localhost:8080/dicom-web/studies?00100010=hello
  */
 module.exports = async function (req , res) {
-    console.log("do QIDO-RS: query", req.query);
+    logger.info(`[QIDO-RS] [Request query: ${JSON.stringify(req.query)}]`);
     let limit = req.query.limit || 100 ;
     let skip = req.query.offset || 0;
     delete req.query["limit"];
@@ -47,7 +48,6 @@ module.exports = async function (req , res) {
         paramsStr = "studyID";
     }
     let QIDOFunc = [getStudyDicomJson , getSeriesDicomJson , getInstanceDicomJson];
-    console.log("qs: ", newQS);
     let QIDOResult =  await QIDOFunc[keys.length](newQS , req.params , parseInt(limit)  , parseInt(skip));
     if (!QIDOResult.status) {
         return res.status(500).send(QIDOResult.data);
@@ -71,69 +71,21 @@ module.exports = async function (req , res) {
     return res.status(200).json(QIDOResult.data);
 }
 
-async function useImageSearch (iQuery,record_Query) {
-    return new Promise (async (resolve) => {
-        let aggregate_Query = [
-            {
-                $match : iQuery
-            } ,
-            {
-                $lookup :
-                {
-                    from : 'patients' ,
-                    localField : 'subject.identifier.value' ,
-                    foreignField : 'id'  ,
-                    as : 'patient'
-                }
-            },
-            {
-                $lookup :
-                {
-                    from : 'Records' ,
-                    localField : 'identifier.value' ,
-                    foreignField : 'sID'  ,
-                    as : 'Records'
-                }
-            },
-            {
-                $unwind: {
-                    "path" : "$Records" , 
-                    "preserveNullAndEmptyArrays" : true
-                }
-            },
-            {
-                $match : record_Query
-            }
-        ];
-        let imagingStudies = await mongoFunc.aggregate_Func('ImagingStudy' , aggregate_Query);
-        return resolve(imagingStudies);
-    });
-}
-
-
-
 //#region 獲取各階層的DICOMJSON
 async function getStudyDicomJson(iQuery , iParam = "" , limit , skip) {
+    logger.info(`[QIDO-RS] [Query Study Level]`);
     let result = {
         data : '' ,
         status: false
     }
     try {
-        let studyLevelKey = Object.keys(QIDORetAtt.study);
-        let retStudyLevel = {}
-
-        /*for (let i  = 0 ; i < studyLevelKey.length ; i++) {
-            retStudyLevel[`dicomJson.${studyLevelKey[i]}`] = 1
-        }
-    
-        retStudyLevel['_id']  = 0;*/
+        let retStudyLevel = {};
 
         retStudyLevel = await getLevelDicomJson("", ['study'], false);
 
         iQuery = await getMongoOrQs(iQuery);
         iQuery = iQuery.$match;
-        console.log("final query", JSON.stringify(iQuery , null ,4));
-
+        logger.info(`[QIDO-RS] [Query for MongoDB: ${JSON.stringify(iQuery)}]`);
         let docs = await mongoFunc.findFilterFields('ImagingStudy', iQuery, retStudyLevel, limit, skip);
         let retDocs = [];
         for (let i = 0; i < docs.length; i++) {
@@ -178,6 +130,7 @@ async function getStudyDicomJson(iQuery , iParam = "" , limit , skip) {
     }
 }
 async function getSeriesDicomJson(iQuery , iParam , limit , skip) {
+    logger.info(`[QIDO-RS] [Query Series Level, study uid: ${iParam.studyID}]`);
     let result = {
         data: '',
         status: false
@@ -192,6 +145,7 @@ async function getSeriesDicomJson(iQuery , iParam , limit , skip) {
         }];
         let level = ['study', 'series']
         let mongoAgg = await getMongoAgg(iQuery, unwindField, level, limit, skip);
+        logger.info(`[QIDO-RS] [Query for MongoDB: ${JSON.stringify(mongoAgg)}]`);
         let docs = await mongoFunc.aggregate_Func('ImagingStudy', mongoAgg);
         result.data = docs;
         result.status = true;
@@ -205,6 +159,7 @@ async function getSeriesDicomJson(iQuery , iParam , limit , skip) {
 
 }
 async function getInstanceDicomJson(iQuery , iParam , limit , skip) {
+    logger.info(`[QIDO-RS] [Query Instance Level, study uid: ${iParam.studyID},series uid: ${iParam.seriesID}]`);
     let result = {
         data: '',
         status: false
@@ -222,6 +177,7 @@ async function getInstanceDicomJson(iQuery , iParam , limit , skip) {
         }];
         let level = ['study', 'series', 'instance'];
         let mongoAgg = await getMongoAgg(iQuery, unwindField, level, limit, skip);
+        logger.info(`[QIDO-RS] [Query for MongoDB: ${JSON.stringify(mongoAgg)}]`);
         let docs = await mongoFunc.aggregate_Func('ImagingStudy', mongoAgg);
         result.data = docs;
         result.status = true;
@@ -378,7 +334,6 @@ async function getMongoOrQs (iQuery) {
                 } catch (e) {
 
                 }
-                console.log("to mongo or query", value[x]);
                 
                 if (checkIsOr(value[x] , nowKey)) {
                     mongoOrs.$or.push(...(_.get(value[x][nowKey] , "$or")));

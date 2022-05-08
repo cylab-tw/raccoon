@@ -24,7 +24,7 @@ const { logger } = require('../../../utils/log');
  *    curl http://localhost:8080/dicom-web/studies?00100010=hello
  */
 module.exports = async function (req , res) {
-    logger.info(`[QIDO-RS] [Request query: ${JSON.stringify(req.query)}]`);
+    logger.info(`[QIDO-RS] [Path: /studies, Retrieve all of studies in the database] [Request query: ${JSON.stringify(req.query)}]`);
     let limit = req.query.limit || 100 ;
     let skip = req.query.offset || 0;
     delete req.query["limit"];
@@ -368,7 +368,7 @@ async function getMongoAgg (iQuery , aggUnwind , DICOMLevel , limit , skip) {
         mongoAgg.push(limitAgg);
         mongoAgg.push(skipAgg);
         mongoAgg.push(retProject);
-        return resolve(mongoAgg);   
+        return resolve(mongoAgg);
     });
 }
 //#endregion

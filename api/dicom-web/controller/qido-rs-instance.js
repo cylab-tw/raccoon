@@ -11,6 +11,7 @@ const {qidorsFunc} = require('./qido-rs');
 const { setRetrieveURL } = require('../../../models/DICOMWeb');
 
 module.exports = async function (req , res) {
+    logger.info(`[QIDO-RS] [Path: /series, Retrieve all of instances in the database] [Request query: ${JSON.stringify(req.query)}]`);
     console.log(req.query);
     let limit = req.query.limit || 1000 ;
     let skip = req.query.offset || 0;

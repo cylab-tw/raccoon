@@ -1,17 +1,13 @@
-const {dicomjson} = require('../../../models/FHIR/dicom-tag');
-const {QIDORetAtt} = require('../../../models/FHIR/dicom-tag');
 const mongoFunc = require('../../../models/mongodb/func');
-const {ToRegex} = require('../../Api_function');
-const {mongoDateQuery} = require('../../../models/mongodb/func');
 const {Refresh_Param} = require('../../Api_function');
-const {textSpaceToOrCond} = require('../../Api_function');
 const _ =require('lodash');
 const moment = require('moment');
 const {qidorsFunc} = require('./qido-rs');
 const { setRetrieveURL } = require('../../../models/DICOMWeb');
+const { logger } = require('../../../utils/log');
 
 module.exports = async function (req , res) {
-    console.log(req.query);
+    logger.info(`[QIDO-RS] [Path: /studies/${req.params.studyID}/instances, Retrieve all of instances from study UID ${req.params.studyID} in the database] [Request query: ${JSON.stringify(req.query)}]`);
     let limit = req.query.limit || 1000 ;
     let skip = req.query.offset || 0;
     delete req.query["limit"];
@@ -74,7 +70,6 @@ async function getStudiesInstanceDicomJson(iQuery , iParam , limit , skip) {
     let level =  ['study' , 'series' , 'instance'];
     let mongoAgg = await qidorsFunc.getMongoAgg(iQuery , unwindField , level , limit , skip);
     let docs = await mongoFunc.aggregate_Func('ImagingStudy',mongoAgg);
-    console.log(docs);
     return docs;
 }
 //#endregion

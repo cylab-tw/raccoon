@@ -75,7 +75,7 @@
     "crypto": "^1.0.1",
     "debug": "^4.1.1",
     "dicom-parser": "^1.8.7",
-    "dicom-to-json": "^1.1.0",
+    "dicom-to-json": "^1.2.1",
     "dotenv": "^6.0.0",
     "ejs": "^3.1.2",
     "express": "^4.16.3",

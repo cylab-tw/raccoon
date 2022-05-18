@@ -210,7 +210,6 @@ async function getFHIRUseJson(json) {
             studyobj.id = studyInstanceUID;
             let identifiers = [studyInstanceUID, ANandIssuer, DCMstring(json, '00200010')];
             studyobj.identifier = await Get_ImagingStudy_identifiers(identifiers);
-            studyobj.modality = DCMstring(json, '00080061');
             let patientId = DCMstring(json, '00100020');
             if (patientId) {
                 studyobj.subject.reference = "Patient/" + DCMstring(json, '00100020');

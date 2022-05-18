@@ -105,7 +105,7 @@ module.exports = function (mongodb) {
                 default: "unknown"
             },
             modality: {
-                type: codingSchema,
+                type: [codingSchema],
                 default: void 0
             },
             subject:
@@ -128,7 +128,7 @@ module.exports = function (mongodb) {
                 default : void 0
             },
             endpoint : {
-                type : refSchema , 
+                type : [refSchema],
                 default : void 0
             } ,
             report:

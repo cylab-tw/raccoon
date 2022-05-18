@@ -89,35 +89,7 @@ async function getStudyDicomJson(iQuery , iParam = "" , limit , skip) {
         let docs = await mongoFunc.findFilterFields('ImagingStudy', iQuery, retStudyLevel, limit, skip);
         let retDocs = [];
         for (let i = 0; i < docs.length; i++) {
-            let dicomJsonItem = docs[i]._doc.dicomJson;
-            let modalitiesInStudyDoc = await mongodb.dicomMetadata.aggregate([
-                {
-                    $match : 
-                    {
-                        studyUID: dicomJsonItem["0020000D"].Value[0]
-                    }
-                },
-                {
-                    $unwind: "$00080060.Value"
-                },
-                {
-                    $group: {
-                        _id : "$studyUID",
-                        modalitiesInStudy:
-                        {
-                            $addToSet: "$00080060.Value"
-                        }
-                    }
-                }
-            ]);
-            if (modalitiesInStudyDoc.length > 0 ) {
-                let modalitiesInStudy = {
-                    vr: "CS" ,
-                    Value: [...modalitiesInStudyDoc[0].modalitiesInStudy]
-                }
-                _.set(dicomJsonItem, "00080061", modalitiesInStudy);
-            }
-            retDocs.push(dicomJsonItem);
+            retDocs.push(docs[i]._doc.dicomJson);
         }
         result.data = retDocs;
         result.status = true;

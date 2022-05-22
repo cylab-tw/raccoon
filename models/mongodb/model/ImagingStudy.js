@@ -30,14 +30,20 @@ module.exports = function (mongodb) {
             type: String
         } , 
         dicomJson : {
-            type : Object ,
-            default : void 0
+            "00200013": {
+                vr: {
+                    type: String
+                },
+                Value: {
+                    type: [String]
+                }
+            }
         } ,
         metadata : {
             type : Object , 
             default : void 0
         }
-    });
+    }, {strict : false});
 
     const seriesSchema = new mongodb.Schema({
         uid:
@@ -80,7 +86,15 @@ module.exports = function (mongodb) {
                 Value : {
                     type : [Date] 
                 }
-            } 
+            },
+            "00200011": {
+                vr: {
+                    type: String
+                },
+                Value: {
+                    type: [String]
+                }
+            }
         }
     }, {strict : false});
 

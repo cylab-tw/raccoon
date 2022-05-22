@@ -9,6 +9,7 @@ const _ =require('lodash');
 const moment = require('moment');
 const {qidorsFunc} = require('./qido-rs');
 const { setRetrieveURL } = require('../../../models/DICOMWeb');
+const { logger } = require("../../../utils/log");
 
 module.exports = async function (req , res) {
     logger.info(`[QIDO-RS] [Path: /series, Retrieve all of instances in the database] [Request query: ${JSON.stringify(req.query)}]`);

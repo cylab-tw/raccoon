@@ -9,6 +9,7 @@ const _ =require('lodash');
 const moment = require('moment');
 const {qidorsFunc} = require('./qido-rs');
 const { setRetrieveURL } = require('../../../models/DICOMWeb');
+const { logger } = require("../../../utils/log");
 
 module.exports = async function (req , res) {
     logger.info(`[QIDO-RS] [Path: /series, Retrieve all of series in the database] [Request query: ${JSON.stringify(req.query)}]`);
@@ -36,7 +37,7 @@ module.exports = async function (req , res) {
     if (!paramsStr) {
         paramsStr = "studyID";
     }
-    /*let QIDOFunc = {"studyID" :getStudyDicomJson , "studyIDseriesID":getSeriesDicomJson , "studyIDseriesIDinstanceID": getInstanceDicomJson};*/
+
     let docs =  await getStudiesInstanceDicomJson(newQS , req.params , parseInt(limit)  , parseInt(skip));
     for (let i  in docs) {
         let studyDate = _.get(docs[i] , "00080020.Value");

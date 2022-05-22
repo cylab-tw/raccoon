@@ -2,6 +2,76 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/cylab-tw/raccoon/compare/v1.2.1...v1.3.0) (2022-05-22)
+
+
+### Features
+
+* add `00083002` instance tag ([5b19b88](https://github.com/cylab-tw/raccoon/commit/5b19b88e8a0e4ad38afdd8d2b8b2da4ee4b713b2))
+> In `dicom-tag.js` file
+* add `bulkdata` API ([e2d3d9a](https://github.com/cylab-tw/raccoon/commit/e2d3d9a7b40def7282446340598b49b2c6ab1721))
+    * Add `writeBulkData` method for bulk data at `multipartWriter` class.
+    * Add bulk data object type definition
+    * Use multipartWriter refactoring of original **single** bulkdata API
+    * Add `bulkdata` API in `api/diocm-web` directory
+* add `shard`, remove some connect string and refactor method ([824bdfb](https://github.com/cylab-tw/raccoon/commit/824bdfb03cec3ece6339e052127b47c9e5995775))
+* add `writeFrames` in multipartWriter ([222c033](https://github.com/cylab-tw/raccoon/commit/222c0335ee58014b017f966c044c315a6b1ffb3b))
+* add change all query to dicomtag field method ([e3f4321](https://github.com/cylab-tw/raccoon/commit/e3f432150ad7d5cf93d2a4fa0f41f07fc57ae342))
+* add logger for `STOW-RS` ([080ddb2](https://github.com/cylab-tw/raccoon/commit/080ddb26b21fe44754c3bfadb3c979176b59cc24))
+* add logger in `QIDO-RS` ([9551fb7](https://github.com/cylab-tw/raccoon/commit/9551fb7cf23b957ba20f8114ec6916e9fc0e4afa))
+* add logger in all QIDO-RS APIs ([ec592d7](https://github.com/cylab-tw/raccoon/commit/ec592d75a755f3177d04f19c16ddd76c8a7a5a95))
+* add login access control feature ([76125e1](https://github.com/cylab-tw/raccoon/commit/76125e10b9b63f9d0d1d21862c8b49eaeb90e9ba))
+* add new class handle writing multipart res ([c4680df](https://github.com/cylab-tw/raccoon/commit/c4680dfbbc275e747febce8a6a26e12497b9eb9b))
+* add new logger ([2fcf6a3](https://github.com/cylab-tw/raccoon/commit/2fcf6a32aa705a1609312cd3495b2fe06139eaa4))
+* add retrieve instance bulkdata ([0aa9254](https://github.com/cylab-tw/raccoon/commit/0aa925425c4de7b2ebddeb917fdffd37c40246d8))
+* add time ,file locaiton, line number for log ([eec3d8a](https://github.com/cylab-tw/raccoon/commit/eec3d8a1c0a4c6e3810ca247fa047c8143d5e15c))
+* change condition of level of DICOM tag ([920410e](https://github.com/cylab-tw/raccoon/commit/920410e637c603c0dd1ec0731fd59c3522dfdef8))
+* dynamic change bukdURI with ENV config when retrieve metadata ([963bca6](https://github.com/cylab-tw/raccoon/commit/963bca6f7f9cedcbcced1133b636c5f8ec712190))
+* **imagingStudy:** add `identifier` search parameter and catch error with query ([94885d5](https://github.com/cylab-tw/raccoon/commit/94885d57ca9c3502a253b7e898fd89dfcdd886e1))
+* **python:** support python command without conda ([dea2e48](https://github.com/cylab-tw/raccoon/commit/dea2e487a96a5059e7f2d1d53dc90b53c0837c18))
+* **qido-rs:** change return with all `getDicomJson` function ([5bc55b9](https://github.com/cylab-tw/raccoon/commit/5bc55b9bbc868753309d8b25c09c6f4587740e9a))
+* remove pretty json when response ([992fe54](https://github.com/cylab-tw/raccoon/commit/992fe54b6556f36577f71e2c6cdacc4fab5f0113))
+
+
+### Bug Fixes
+
+* [#6](https://github.com/cylab-tw/raccoon/issues/6) ([ba3a620](https://github.com/cylab-tw/raccoon/commit/ba3a6203986c7dd9fdbc4511b9bee73c2be2ff2d))
+* cannot convert DICOM to jpeg with the filename that contains space [#1](https://github.com/cylab-tw/raccoon/issues/1) ([5aad693](https://github.com/cylab-tw/raccoon/commit/5aad6932c8580fa3f6c3710db394367e98e6b280))
+* **dcm2jsonC:** dicom json from dcmtk convertor will get `u0000` that cause error ([badab2d](https://github.com/cylab-tw/raccoon/commit/badab2d91aab90e34082d2231d628ee75a2c52e1))
+* FHIR endpoint address incorrect ([b88fc27](https://github.com/cylab-tw/raccoon/commit/b88fc27a5014ea9aea5e9dfd92d1da53c05ea1d5))
+* function in WADOFunc not exist ([98fef3f](https://github.com/cylab-tw/raccoon/commit/98fef3ff647e5af6a07112e391f455fb7452d5a8))
+* incorrect connection url ([2348a08](https://github.com/cylab-tw/raccoon/commit/2348a084b3b4c4c19fb34c114c10371363f1764f))
+* incorrect content of query with IS of VR ([3511d22](https://github.com/cylab-tw/raccoon/commit/3511d222de1aa222e7d56bf1f7beff4a14504962))
+* incorrect dicomjson value storing in DB ([a439538](https://github.com/cylab-tw/raccoon/commit/a439538f61de7471f63a29ec6ed701fa0e315f2c))
+* incorrect match query in insertMetadata ([0df528d](https://github.com/cylab-tw/raccoon/commit/0df528d267ce585d03ae6fa5fbd7da0af08bf2e0))
+* incorrect response message ([16b6303](https://github.com/cylab-tw/raccoon/commit/16b6303ae89ee2fb90839a2452eef8bffe472705))
+* incorrect response of put imagingStudy ([2cc85d7](https://github.com/cylab-tw/raccoon/commit/2cc85d7224a94b2b2b2ff7ecc2ffc494230f0bbb))
+* incorrect type of series dicomJson `00080020` ([28797c2](https://github.com/cylab-tw/raccoon/commit/28797c232bad85273f6a5419d3a855af9382d04c))
+* Invalid regular expression literal ([8991a7b](https://github.com/cylab-tw/raccoon/commit/8991a7bcb1edd707eb07cf977576e8011861c953))
+* missing `strict: false` that cause MongoDB only store defineded field ([1adfd02](https://github.com/cylab-tw/raccoon/commit/1adfd02995de546c8fe114fd035a9df416556a55))
+* missing header `content-type` when retrieve bulkdata ([71e08d6](https://github.com/cylab-tw/raccoon/commit/71e08d690bd8666426af3e6882bc0ca6d18c74b4))
+* missing require logger ([8205ae9](https://github.com/cylab-tw/raccoon/commit/8205ae95207e4ee6c0983f020f8f1e79840c8123))
+* resolve `PatientName` query string ([6198efb](https://github.com/cylab-tw/raccoon/commit/6198efbac7585c197d761d0b19c81c78d51385d6))
+* resolve that if modalitiesInStudy is empty ([716a222](https://github.com/cylab-tw/raccoon/commit/716a222e2fe1e321e4c8ae51fba52a9974f80e1d))
+* spawn `dcm2jpegSpawn` not return when close ([2f3510f](https://github.com/cylab-tw/raccoon/commit/2f3510f23d0ef9fb5c8999ecd24ee3d64ed20e97))
+* the stow without route result is change but local dicom uploader is bit sync using method ([64388ca](https://github.com/cylab-tw/raccoon/commit/64388ca5abd805c89fa58927784ef18ac9eb18fa))
+* the string have `^` when query will get incorrect search result ([5139460](https://github.com/cylab-tw/raccoon/commit/51394607e2cdbde53cd19649fe1af481c67b0bcb))
+* type of field `name`  is incorrect ([7e30139](https://github.com/cylab-tw/raccoon/commit/7e30139d8b70b2916967edfebf021f31392bb514))
+* incorrect multipart structure, remove `CRLF` in `writeContentLength` and move in `writeBufferData` to avoid the content-length is not last header ([e2d3d9a](https://github.com/cylab-tw/raccoon/commit/e2d3d9a7b40def7282446340598b49b2c6ab1721))
+
+### Build
+
+* add config template instead `config.js` ([aecc7ad](https://github.com/cylab-tw/raccoon/commit/aecc7ad7e5c0f578667218150fc7822c7eed290b))
+* change mongodb host and dicom file store path ([410f32f](https://github.com/cylab-tw/raccoon/commit/410f32f5fc8cc7e19f41a2be17fca2660b412ffa))
+* **docker:** add `bullseye-updates` sources.list ([1cac09b](https://github.com/cylab-tw/raccoon/commit/1cac09ba2f9d2ced81dc714b8b503ae8c79c43ab))
+* **docker:** add `npm set unsafe-perm` ([ccb95aa](https://github.com/cylab-tw/raccoon/commit/ccb95aa1d24b4b0e334737c908d1aaf318521be4))
+* **docker:** using requirements to install packs ([ea96ca3](https://github.com/cylab-tw/raccoon/commit/ea96ca39747b25567498958be306ee6a40cd18e5))
+* fix the download directory ([a331bd4](https://github.com/cylab-tw/raccoon/commit/a331bd47865bd972834d229dbc10fc95306a0d96))
+* improve dockerfile ([d76f45c](https://github.com/cylab-tw/raccoon/commit/d76f45c85ee2c6dc226be22b8ed7e6c710732b42))
+* improve dockerfile step ([3e1022c](https://github.com/cylab-tw/raccoon/commit/3e1022cf107b106ae87a625b4f68d490415c6a34))
+* **python:** add python requirements ([330982d](https://github.com/cylab-tw/raccoon/commit/330982d1a16e6416e428b1e5bc62b6e5dc770cb0))
+* update dotenv and add dot env template file ([a7d5892](https://github.com/cylab-tw/raccoon/commit/a7d58921c34fe493da7ff409597d51740e6f7720))
+
 ### [1.2.1](https://github.com/cylab-tw/raccoon/compare/v1.2.0...v1.2.1) (2021-10-11)
 
 ### Bug Fixes

@@ -464,7 +464,7 @@ async function getFHIRIntegrateDICOMJson(dicomJson, filename, fhirData) {
         }
 
         let QIDOLevelKeys = Object.keys(QIDORetAtt);
-        let QIDOAtt = Object.assign({}, QIDORetAtt);
+        let QIDOAtt = _.cloneDeep(QIDORetAtt);
         for (let i = 0; i < QIDOLevelKeys.length; i++) {
             let levelTags = Object.keys(QIDORetAtt[QIDOLevelKeys[i]]);
             for (let x = 0; x < levelTags.length; x++) {
@@ -479,7 +479,7 @@ async function getFHIRIntegrateDICOMJson(dicomJson, filename, fhirData) {
                 }
             }
         }
-        //QIDOAtt.instance = dicomJson;
+
         let port = process.env.DICOMWEB_PORT || "";
         port = port ? `:${port}` : "";
         QIDOAtt.study["00081190"] = {
@@ -723,7 +723,7 @@ module.exports = async (req, res) => {
                                 `The server have exception with file:${uploadedFiles[i].name} , error : can not store FHIR ImagingStudy object to database`
                             );
                         }
-
+                        
                         let storeToMongoDBStatus = await dicom2mongodb(
                             FHIRmerge
                         );

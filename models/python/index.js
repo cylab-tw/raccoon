@@ -8,7 +8,7 @@ const getJpeg = {
         'getJpegByPydicom': async function (store_Path, frameNumber=1) {
             return new Promise(async (resolve, reject) => {
                 if (process.env.USE_DCM2JPEG_PYTHONAPI) {
-                    let fetchRes = await fetch(`http://localhost:${process.env.DCM2JPEG_PYTHONAPI_PORT}/dcm2jpeg?filename=${store_Path}&frameNumber=${frameNumber}` , {method : 'POST'});
+                    let fetchRes = await fetch(`http://${process.env.DCM2JPEG_PYTHONAPI_HOST}:${process.env.DCM2JPEG_PYTHONAPI_PORT}/dcm2jpeg?filename=${store_Path}&frameNumber=${frameNumber}` , {method : 'POST'});
                     let resBody = await fetchRes.json();
                     console.log(resBody);
                     if (resBody.status) {

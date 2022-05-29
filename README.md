@@ -41,7 +41,7 @@ npm run build #This will download dcmtk executable binaries to ./models/dcmtk an
 - [**MongoDB**](https://www.mongodb.com/try/download/community) > 4.0
 - **GDCM**
 >```bash
->sudo api-get install python3-gdcm libgdcm3.0
+>sudo apt-get install python3-gdcm libgdcm3.0
 >```
 - imagemagick
 >```bash

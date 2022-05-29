@@ -41,10 +41,10 @@ npm run build #此指令會下載 dcmtk 執行檔到 ./models/dcmtk 並產生 do
 #### Test OS
 - Ubuntu v20.4
 #### 必要軟體
-- [**MongoDB**](https://www.mongodb.com/try/download/community) > 4.0
+- [**MongoDB**](https://www.mongodb.com/try/download/community) > 5.0
 - **GDCM**
 >```bash
->sudo api-get install python3-gdcm libgdcm3.0
+>sudo apt-get install python3-gdcm libgdcm3.0
 >```
 - imagemagick
 >```bash

@@ -28,6 +28,7 @@
 ```bash
 npm install
 npm run build #This will download dcmtk executable binaries to ./models/dcmtk and generate example dotenv file.
+pip install -r requirements.txt #Install Python Dependencies
 ```
 
 > 💙💙💙 <br>
@@ -36,7 +37,7 @@ npm run build #This will download dcmtk executable binaries to ./models/dcmtk an
 
 ### Linux
 #### Test OS
-- Ubuntu v20.4
+- Ubuntu v21.10
 #### requirement
 - [**MongoDB**](https://www.mongodb.com/try/download/community) > 4.0
 - **GDCM**
@@ -50,8 +51,10 @@ npm run build #This will download dcmtk executable binaries to ./models/dcmtk an
 #### Install dependencies
 - Go to project root path and run:
 ```bash
+sudo apt-get install dcmtk
 npm install
 npm run build #This will download dcmtk using apt-get install and generate example dotenv file.
+pip install -r requirements.txt #Install Python Dependencies
 ```
 
 ---
@@ -89,6 +92,7 @@ CONDA_PATH="C:\\Users\\chinHPlaptop\\anaconda3\\Scripts\\conda.exe"
 CONDA_GDCM_ENV_NAME="gdcm"
 
 USE_DCM2JPEG_PYTHONAPI=true
+DCM2JPEG_PYTHONAPI_HOST="127.0.0.1"
 DCM2JPEG_PYTHONAPI_PORT=5000
 
 ENABLE_LOGIN_ACCESS=false

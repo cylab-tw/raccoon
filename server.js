@@ -139,8 +139,7 @@ let condaEnvName = process.env.CONDA_GDCM_ENV_NAME;
   if (process.env.USE_DCM2JPEG_PYTHONAPI) {
     let checkAPIInterval = setInterval(async ()=> {
       if (checkAPITimes >=30) {
-        console.error("
-        The dcm2jpeg python flask api set up failure");
+        console.error("The dcm2jpeg python flask api set up failure");
         process.exit(1);
       }
       try {

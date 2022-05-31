@@ -29,9 +29,14 @@ app.use(express.static('public'));
 app.use(bodyParser.urlencoded({
   extended: true
 }));
-app.use(bodyParser.json({ "strict": false }));
-app.use(bodyParser.json({ "type": "application/fhir+json" }));
-app.use(bodyParser.json({ "limit": "50mb" }));
+app.use(bodyParser.json({ 
+  "strict": false,
+  "limit": "50mb"
+}));
+app.use(bodyParser.json({ 
+  "type": "application/fhir+json",
+  "limit": "50mb"
+}));
 app.use(bodyParser.text({ "type": "text/*" }));
 //app.use(bodyParser.raw({ "type" : "multipart/related" , limit: "100gb"}));
 app.use((err, req, res, next) => {

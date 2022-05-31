@@ -59,6 +59,20 @@ npm install
 npm run build #This will download dcmtk using apt-get install and generate example dotenv file.
 pip install -r requirements.txt #安裝 Python 相依性套件
 ```
+#### Troubleshooting
+- `Unknown VR: Tag not found in data dictionary` when using `STOW-RS`
+    - 您必須設定 `DCMDICTPATH` 環境變數
+    - `dicom.dic` 檔案可以在`/usr/share/libdcmtk{version}`找到
+    > {version} 對應到dcmtk的版本, e.g. 3.6.5 => libdcmtk15
+
+    - 使用指令設定 `DCMDICTPATH` 或者您可以將指令加入到profile檔案中(`~/.bashrc`,`~/.profile` etc.), example **with dcmtk 3.6.5**:
+    ```sh
+    export DCMDICTPATH=/usr/share/libdcmtk15/dicom.dic
+    ```
+    - 檢查環境變數
+    ```sh
+    echo $DCMDICTPATH
+    ```
 
 ---
 

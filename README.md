@@ -53,9 +53,22 @@ pip install -r requirements.txt #Install Python Dependencies
 ```bash
 sudo apt-get install dcmtk
 npm install
-npm run build #This will download dcmtk using apt-get install and generate example dotenv file.
 pip install -r requirements.txt #Install Python Dependencies
 ```
+#### Troubleshooting
+- `Unknown VR: Tag not found in data dictionary` when using `STOW-RS`
+    - You need set the `DCMDICTPATH` environment variable
+    - The `dicom.dic` can find in the `/usr/share/libdcmtk{version}`
+    > The {version} corresponds to dcmtk version, e.g. 3.6.5 => libdcmtk15
+
+    - Set `DCMDICTPATH` environment variable using command or you can add the command to profile file(`~/.bashrc`,`~/.profile` etc.), example **with dcmtk 3.6.5**:
+    ```sh
+    export DCMDICTPATH=/usr/share/libdcmtk15/dicom.dic
+    ```
+    - Check the environment variable
+    ```sh
+    echo $DCMDICTPATH
+    ```
 
 ---
 

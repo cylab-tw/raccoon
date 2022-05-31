@@ -32,6 +32,7 @@
 ```bash
 npm install
 npm run build #此指令會下載 dcmtk 執行檔到 ./models/dcmtk 並產生 dotenv 檔案範例.
+pip install -r requirements.txt #安裝 Python 相依性套件
 ```
 
 > 💙💙💙 <br>
@@ -39,12 +40,12 @@ npm run build #此指令會下載 dcmtk 執行檔到 ./models/dcmtk 並產生 do
 
 ### Linux
 #### Test OS
-- Ubuntu v20.4
+- Ubuntu v21.10
 #### 必要軟體
-- [**MongoDB**](https://www.mongodb.com/try/download/community) > 4.0
+- [**MongoDB**](https://www.mongodb.com/try/download/community) > 5.0
 - **GDCM**
 >```bash
->sudo api-get install python3-gdcm libgdcm3.0
+>sudo apt-get install python3-gdcm libgdcm3.0
 >```
 - imagemagick
 >```bash
@@ -53,8 +54,10 @@ npm run build #此指令會下載 dcmtk 執行檔到 ./models/dcmtk 並產生 do
 #### Install dependencies
 - 進到專案根目錄並使用 cmd 執行以下指令:
 ```bash
+sudo apt-get install dcmtk
 npm install
 npm run build #This will download dcmtk using apt-get install and generate example dotenv file.
+pip install -r requirements.txt #安裝 Python 相依性套件
 ```
 
 ---
@@ -92,6 +95,7 @@ CONDA_PATH="C:\\Users\\chinHPlaptop\\anaconda3\\Scripts\\conda.exe"
 CONDA_GDCM_ENV_NAME="gdcm"
 
 USE_DCM2JPEG_PYTHONAPI=true
+DCM2JPEG_PYTHONAPI_HOST="127.0.0.1"
 DCM2JPEG_PYTHONAPI_PORT=5000
 
 ENABLE_LOGIN_ACCESS=false

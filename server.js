@@ -29,8 +29,14 @@ app.use(express.static('public'));
 app.use(bodyParser.urlencoded({
   extended: true
 }));
-app.use(bodyParser.json({ "strict": false }));
-app.use(bodyParser.json({ "type": "application/fhir+json" }));
+app.use(bodyParser.json({ 
+  "strict": false,
+  "limit": "50mb"
+}));
+app.use(bodyParser.json({ 
+  "type": "application/fhir+json",
+  "limit": "50mb"
+}));
 app.use(bodyParser.text({ "type": "text/*" }));
 //app.use(bodyParser.raw({ "type" : "multipart/related" , limit: "100gb"}));
 app.use((err, req, res, next) => {
@@ -94,7 +100,7 @@ let condaEnvName = process.env.CONDA_GDCM_ENV_NAME;
   let isflaskRunning = false;
   if (process.env.USE_DCM2JPEG_PYTHONAPI) {
     try {
-      let res = await fetch(`http://localhost:${process.env.DCM2JPEG_PYTHONAPI_PORT}/`);
+      let res = await fetch(`http://${process.env.DCM2JPEG_PYTHONAPI_HOST}:${process.env.DCM2JPEG_PYTHONAPI_PORT}/`);
       let resJson = await res.json();
       if (resJson.status) {
         isflaskRunning = true;
@@ -143,7 +149,7 @@ let condaEnvName = process.env.CONDA_GDCM_ENV_NAME;
         process.exit(1);
       }
       try {
-        let res = await fetch(`http://localhost:${process.env.DCM2JPEG_PYTHONAPI_PORT}/`)
+        let res = await fetch(`http://${process.env.DCM2JPEG_PYTHONAPI_HOST}:${process.env.DCM2JPEG_PYTHONAPI_PORT}/`)
         console.log('the dcm2jpeg python flask api ready');
         clearInterval(checkAPIInterval);
       } catch (e) {

@@ -25,15 +25,13 @@ module.exports = async (req, res) => {
 
 
 async function InsertImagingStudy(Insert_Data) {
-    return new Promise(async (resolve, reject) => {
+    try {
         Insert_Data.id = hash(Insert_Data);
         let ImagingStudy = new mongodb.ImagingStudy(Insert_Data);
-        await ImagingStudy.save(function (err, doc) {
-            if (err) {
-                errorMessage.message = err;
-                return resolve([false ,err]);
-            }
-            return resolve([true, doc]);
-        });
-    });
+        let savedDoc = await ImagingStudy.save();
+        return [true, savedDoc];
+    } catch(e) {
+        errorMessage.message = e;
+        return [false, e];
+    }
 }

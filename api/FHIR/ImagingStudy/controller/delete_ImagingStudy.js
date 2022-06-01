@@ -80,16 +80,14 @@ async function deleteInstanceImage (iParams) {
 
 
 async function deleteStudy (iParams) {
-    return new Promise(async (resolve , reject) => {
-        await mongodb.ImagingStudy.deleteOne({"identifier.value" : `urn:oid:${iParams.studyID}`} , function (err) {
-            if (err) {
-                console.log(err);
-                errorMessage = err;
-                return reject(false);
-            }
-            return resolve(true)
-        });
-    });
+    try {
+        await mongodb.ImagingStudy.deleteOne({"identifier.value" : `urn:oid:${iParams.studyID}`});
+        return true;
+    } catch(e) {
+        console.error(e);
+        errorMessage = err;
+        return false;
+    }
 }
 
 async function deleteSeries (iParams) {

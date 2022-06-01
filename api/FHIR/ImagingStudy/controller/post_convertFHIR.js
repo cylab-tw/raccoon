@@ -1,3 +1,4 @@
+const _ = require("lodash");
 const mongodb = require('models/mongodb');
 const mongoFunc = require('models/mongodb/func');
 const mongoose = require('mongoose');
@@ -24,32 +25,27 @@ module.exports.storeImagingStudy = async function (id , data) {
 
 //獲取特定Series的Study
 async function getImagingStudySeries(series) {
-    return new Promise(async (resolve) => {
-        let series_query =
-            [
-                {
-                    $match:
-                    {
-                        "series.uid": series.uid
-                    }
-                },
-                {
-                    $addFields:
-                    {
-                        "SeriesIndex":
-                        {
-                            $indexOfArray: ["$series.uid", series.uid]
-                        }
+    try {
+        let series_query = [
+            {
+                $match: {
+                    "series.uid": series.uid
+                }
+            },
+            {
+                $addFields: {
+                    SeriesIndex: {
+                        $indexOfArray: ["$series.uid", series.uid]
                     }
                 }
-            ]
-        await mongodb.ImagingStudy.aggregate([series_query], async function (err, oImagingStudy) {
-            if (err) {
-                return resolve(false);
             }
-            return resolve(oImagingStudy);
-        });
-    });
+        ];
+        let hitImagingStudy = await mongodb.ImagingStudy.aggregate(series_query);
+        return hitImagingStudy;
+    } catch(e) {
+        console.error(e);
+        return false;
+    }
 }
 
 async function getSeriesInstance(seriesUid, instance) {
@@ -84,101 +80,100 @@ async function getSeriesInstance(seriesUid, instance) {
 }
 
 async function InsertImagingStudy(Insert_Data, id) {
-    return new Promise(async (resolve, reject) => {
-        let identifier_query = {
-            identifier: {
-                $elemMatch: {
-                    value: Insert_Data.identifier[0].value
-                }
-            }
-        }
-        await mongodb.ImagingStudy.findOne({id : id }, async function (err, item) {
-            if (err) {
-                console.log(err);
-                return resolve([false, err]);
-            } else if (item != null) { //update series if have imagingstudy 
-                let ImagingStudy = await new mongodb.ImagingStudy(item);
-                let tempInsertData = JSON.parse(JSON.stringify(Insert_Data));
-                delete tempInsertData.series;
-                let dataKeys = Object.keys(tempInsertData);
-                //update imagingstudy exclude series
-                for (let y = 0; y < dataKeys.length; y++) {
-                    ImagingStudy[dataKeys[y]] = tempInsertData[dataKeys[y]];
-                }
-                for (let x in Insert_Data.series) {
-                    let series = Insert_Data.series[x];
-                    let seriesStudy = await getImagingStudySeries(series);
-                    if (seriesStudy[0]) {
-                        for (let j in series.instance) {
-                            let instance = series.instance[j];
-                            let updateSeries = async function () {
-                                return new Promise((resolve) => {
-                                    let tempSeries = JSON.parse(JSON.stringify(series));
-                                    delete tempSeries.instance;
-                                    let seriesKeys = Object.keys(tempSeries);
-                                    for (let i = 0; i < seriesKeys.length; i++) {
-                                        ImagingStudy.series[seriesStudy[0].SeriesIndex]["_doc"][seriesKeys[i]] = tempSeries[seriesKeys[i]];
-                                    }
-                                    return resolve(true);
-                                });
-                            }
-                            await updateSeries();
-                            let IsExist = await IsInstanceExist(instance.uid);
-                            if (IsExist) {
-                                //TODO 覆蓋原先資料
-                                //let message =await errorHandler({message:"The instance is duplicate :" +Insert_Data.series[x].instance[j].uid});
-                                let InstanceStudy = await getSeriesInstance(series.uid, instance);
-                                let instanceIndex = -1;
-                                for (let data in InstanceStudy) {
-                                    if (InstanceStudy[data].instanceIndex != -1) {
-                                        instanceIndex = InstanceStudy[data].instanceIndex;
-                                    }
-                                }
-                                ImagingStudy.series[seriesStudy[0].SeriesIndex].instance[instanceIndex] = instance;
-                                return resolve([true ,ImagingStudy]);
-                            } else {
-                                await ImagingStudy.series[seriesStudy[0].SeriesIndex].instance.push(instance);
-                                return resolve([true, ImagingStudy]);
-                            }
-                        }
-                    } else { // insert series
-                        let ImagingStudy = await new mongodb.ImagingStudy(item);
-                        ImagingStudy.series.push(series);
-                        return resolve([true, ImagingStudy]);
-                    }
-                }
-            } else {//new imagingstudy
-                const mongoUUID = new mongoose.Types.ObjectId;
-                Insert_Data.id = id.replace("urn:oid:", "");
-                return resolve([true ,Insert_Data]);
-            }
+    try {
+        let hitImagingStudy = await mongodb.ImagingStudy.findOne({
+            id: id
         });
-    });
-    //#endregion
+        if (hitImagingStudy) {
+            let ImagingStudy = await new mongodb.ImagingStudy(hitImagingStudy);
+            let tempInsertData = _.cloneDeep(Insert_Data);
+            delete tempInsertData.series;
+            let dataKeys = Object.keys(tempInsertData);
+            //update ImagingStudy exclude series
+            for (let y = 0; y < dataKeys.length; y++) {
+                ImagingStudy[dataKeys[y]] = tempInsertData[dataKeys[y]];
+            }
+            for (let x in Insert_Data.series) {
+                let series = Insert_Data.series[x];
+                let seriesStudy = await getImagingStudySeries(series);
+                if (seriesStudy[0]) {
+                    for (let j in series.instance) {
+                        let instance = series.instance[j];
+                        let updateSeries = async function () {
+                            return new Promise((resolve) => {
+                                let tempSeries = JSON.parse(
+                                    JSON.stringify(series)
+                                );
+                                delete tempSeries.instance;
+                                let seriesKeys = Object.keys(tempSeries);
+                                for (let i = 0; i < seriesKeys.length; i++) {
+                                    ImagingStudy.series[
+                                        seriesStudy[0].SeriesIndex
+                                    ]["_doc"][seriesKeys[i]] =
+                                        tempSeries[seriesKeys[i]];
+                                }
+                                return resolve(true);
+                            });
+                        };
+                        await updateSeries();
+                        let IsExist = await IsInstanceExist(instance.uid);
+                        if (IsExist) {
+                            //TODO 覆蓋原先資料
+                            //let message =await errorHandler({message:"The instance is duplicate :" +Insert_Data.series[x].instance[j].uid});
+                            let InstanceStudy = await getSeriesInstance(
+                                series.uid,
+                                instance
+                            );
+                            let instanceIndex = -1;
+                            for (let data in InstanceStudy) {
+                                if (InstanceStudy[data].instanceIndex != -1) {
+                                    instanceIndex =
+                                        InstanceStudy[data].instanceIndex;
+                                }
+                            }
+                            ImagingStudy.series[
+                                seriesStudy[0].SeriesIndex
+                            ].instance[instanceIndex] = instance;
+                            return [true, ImagingStudy];
+                        } else {
+                            await ImagingStudy.series[
+                                seriesStudy[0].SeriesIndex
+                            ].instance.push(instance);
+                            return [true, ImagingStudy];
+                        }
+                    }
+                } else {
+                    // insert series
+                    let ImagingStudy = await new mongodb.ImagingStudy(hitImagingStudy);
+                    ImagingStudy.series.push(series);
+                    return [true, ImagingStudy];
+                }
+            }
+        } else {
+            //insert new ImagingStudy
+            Insert_Data.id = id.replace("urn:oid:", "");
+            return [true, Insert_Data];
+        }
+    } catch(e) {
+        console.error(e);
+        return [false, e];
+    }
 }
 
 
 async function IsInstanceExist(uid) {
-    return new Promise(async (resolve, reject) => {
-        let instance_query =
-        {
-            series:
-            {
-                $elemMatch:
-                {
+    try {
+        let instance_query = {
+            series: {
+                $elemMatch: {
                     "instance.uid": uid
                 }
             }
-        }
-        await mongodb.ImagingStudy.findOne(instance_query, async function (err, item) {
-            if (err)
-                return reject(new Error(err));
-            if (item) {
-                return resolve([true, item._id]);
-            }
-            else {
-                return resolve(false);
-            }
-        });
-    });
+        };
+        let hitImagingStudy = await mongodb.ImagingStudy.findOne(instance_query);
+        if (hitImagingStudy) return hitImagingStudy;
+        return false;
+    } catch(e) {
+        return reject(new Error(err));
+    }
 }

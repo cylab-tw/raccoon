@@ -17,13 +17,13 @@ module.exports.mkdir_Not_Exist =async function (filename)
         let newPath = path.dirname(filename);
         let isExist = await exports.checkExist(newPath);
         if (!isExist) {
-            await mkdirp (newPath ,  0775 , async function (err) {
+            mkdirp (newPath , 0775, async function (err) {
                 if (err) {
                     console.error(err);
                     return resolve(false);
                 }
                 return resolve(true);
-            })
+            });
         } else {
             return resolve(true);
         }

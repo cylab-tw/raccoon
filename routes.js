@@ -6,7 +6,13 @@ const path = require('path');
 const mongodb = require('./models/mongodb');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { pluginsConfig } = require("./plugins/config");
+const _ = require("lodash");
 module.exports = function (app, passport) {
+
+  for (let plugin of pluginsConfig) {
+    if (plugin.before && plugin.enable) require(`plugins/${plugin.name}`)(app);
+  }
 
   //app.set('json spaces', 4);
 
@@ -70,21 +76,17 @@ module.exports = function (app, passport) {
   app.post('/loging', passport.authenticate('local-login', {
     failureRedirect: '/login', // redirect back to the signup page if there is an error
     session: true
-  }), function (res, req) {
-    if (res.IsAdmin == "admin") {
-      req.redirect('/');
-    }
-    else {
-      req.redirect('/');
-    }
-  });
+  }));
 
   app.get('/checkIsLogin' , async function(req ,res) {
     let islogin = await require('./api/Api_function').isTokenLogin(req ,res);
     res.send(islogin);
   })
   app.get('/logout', async function (req, res) {
-    await mongodb.users.findOneAndUpdate({"account" : req.user} , {$set: {token: ""}}).exec();
+    let user = _.get("req", "user.user");
+    await mongodb.users
+        .findOneAndUpdate({ account: user }, { $set: { token: "" } })
+        .exec();
     req.logout();
     res.redirect('/');
   });
@@ -97,7 +99,6 @@ module.exports = function (app, passport) {
   });
 
   app.use('/api/dicom', require('api/dicom'));
-  app.use('/api/users', require('api/users'));
 
   //#region fhir
   app.use('/api/fhir/metadata' , require('api/FHIR/metadata'));
@@ -125,6 +126,12 @@ module.exports = function (app, passport) {
   app.route('/favicon.ico').get((req, res) => {
     res.send("");
   });
+
+  
+
+  for (let plugin of pluginsConfig) {
+      if(plugin.after && plugin.enable) require(`plugins/${plugin.name}`)(app);
+  }
 };
 
 

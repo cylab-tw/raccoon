@@ -7,11 +7,11 @@
 		<link rel="stylesheet" type="text/css" href="../css/login/view.css">
 	</head>
 	<body ng-controller="HomePageCtrl">
-		<ng-include src="'/navbar.html'"></ng-include>
+		<%- include("../navbar.html"); %> 
 		<div class="wrapper fadeInDown">
 			<div id="formContent">
 				<!-- Tabs Titles -->
-				<h2 class="fadeIn first">Welcome，<span ng-if="loggedUser">{{loggedUser}}</span><span ng-if="!loggedUser">Guest</span>
+				<h2 class="fadeIn first">Welcome，<span ng-if="loggedUser">{{loggedUser.user}}</span><span ng-if="!loggedUser">Guest</span>
 				</h2><br/>
 				<img style="height: 200px;padding-bottom: 20px;" src="../images/logo.svg" />
 				<br />

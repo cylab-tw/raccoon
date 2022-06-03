@@ -46,34 +46,11 @@ module.exports.textSpaceToOrCond = async function (str) {
         return resolve(undefined);
     });
 }
-//#region loging auth api
-module.exports.isLogin = async function (req, res, next) {
-    console.log(req.isAuthenticated() + " " + req.user + " Is LoggedIn");
-    let isNormalLogin = req.isAuthenticated();
-    let isTokenLogin = await exports.isTokenLogin(req);
-    let isAuthenticated = (isNormalLogin || isTokenLogin);
-    if (isAuthenticated) {
-        return next();
-    }
-    res.status(401);
-    res.render(path.join(__dirname + "/../public/html/errors", "401.html"));
-}
-
-module.exports.isAdminLogin = async function (req, res, next) {
-    console.log(req.isAuthenticated() + " " + req.user + " Is LoggedIn");
-    let isNormalLogin = req.isAuthenticated();
-    let isTokenLogin = await exports.isTokenLogin(req);
-    let isAuthenticated = (isNormalLogin || isTokenLogin);
-    if (isAuthenticated && req.user.toLowerCase() == "admin") {
-        return next();
-    }
-    res.redirect('/');
-}
 module.exports.isAdmin = async function (req, res, next) {
     let isNormalLogin = req.isAuthenticated();
     let isTokenLogin = await exports.isTokenLogin(req);
     let isAuthenticated = (isNormalLogin || isTokenLogin);
-    if (isAuthenticated && req.user.toLowerCase() == "admin") {
+    if (isAuthenticated && req.user.userType.toLowerCase() == "admin") {
         return next();
     }
     res.status(403);

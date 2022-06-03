@@ -2,50 +2,37 @@
 
 const express = require('express');
 const router = express.Router();
-const path = require('path');
-const {isAdminLogin , isLogin}  =require('../../api/Api_function');
+const _ = require("lodash");
+const { pluginsConfig } = require("../../plugins/config");
+const loginPlugin = pluginsConfig.find((v) => v.name === "login");
 
-function loginCallback(req, res, next) {
-  if (process.env.ENABLE_LOGIN_ACCESS== "true") {
-    return isLogin(req, res, next);
-  } else {
-    return next();
-  }
-}
-
-router.get('/updicom', loginCallback, function(req, res) {
-  res.sendFile('UploadDicom.html', {
-    root: __dirname + '../../../public/html'
+router.get('/updicom', function(req, res) {
+  let user = _.get(req, "user.user");
+  let userType = _.get(req, "user.userType");
+  res.render("html/UploadDicom.html", {
+      user: user,
+      isAdmin: userType,
+      loginEnable: loginPlugin.enable
   });
 });
 
-router.get('/test', function(req, res) {
-  res.sendFile('test.html', {
-    root: __dirname + '../../../public/html'
+router.get('/imageMS', function (req ,res) {
+  let user = _.get(req, "user.user");
+  let userType = _.get(req, "user.userType");
+  res.render("html/ImageMS.html", {
+      user: user,
+      isAdmin: userType,
+      loginEnable: loginPlugin.enable
   });
 });
 
-router.get('/UserManager', isAdminLogin, function(req, res) {
-  res.sendFile('UserManager.html', {
-    root: __dirname + '../../../public/html'
-  });
-});
-
-router.get('/imageMS', loginCallback, function (req ,res) {
-  res.sendFile('ImageMS.html' , {
-    root : __dirname + '../../../public/html'
-  });
-});
-
-router.get('/reportContent'  , function (req ,res) {
-  res.sendFile('reportContent.html' , {
-    root : __dirname + '../../../public/html'
-  });
-});
-
-router.get('/dicomToJpegTask', loginCallback , function(req, res) {
-  res.sendFile('dicomToJpegTask.html' , {
-    root: __dirname + '../../../public/html'
+router.get('/dicomToJpegTask', function(req, res) {
+  let user = _.get(req, "user.user");
+  let userType = _.get(req, "user.userType");
+  res.render("html/dicomToJpegTask.html", {
+      user: user,
+      isAdmin: userType,
+      loginEnable: loginPlugin.enable
   });
 });
 

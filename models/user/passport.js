@@ -8,8 +8,8 @@ module.exports = function (passport) {
     passport.serializeUser(function (user, done) {
         done(null, user);
     });
-    passport.deserializeUser(function (id, done) {
-        done(null, id);
+    passport.deserializeUser(function (user, done) {
+        done(null, user);
     });
 
     passport.use('local-login', new LocalStrategy({
@@ -30,8 +30,11 @@ module.exports = function (passport) {
             }
             else if (Auth_Status[0] == 1)
             {
-                req.IsAdmin = Auth_Status[1].usertype;
-                return done(null, username);
+                let hitUser = {
+                    user: Auth_Status[1].account,
+                    userType: Auth_Status[1].usertype
+                };
+                return done(null, hitUser);
             }
             else if (Auth_Status == 0)
             {

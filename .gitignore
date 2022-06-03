@@ -39,3 +39,6 @@ tempScript
 
 #ignore config file of front-end
 /public/scripts/config.js
+
+#ignore config file of pluginsConfig
+/plugins/config.js

@@ -9,7 +9,7 @@
 
 <body ng-controller="UserManagerCtrl">
 	<div>
-		<ng-include src="'/navbar.html'"></ng-include>
+		<%- include("../navbar.html"); %> 
 	</div>
 	<div class="container-fluid" style="margin-top: 60px;">
 		<div style="float:right;width:130px"><label>清單總筆數：{{DataListSize-1}}</label></div>

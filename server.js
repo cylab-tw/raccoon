@@ -80,6 +80,7 @@ app.use((req, res, next) => {
 require('models/user/passport.js')(passport);
 require("routes.js")(app, passport);
 app.engine('html', require('ejs').renderFile);
+app.set("views", "public");
 //
 http.createServer(app).listen(port, function () {
   console.log(`http server is listening on port:${port}`);

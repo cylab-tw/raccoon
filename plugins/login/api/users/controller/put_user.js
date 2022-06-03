@@ -1,6 +1,7 @@
 'use strict';
 const mongodb = require('models/mongodb');
 const bcrypt = require('bcrypt');
+const _ = require("lodash");
 
 const errorHandler = (err) => {
   let error = {
@@ -22,14 +23,15 @@ module.exports = async(req, res) => {
     }, {});
   const _id = req.params._id;
   try {
-    let user = await mongodb.users.findOne({account : req.user});
+    let username = _.get("req", "user.user");
+    let user = await mongodb.users.findOne({ account: username });
     if (queryParameter.usertype || typeof(queryParameter.status) === "number") {
       if (user.usertype.toUpperCase() != "ADMIN") {
         return res.status(400).send("Not Allow");
       }
     }
     if (queryParameter.password) {
-      queryParameter.password = await bcrypt.hashSync(queryParameter.password , 10);
+      queryParameter.password = bcrypt.hashSync(queryParameter.password , 10);
     }
     if (_id) {
       mongodb.users.findByIdAndUpdate(_id, {

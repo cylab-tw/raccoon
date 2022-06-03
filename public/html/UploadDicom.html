@@ -17,7 +17,7 @@
 <body ondragover="angular.element(this).scope().dragoverHandler(event);angular.element(this).scope().dragEnter()"
     ondrop="angular.element(this).scope().dropHandler(event);angular.element(this).scope().dragLeave()"
     ondragleave="angular.element(this).scope().dragLeave()">
-    <div ng-include="'/navbar.html'"></div>
+    <%- include("../navbar.html"); %> 
     <div id="consoleTable">
         <div class="container-fluid">
             <div class="row">

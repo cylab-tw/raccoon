@@ -36,8 +36,8 @@ module.exports  = async (req, res) =>
             }
             else
             {
-                var cryptpwd = await bcrypt.hashSync(queryParameter['pwd'] , 10);
-                var users = new mongodb.users(
+                let cryptpwd = bcrypt.hashSync(queryParameter['pwd'] , 10);
+                let users = new mongodb.users(
                 {
                     account : queryParameter['acc'],
                     password : cryptpwd,

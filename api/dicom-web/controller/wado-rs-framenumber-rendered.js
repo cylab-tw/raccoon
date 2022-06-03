@@ -156,7 +156,7 @@ module.exports = async function (req , res) {
             let hitSeries = _.find(dataSeries, "uid", req.params.seriesID);
             let hitSeriesInstance = hitSeries.instance;
             let hitInstance = _.find(hitSeriesInstance, { uid: req.params.instanceID });
-            let dicomNumberOfFrames = _.get(hitInstance, "dicomJson.00280008.Value.0") || 1;
+            let dicomNumberOfFrames = _.get(hitInstance, "00280008.Value.0") || 1;
             dicomNumberOfFrames = parseInt(dicomNumberOfFrames);
             if (req.params.frameNumber > dicomNumberOfFrames) {
                 return sendBadRequestMessage(res, `Bad frame number , This instance NumberOfFrames is : ${dicomNumberOfFrames} , But request ${req.params.frameNumber}`);

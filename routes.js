@@ -16,16 +16,6 @@ module.exports = function (app, passport) {
 
   //app.set('json spaces', 4);
 
-  app.get('/login', function (req, res) {
-    if (req.user) {
-      return res.redirect('/');
-    } else {
-      return res.render(path.join(__dirname + '/public/html', 'login.html'), {
-        messages: req.flash('error')[0]
-      });
-    }
-  });
-
   app.get('/register', function (req, res) {
     res.sendFile('register.html', {
       root: __dirname + '/public/html'

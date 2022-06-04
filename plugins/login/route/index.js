@@ -9,6 +9,7 @@ for (let i = 0; i < loginPlugin.routers.length; i++) {
     router[middlewareRouter.method](middlewareRouter.path, isLogin);
 }
 
+//#region Front-End router
 router.get("/dicom/UserManager", function (req, res) {
     let user = _.get(req, "user.user");
     let userType = _.get(req, "user.userType");
@@ -19,5 +20,22 @@ router.get("/dicom/UserManager", function (req, res) {
         loginEnable: loginPlugin.enable
     });
 });
+
+router.get("/login", function (req, res) {
+    let user = _.get(req, "user.user");
+    let userType = _.get(req, "user.userType");
+    if (req.user) {
+        return res.redirect("/");
+    } else {
+        return res.render("html/login.html", {
+            user: user,
+            isAdmin: userType,
+            loginEnable: loginPlugin.enable,
+            messages: req.flash("error")[0]
+        });
+    }
+});
+
+//#endregion 
 
 module.exports = router;

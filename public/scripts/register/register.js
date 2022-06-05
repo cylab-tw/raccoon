@@ -32,7 +32,7 @@ RegisterApp.controller("RegisterCtrl" , function($scope, RegisterService)
             else if (res.data.account != undefined)
             {
                 alert("successfully");
-                window.location = "/";
+                window.location = "/login";
                 clearError();
             } else{
                 alert("failure"); 

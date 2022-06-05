@@ -1,10 +1,12 @@
 const mongodb = require('models/mongodb');
+const _ = require("lodash");
 
 module.exports = async function (req, res)
 {
   const _id = req.params._id;
   try {
-    let user = await mongodb.users.findOne({account : req.user});
+    let username = _.get(req, "user.user");
+    let user = await mongodb.users.findOne({ account: username });
     if (user.usertype.toUpperCase() != "ADMIN") {
       return res.status(400).send("Not Allow");
     }
@@ -20,6 +22,7 @@ module.exports = async function (req, res)
       }
     });
   } catch (e) {
+    console.error(e);
     return res.status(500).json(e.message);
   }
 }

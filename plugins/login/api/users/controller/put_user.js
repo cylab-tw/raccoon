@@ -23,12 +23,15 @@ module.exports = async(req, res) => {
     }, {});
   const _id = req.params._id;
   try {
-    let username = _.get("req", "user.user");
+    let username = _.get(req, "user.user");
     let user = await mongodb.users.findOne({ account: username });
-    if (queryParameter.usertype || typeof(queryParameter.status) === "number") {
-      if (user.usertype.toUpperCase() != "ADMIN") {
-        return res.status(400).send("Not Allow");
-      }
+
+    let updateUserType = _.get(queryParameter, "usertype");
+    let updateStatus = _.get(queryParameter, "status");
+    if (updateUserType || typeof updateStatus === "number") {
+        if (user.usertype.toUpperCase() != "ADMIN") {
+            return res.status(400).send("Not Allow");
+        }
     }
     if (queryParameter.password) {
       queryParameter.password = bcrypt.hashSync(queryParameter.password , 10);

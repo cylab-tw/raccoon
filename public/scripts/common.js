@@ -104,23 +104,27 @@ async function sleep(ms = 1) {
 
 (function () {
     let raccoon = {
-        blockUI :  () => {
+        blockUI: () => {
             $.blockUI({
-                message: "<i class='fa fa-spinner fa-pulse orange' style='font-size:600%'></i>", 
-            //borderWidth:'0px' 和透明背景
-                css: { borderWidth: '0px', backgroundColor: 'transparent' },
+                message:
+                    "<i class='fa fa-spinner fa-pulse orange' style='font-size:600%'></i>",
+                //borderWidth:'0px' 和透明背景
+                css: { borderWidth: "0px", backgroundColor: "transparent" }
             });
-            $("body").css("overflow" , "hidden");
-        } , 
-        unblockUI : () => {
+            $("body").css("overflow", "hidden");
+        },
+        unblockUI: () => {
             $.unblockUI();
-            $("body").css("overflow" , "auto");
+            $("body").css("overflow", "auto");
         },
         getPort: (iPort) => {
-            let port = (iPort == "443" || iPort == "80") ? "" : `:${iPort}`
+            let port = iPort == "443" || iPort == "80" ? "" : `:${iPort}`;
             return port;
+        },
+        setLang: (lang) => {
+            angular.element(document.body).scope().setLang(lang);
         }
-    }
+    };
     window.raccoon = raccoon;
 })();
 

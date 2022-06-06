@@ -1,4 +1,6 @@
-<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+<link rel="stylesheet" href="/css/navbar.css">
+
+<nav class="navbar navbar-expand navbar-dark fixed-top bg-dark">
     <a class="navbar-brand" href="/"> </a>
     <button
         class="navbar-toggler"
@@ -13,23 +15,76 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-                <a class="nav-link" href="/dicom/updicom">Upload DICOM</a>
-            </li>
-            <% if (isAdmin && isAdmin === "admin") { %> 
-            <li class="nav-item active">
-                <a
-                    class="nav-link"
-                    href="/dicom/UserManager"
-                    >User Management</a
-                >
-            </li>
-            <% } %> 
-            <li class="nav-item active">
-                <a class="nav-link" href="/dicom/imageMS">Image Management</a>
+            <li class="nav-item nav-logo">
+                <a href="/">
+                    <img src="/images/logo.svg" alt="raccoon logo" />
+                </a>
             </li>
         </ul>
-        <% if (user) { %>
+        <ul class="navbar-nav navbar-right ml-auto">
+            <li class="nav-item active">
+                <div class="dropdown show">
+                    <a
+                        class="nav-link 
+                        dropdown-toggle 
+                        active 
+                        dropdown-toggle-lang
+                        dropdown-toggle-service
+                        "
+                        href="#"
+                        data-toggle="dropdown"
+                        id="dropdownService"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        ></a>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownService">
+                        <div class="dropdown-multiCol">
+                            <div class="dropdown-col-item">
+                                <a class="dropdown-item service-upload-dicom text-center" href="/dicom/updicom" translate>
+                                    UPLOAD_DICOM
+                                </a>
+                            </div>
+
+                            <div class="dropdown-col-item">
+                                <a class="dropdown-item service-image-ms text-center" href="/dicom/imageMS" translate>
+                                    IMAGE_MANAGEMENT_SYSTEM
+                                </a>
+                            </div>
+
+                            <% if (isAdmin && isAdmin === "admin") { %> 
+                            <div class="dropdown-col-item">
+                                <a
+                                    class="dropdown-item service-user-ms text-center"
+                                    href="/dicom/UserManager"
+                                    translate>USER_MANAGEMENT_SYSTEM</a
+                                >
+                            </div>
+                            <% } %> 
+                        </div>
+                    </div>
+                </div>
+                
+            </li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+            <li class="nav-item active">
+                <div class="dropdown show">
+                    <a
+                        class="nav-link dropdown-toggle active dropdown-toggle-lang"
+                        href="#"
+                        data-toggle="dropdown"
+                        id="dropdownLang"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        ></a>
+                    <div class="dropdown-menu" aria-labelledby="dropdownLang">
+                        <a class="dropdown-item" href="#" onclick="raccoon.setLang('en_US')">English</a>
+                        <a class="dropdown-item" href="#" onclick="raccoon.setLang('zh_TW')">繁體中文</a>
+                    </div>
+                </div>
+            </li>
+        </ul>
+                <% if (user) { %>
         <ul class="nav navbar-nav navbar-right">
             <li class="nav-item active">
                 <div class="dropdown show">

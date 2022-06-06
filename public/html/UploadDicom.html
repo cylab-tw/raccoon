@@ -22,17 +22,17 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12 col-md-4 text-center text-md-left text-nowrap">
-                    <h2 class="text-success">DICOM Uploader</h2>
+                    <h2 class="text-success" translate>DICOM_UPLOADER</h2>
                 </div>
                 <div class="col-12 col-md-8 text-center text-md-right">
                     <button class="btn btn-success mt-1 mr-1" ng-click="uploadFile()"><i
-                            class="fas fa-upload"></i>&nbsp;全部上傳</button>
+                            class="fas fa-upload"></i>&nbsp;<span translate>DICOM_UPLOAD_ALL</span></button>
                     <button class="btn btn-danger mt-1 mr-1" ng-click="resetUpload()"><i
-                            class="far fa-trash-alt"></i>&nbsp;重置</button>
+                            class="far fa-trash-alt"></i>&nbsp;<span translate>RESET</span></button>
                     <button class="btn btn-secondary mt-1 mr-1" onclick="inputFile.click()"><i
-                            class="fas fa-file-alt"></i>&nbsp;選擇檔案</button>
+                            class="fas fa-file-alt"></i>&nbsp;<span translate>SELECT_FILES</span></button>
                     <button class="btn btn-secondary mt-1" onclick="inputFolder.click()"><i
-                            class="fas fa-folder-open"></i>&nbsp;選擇資料夾</button>
+                            class="fas fa-folder-open"></i>&nbsp;<span translate>SELECT_FOLDER</span></button>
                     <input id="inputFile" type="file" class="d-none"
                         onchange="angular.element(this).scope().appendFiles(this.files)" multiple="multiple" />
                     <input id="inputFolder" type="file" class="d-none" webkitdirectory="true"
@@ -41,7 +41,7 @@
                 <div class="col-12 text-center">
                     <div ng-show="IsUploading">
                         <h5 class="mt-1">
-                            <strong>上傳進度：{{(successUpload+errorUpload)/totalUpload*100| number:0}}%
+                            <strong>{{ "UPLOAD_PROGRESS" | translate}}：{{(successUpload+errorUpload)/totalUpload*100| number:0}}%
                                 ({{(successUpload+errorUpload)+" / "+totalUpload}})</strong>
                         </h5>
                         <div class="progress">
@@ -55,9 +55,10 @@
                 <div class="col-12">
                     <hr />
                     <h6>
-                        <div class="float-left mb-1">檔案列表：{{fileList.length}} Files</div>
+                        <div class="float-left mb-1">{{ "FILE_LIST" | translate}}：{{fileList.length}} Files</div>
                         <div class="float-right mb-1">
-                            <input type="checkbox" class="mr-1" ng-model="AllowSameFileName">允許同檔名檔案
+                            <input type="checkbox" class="mr-1" id="check-allow-filename" ng-model="AllowSameFileName">
+                            <label for="check-allow-filename" translate>ALLOW_SAME_FILENAME</label>
                         </div>
                     </h6>
                     <table
@@ -65,13 +66,13 @@
                         <thead>
                             <tr class="tr-only-hide">
                                 <th style="width: 5%">No.</th>
-                                <th style="width: 30%;" ng-click="orderCol='fileName'; reverseList=!reverseList;">
-                                    檔案名稱</th>
-                                <th style="width: 10%;" ng-click="orderCol='Status'; reverseList=!reverseList;">狀態
+                                <th style="width: 30%;" ng-click="orderCol='fileName'; reverseList=!reverseList;" translate>
+                                    FILENAME</th>
+                                <th style="width: 10%;" ng-click="orderCol='Status'; reverseList=!reverseList;" translate>STATUS
                                 </th>
-                                <th style="width: 45%;" ng-click="orderCol='Result'; reverseList=!reverseList;">處理進度
+                                <th style="width: 45%;" ng-click="orderCol='Result'; reverseList=!reverseList;"  translate>PROCESSING_PROGRESS
                                 </th>
-                                <th style="width: 10%;">操作</th>
+                                <th style="width: 10%;" translate>OPERATION</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -84,7 +85,7 @@
                                 </td>
                                 <td data-th="處理進度" class="align-middle">
                                     <strong ng-show="fileItem.ProgressRate==0"
-                                        ng-class="setTextColor(fileItem.Status)">{{fileItem.Result}}</strong>
+                                        ng-class="setTextColor(fileItem.Status)">{{"ADD_TIME"|translate}}：{{fileItem.TwelveHoursPeriod | translate:fileItem}}</strong>
                                     <div class="progress" ng-show="fileItem.ProgressRate!=0">
                                         <div class="progress-bar progress-bar-striped bg-info progress-bar-animated"
                                             ng-style="{'width' : fileItem.ProgressRate+'%'}"></div>
@@ -117,7 +118,7 @@
                 </div>
                 <div id="SystemInfoText" class="modal-body"></div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-info" data-dismiss="modal" ng-click="systemInfo=''">確認</button>
+                    <button type="button" class="btn btn-info" data-dismiss="modal" ng-click="systemInfo=''" translate>CONFIRM</button>
                 </div>
             </div>
         </div>
@@ -138,6 +139,12 @@
 </script>
 <script src="../scripts/external/angularjs/angular.min.js"></script>
 <script src="../scripts/ngCommon.js"></script>
+<script src="../scripts/common.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.9/angular-cookies.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-translate/2.19.0/angular-translate.min.js" integrity="sha512-a/Saqh9wa0rRm8gEgTqGYgoIh1Jki7htgcbLo6R9R990l8TqdIrpx9yWuTLJ+lMsWpQeLbrkbKvkTizrOuCI9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-translate/2.19.0/angular-translate-storage-cookie/angular-translate-storage-cookie.min.js" integrity="sha512-CUC4LT0irqbeXBxZm4mhYid9rjXJWJALuy8xrhH8Uxw3ish2BxQbEiHDWfZcTgsW8FKAG52eoeICTHZZfl7CZw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-translate/2.19.0/angular-translate-storage-local/angular-translate-storage-local.min.js" integrity="sha512-qA5jJVDAvuz6hkU52JxQ3S5OY0RKRoGPVNmYoHyxl89B9/S5mnlEjyVeR46/UZBtOx87MQ2zA5IffpbvWC9Y2Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-translate/2.19.0/angular-translate-loader-static-files/angular-translate-loader-static-files.js" integrity="sha512-zrJTB3VkziIateyhgLI0De3KBGrtK8uK9bR4K//Y0TxqcRXMZAP11m0U12YvGjAv+PlH4jPfVAZyYnao/ecnEQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script type="module">
     import {  formDataToBlob  } from '../scripts/external/formdata/formdata-to-blob.js'
     window.formDataToBlob  = formDataToBlob;

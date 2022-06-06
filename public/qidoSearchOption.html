@@ -24,7 +24,10 @@
                         <div class="form-group">
                             <div class="date form-row" id="from_date" data-target-input="nearest">
                                 <label for='start_time' class="col-md-3 col-sm-12 col-12">From Date</label>
-                                <input type="text" class="col-md-9 col-sm-12 col-12 form-control datetimepicker-input" data-target="#from_date" data-toggle="datetimepicker" id="start_time" ng-model="$parent.fromDate" placeholder="選擇開始日期" />
+                                <input type="text" class="col-md-9 col-sm-12 col-12 form-control datetimepicker-input" data-target="#from_date" data-toggle="datetimepicker" id="start_time" ng-model="$parent.fromDate" 
+                                translate
+                                translate-attr-placeholder="imageMS.SELECT_START_DATE"
+                                />
                                 <div class="input-group-append" data-target="#from_date" data-toggle="datetimepicker">
                                 </div>
                             </div>
@@ -34,7 +37,9 @@
                         <div class="form-group">
                             <div class="date form-row" id="end_date" data-target-input="nearest">
                                 <label for='end_time' class="col-md-3 col-sm-12 col-12">End Date</label>
-                                <input type="text" class="col-md-9 col-sm-12 col-12 form-control datetimepicker-input" data-target="#end_date" data-toggle="datetimepicker" id="end_time" ng-model="$parent.endDate" placeholder="選擇結束日期" />
+                                <input type="text" class="col-md-9 col-sm-12 col-12 form-control datetimepicker-input" data-target="#end_date" data-toggle="datetimepicker" id="end_time" ng-model="$parent.endDate" translate
+                                translate-attr-placeholder="imageMS.SELECT_END_DATE"
+                                 />
                                 <div class="input-group-append" data-target="#end_date" data-toggle="datetimepicker">
                                 </div>
                             </div>

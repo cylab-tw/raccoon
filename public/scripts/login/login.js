@@ -15,12 +15,27 @@ loginApp.controller("loginCtrl", function ($scope, $q,loginService) {
             }
         });
     }
+
+    $scope.localLogin = function () {
+        loginService.localLogin($scope).then(function(res) {
+            let data = res.data;
+            if (res.status === 200) {
+                location.reload();
+            } else {
+                console.log(res);
+                let pError = document.getElementById("pError");
+                pError.style.display = "block";
+                pError.innerText = data.message;
+            }
+        });
+    }
+
 });
 loginApp.service('loginService', function ($http) {
     return (
         {
             getToken : getToken , 
-            login : login
+            localLogin : localLogin
         }
     )
     function getToken($scope) {
@@ -35,17 +50,20 @@ loginApp.service('loginService', function ($http) {
             });
         return (request.then(handleSuccess, handleError));
     }
-    function login($scope) {
+
+    function localLogin($scope) {
         let request = $http({
-            method : "POST" , 
-            url : "/loging" ,
-            params : {
-                username : $scope.username  , 
-                password : $scope.password
+            method: "POST",
+            url: "/login",
+            params: {
+                username: $scope.username,
+                password: $scope.password
             }
         });
-        return (request.then(handleSuccess, handleError));
+
+        return request.then(handleSuccess, handleError);
     }
+
     function handleSuccess(response) {
         return response;
     }

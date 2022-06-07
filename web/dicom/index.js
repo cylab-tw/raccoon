@@ -4,7 +4,7 @@ const express = require('express');
 const router = express.Router();
 const _ = require("lodash");
 const { pluginsConfig } = require("../../plugins/config");
-const loginPlugin = pluginsConfig.find((v) => v.name === "login");
+const loginPlugin = pluginsConfig.login;
 
 router.get('/updicom', function(req, res) {
   let user = _.get(req, "user.user");

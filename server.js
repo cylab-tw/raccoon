@@ -7,7 +7,6 @@ const http = require('http');
 const compress = require('compression');
 //login
 const cookieParser = require('cookie-parser');
-const passport = require('passport');
 const session = require('express-session');
 const flash = require('connect-flash')
 const mongodb = require('./models/mongodb');
@@ -61,8 +60,6 @@ app.use(session({
   }),
   httpOnly: true
 }));
-app.use(passport.initialize());
-app.use(passport.session());
 //
 //app.use(expressValidator());
 app.use((req, res, next) => {
@@ -77,8 +74,7 @@ app.use((req, res, next) => {
 //require('routes')(app);
 
 //login
-require('models/user/passport.js')(passport);
-require("routes.js")(app, passport);
+require("routes.js")(app);
 app.engine('html', require('ejs').renderFile);
 app.set("views", "public");
 //

@@ -1,5 +1,5 @@
-module.exports.pluginsConfig = [
-    {
+module.exports.pluginsConfig = {
+    login: {
         name: "login",
         enable: true,
         before: true,
@@ -16,6 +16,11 @@ module.exports.pluginsConfig = [
         admin: {
             username: "",
             password: ""
+        },
+        jwt: {
+            secretOrKey: "",
+            issuer: "",
+            expiresIn: "1d"
         }
     }
-];
+};

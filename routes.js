@@ -8,10 +8,11 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { pluginsConfig } = require("./plugins/config");
 const _ = require("lodash");
-module.exports = function (app, passport) {
+module.exports = function (app) {
 
-  for (let plugin of pluginsConfig) {
-    if (plugin.before && plugin.enable) require(`plugins/${plugin.name}`)(app);
+  for (let pluginName in pluginsConfig) {
+    let plugin = pluginsConfig[pluginName];
+    if (plugin.before && plugin.enable) require(`plugins/${pluginName}`)(app);
   }
 
   //app.set('json spaces', 4);
@@ -62,11 +63,6 @@ module.exports = function (app, passport) {
     }
     return statusFunc[authStatu]();
   });
-  /* process the login form */
-  app.post('/loging', passport.authenticate('local-login', {
-    failureRedirect: '/login', // redirect back to the signup page if there is an error
-    session: true
-  }));
 
   app.get('/checkIsLogin' , async function(req ,res) {
     let islogin = await require('./api/Api_function').isTokenLogin(req ,res);
@@ -119,8 +115,9 @@ module.exports = function (app, passport) {
 
   
 
-  for (let plugin of pluginsConfig) {
-      if(plugin.after && plugin.enable) require(`plugins/${plugin.name}`)(app);
+  for (let pluginName in pluginsConfig) {
+      let plugin = pluginsConfig[pluginName];
+      if(plugin.after && plugin.enable) require(`plugins/${pluginName}`)(app);
   }
 };
 

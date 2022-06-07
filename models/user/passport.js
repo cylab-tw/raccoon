@@ -1,8 +1,12 @@
-const LocalStrategy = require('passport-local').Strategy;
-const jwt = require('jsonwebtoken');
-const mongodb = require('models/mongodb'); 
-const bcrypt = require('bcrypt');
-const BearerStrategy =  require('passport-http-bearer').Strategy;
+const LocalStrategy = require("passport-local").Strategy;
+const mongodb = require("models/mongodb");
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const JwtStrategy = require("passport-jwt").Strategy;
+const ExtractJwt = require("passport-jwt").ExtractJwt;
+
+const { pluginsConfig } = require("../../plugins/config");
+const loginPlugin = pluginsConfig.login;
 
 module.exports = function (passport) {
     passport.serializeUser(function (user, done) {
@@ -12,82 +16,104 @@ module.exports = function (passport) {
         done(null, user);
     });
 
-    passport.use('local-login', new LocalStrategy({
-            usernameField: 'username',
-            passwordField: 'password',
-            session: true,
-            passReqToCallback: true
-        },
-        async function (req,username, password, done) {
-            let Auth_Status = await My_Auth(username , password);
-            if (Auth_Status == 3)
+    passport.use(
+        "local-login",
+        new LocalStrategy(
             {
-                return done(null, false, req.flash('error' , 'Invalid user or password'));
-            }
-            else if (Auth_Status == 2)
-            {
-                return done(null, false, req.flash('error' , 'Invalid user or password'));
-            }
-            else if (Auth_Status[0] == 1)
-            {
+                usernameField: "username",
+                passwordField: "password",
+                session: true,
+                passReqToCallback: true
+            },
+            async function (req, username, password, done) {
+                let authResult = await auth(username, password);
+                if (authResult.code === 0) {
+                    return done(null, false, {
+                        error: true,
+                        message:
+                            "Server has something wrong , please contact the administrator",
+                        code: authResult.code
+                    });
+                }
+                if (authResult.code === 2 || authResult.code === 3) {
+                    return done(null, false, {
+                        error: true,
+                        message: "Invalid user or password",
+                        code: authResult.code
+                    });
+                } else if (authResult.code === 4) {
+                    return done(null, false, {
+                        error: true,
+                        message: "The user do not active",
+                        code: authResult.code
+                    });
+                }
                 let hitUser = {
-                    user: Auth_Status[1].account,
-                    userType: Auth_Status[1].usertype
+                    user: authResult.user.account,
+                    userType: authResult.user.usertype
                 };
                 return done(null, hitUser);
             }
-            else if (Auth_Status == 0)
-            {
-                return done(null, false, req.flash('error' , 'Server has something wrong , please contact the administrator'));  
-            }
-            else
-            {
-                return done(null, false, req.flash('error' , 'The user do not active'));  
-            }
-    }));
-    passport.use(new BearerStrategy(
-        function(token, done) {
-            mongodb.users.findOne({ token: token }, function (err, user) {
-              if (err) { return done(err); }
-              if (!user) { return done(null, false); }
-              return done(null, user.account, { scope: 'all' });
+        )
+    );
+
+    /**@type {import("passport-jwt").StrategyOptions} */
+    let jwtOptions = {
+        jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+        secretOrKey: loginPlugin.jwt.secretOrKey
+    };
+    passport.use("jwt", new JwtStrategy(jwtOptions, async function(jwtPayload, done) {
+        try {
+            let userDoc = await mongoose.model("users").findOne({
+                account: jwtPayload.sub
             });
-          }
-    ))
+            if (userDoc) {
+                return done(null, {
+                    user: userDoc.account,
+                    userType: userDoc.usertype
+                });
+            }
+            return done(null, false);
+        } catch(e) {
+            console.error(e);
+            return done(err, false);
+        }
+    }));
 };
-async function My_Auth(username , password)
-{
-    return new Promise((resolve)=>
-    {
-        mongodb.users.find({account:username})
-        .exec((err, result) => 
-        {
-            if (err) 
-            {
-                resolve(0) ; //錯誤
+
+async function auth(username, password) {
+    try {
+        let user = await mongoose
+        .model("users")
+        .findOne({
+            account: username
+        })
+        .exec();
+
+        if (!user) return { code: 3, status: false, user: undefined };
+
+        if (bcrypt.compareSync(password, user.password)) {
+            if (user.status === 1) { //Successful
+                return {
+                    code: 1,
+                    user: user
+                };
             }
-            else
-            {
-                if (result.length >0)
-                {
-                    if (bcrypt.compareSync(password , result[0].password) && result[0].status == 1)
-                    {
-                        resolve([1,result[0]]);//帳號密碼正確且開通
-                    }
-                    else if (bcrypt.compareSync(password , result[0].password) && result[0].status == 0)
-                    {
-                        resolve(4); //無開通
-                    }
-                    else
-                    {
-                        resolve(2); //密碼錯誤
-                    }
-                }
-                else
-                {
-                    resolve(3); //無帳號
-                }
+            return { //User inactivated
+                code: 4,
+                user: undefined
             }
-        });
-    });
+        } else { //Invalid password
+            return {
+                code: 2,
+                user: undefined
+            }
+        }
+    } catch(e) {
+        console.error(e);
+        return {
+            code: 0,
+            user: undefined
+        };
+    }
 }

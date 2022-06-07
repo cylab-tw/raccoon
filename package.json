@@ -98,6 +98,7 @@
     "object-hash": "^2.0.3",
     "passport": "^0.5.2",
     "passport-http-bearer": "^1.0.1",
+    "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
     "python-shell": "^2.0.0",
     "readable-stream-clone": "0.0.7",

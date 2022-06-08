@@ -1,28 +1,13 @@
 let loginApp = angular.module("loginApp", []);
 loginApp.controller("loginCtrl", function ($scope, $q,loginService) {
-    $scope.login = function () {
-        loginService.getToken($scope).then(function (res) {
-            let data = res.data;
-            if (data.token) {
-                localStorage.setItem('MicalaToken' , data.token);
-                loginService.login($scope).then(function (res) {
-                    location.reload();
-                });
-            } else {
-                let pError = document.getElementById('pError');
-                pError.style.display = 'block';
-                pError.innerText = data.message;
-            }
-        });
-    }
 
     $scope.localLogin = function () {
         loginService.localLogin($scope).then(function(res) {
             let data = res.data;
             if (res.status === 200) {
+                storeToken(data);
                 location.reload();
             } else {
-                console.log(res);
                 let pError = document.getElementById("pError");
                 pError.style.display = "block";
                 pError.innerText = data.message;
@@ -73,4 +58,8 @@ loginApp.service('loginService', function ($http) {
 });
 
 
-
+function storeToken(data) {
+    if (data["token"]) {
+        localStorage.setItem("raccoon_token", data["token"]);
+    }
+}

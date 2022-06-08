@@ -44,23 +44,26 @@ router.post("/login", function (req, res, next) {
     passport.authenticate(
         "local-login",
         {
-            session: true
+            session: loginPlugin.session
         },
         async function (err, user, info) {
             if (!user) {
                 return res.status(401).json({
                     message: info.message,
-                    code: 2
+                    code: 2,
+                    token: undefined
                 });
             }
             req.login(user, async (err) => {
                 if (err) return next(err);
 
-                await generateToken(req.user.user);
-                return res.json({
+                let token = await generateToken(req.user);
+                let resMessage = {
                     message: "authenticate successful",
                     code: 1
-                });
+                };
+                if (!pluginsConfig.login.session) _.set(resMessage, "token", token);
+                return res.json(resMessage);
             });
         }
     )(req, res, next);
@@ -71,22 +74,28 @@ router.post("/login/token", function(req, res, next) {
         session: false
     }, function(err, user) {
         if (err) return next(err);
-        if (user) return res.json({
-            message: "authenticate successful",
-            code: 1
-        });
-        return res.status(401).json({
+        if (!user) return res.status(401).json({
             message: "Invalid token",
             code: 2
+        });
+
+        return res.json({
+            message: "authenticate successful",
+            code: 1
         });
     })(req, res, next);
 });
 
-async function generateToken(username) {
+async function generateToken(user) {
     try {
-        let token = jwt.sign({ sub: username }, loginPlugin.jwt.secretOrKey, {
-            expiresIn: loginPlugin.jwt.expiresIn
-        });
+        let username = user.user;
+        let token = jwt.sign(
+            { sub: username, userType: user.userType },
+            loginPlugin.jwt.secretOrKey,
+            {
+                expiresIn: loginPlugin.jwt.expiresIn
+            }
+        );
         await mongoose.model("users").findOneAndUpdate(
             {
                 account: username
@@ -97,6 +106,7 @@ async function generateToken(username) {
                 }
             }
         );
+        return token;
     } catch (e) {
         throw e;
     }

@@ -17,6 +17,12 @@ module.exports = async function (req, res)
   delete queryParameter["_count"];
   delete queryParameter["_offset"];
   let queryResultCount =await mongodb.users.countDocuments(queryParameter);
+  queryParameter = {
+    ...queryParameter,
+    usertype: {
+      $ne: "admin"
+    }
+  }
   mongodb.users.find(queryParameter , filter)
   .skip(_offset)
   .limit(_count)

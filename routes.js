@@ -117,7 +117,7 @@ module.exports = function (app) {
 
   for (let pluginName in pluginsConfig) {
       let plugin = pluginsConfig[pluginName];
-      if(plugin.after && plugin.enable) require(`plugins/${pluginName}`)(app);
+      if(!plugin.before && plugin.enable) require(`plugins/${pluginName}`)(app);
   }
 };
 

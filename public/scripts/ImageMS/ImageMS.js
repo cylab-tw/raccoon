@@ -117,9 +117,13 @@ imageMSApp.controller("imageMSCtrl",
             }
             raccoon.blockUI();
             imageMSService.QIDO($scope).then(async function (res) {
+                if (res.status != 200) {
+                    alert("Unauthorized");
+                    raccoon.unblockUI();
+                    return;
+                }
                 $scope.dataList = res.data[0];
                 $scope.totalItem = res.data[1];
-                //console.log($scope.dataList);
                 if ($scope.dataList == null || $scope.dataList.length <= 0) {
                     alert("no data");
                     raccoon.unblockUI();
@@ -143,7 +147,6 @@ imageMSApp.controller("imageMSCtrl",
                         }
                     }
                 }
-                console.log($scope.dataList);
                 $scope.isOpenSeries = false;
                 $scope.isOpenInstance = false;
                 raccoon.unblockUI();
@@ -182,7 +185,8 @@ imageMSApp.controller("imageMSCtrl",
                 $(`#btnClosedeletion${iName}Modal`).click();
                 let resMessage = {
                     204: "delete success",
-                    500: "delete failure"
+                    500: "delete failure",
+                    401: "unauthorized"
                 };
                 if (res.status == 204) {
                     alert(resMessage[res.status]);
@@ -373,7 +377,7 @@ imageMSApp.service("imageMSService", function ($http) {
         downloadZip: downloadZip
     };
     function QIDO($scope) {
-        let request = $http({
+        let options = {
             method: "GET",
             url: "/api/dicom/qido/studies",
             params: {
@@ -385,27 +389,33 @@ imageMSApp.service("imageMSService", function ($http) {
                 limit: 10,
                 offset: ($scope.curStudyPage - 1) * 10
             }
-        });
+        };
+        addJWTinHeader(options);
+        let request = $http(options);
         return request.then(handleSuccess, handleError);
     }
 
     function deleteItem(url) {
-        let request = $http({
+        let options = {
             method: "delete",
             url: url
-        });
+        };
+        addJWTinHeader(options);
+        let request = $http(options);
         return request.then(handleSuccess, handleError);
     }
 
     function downloadZip(url) {
-        let request = $http({
+        let options = {
             method: "get",
             headers: {
                 accept: "application/zip"
             },
             url: url,
             responseType: "arraybuffer"
-        });
+        };
+        addJWTinHeader(options);
+        let request = $http(options);
         return request.then(handleSuccess, handleError);
     }
 

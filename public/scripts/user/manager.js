@@ -105,40 +105,42 @@ userManagerApp.service("UserManagerService", function ($http, $q, $location) {
     };
 
     function Load_Users($scope) {
-        let token = localStorage.getItem("raccoon_token");
-        var request = $http({
+        let options = {
             method: "get",
             url: "/api/users/",
             params: {
                 _count: $scope.resultPerPage,
                 _offset: $scope.resultPerPage * ($scope.resultCurPage - 1)
-            },
-            headers: {
-                Authorization: `Bearer ${token}`
             }
-        });
+        };
+        addJWTinHeader(options);
+        let request = $http(options);
         return request.then(handleSuccess, handleError);
     }
 
     function Approve_User(ID) {
-        var request = $http({
+        let options = {
             method: "put",
             url: "/api/users/" + ID,
             data: {
                 status: 1
             }
-        });
+        };
+        addJWTinHeader(options);
+        let request = $http(options);
         return request.then(handleSuccess, handleError);
     }
 
     function Block_User(ID) {
-        var request = $http({
+        let options = {
             method: "put",
             url: "/api/users/" + ID,
             data: {
                 status: 0
             }
-        });
+        };
+        addJWTinHeader(options);
+        let request = $http(options);
         return request.then(handleSuccess, handleError);
     }
 

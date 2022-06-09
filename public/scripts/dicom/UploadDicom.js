@@ -225,7 +225,11 @@ uploadApp.controller("UploadCtrl",
                 let xhr = new XMLHttpRequest();
                 xhr.open("POST", "/dicom-web/studies");
                 xhr.setRequestHeader("Accept", "*/*");
-
+                
+                if (envConfig.login.enable && envConfig.login.jwt) {
+                    let token = localStorage.getItem("raccoon_token");
+                    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+                }
                 xhr.onload = function () {
                     //上傳完成
                     file.ProgressRate = 0;

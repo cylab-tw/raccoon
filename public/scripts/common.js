@@ -1,3 +1,11 @@
+function addJWTinHeader(options) {
+    if (envConfig.login.enable && envConfig.login.jwt) {
+        let token = localStorage.getItem("raccoon_token");
+        options.headers = {
+            Authorization: `Bearer ${token}`
+        };
+    }
+}
 
 function check_Date(i_Date) {
     var flag = moment(i_Date, 'YYYYMMDD').isValid();

@@ -23,8 +23,9 @@ imageMSApp.config([
 
 imageMSApp.controller("imageMSCtrl", 
     function ($scope, $translate, imageMSService, commonService) {
+        if (envConfig.login.jwt) raccoon.tokenLogin();
+        
         $scope.loggedUser = "";
-        // commonService.user.init($scope);
         $scope.dataList = [];
         $scope.openSeries = { studyID: "", seriesList: [] };
         $scope.parentStudy = 0;
@@ -425,4 +426,6 @@ $(function () {
     $("#deletionInstanceModal").on("show.bs.modal", function () {
         $("#deleteInstanceConfirmInput").val("");
     });
+
+    raccoon.tokenLogin();
 });

@@ -33,7 +33,6 @@ userManagerApp.controller(
     ) {
         $scope.loggedUser = "";
         init();
-        commonService.user.init($scope);
         $scope.resultPerPage = 10;
         $scope.resultCurPage = 1;
         $scope.resultCount = 0;
@@ -42,9 +41,10 @@ userManagerApp.controller(
             $translate.use(lang);
         };
         function init() {
+            if (envConfig.login.jwt) raccoon.tokenLogin();
+
             UserManagerService.Load_Users($scope)
                 .then(function (res) {
-                    console.log(res.data);
                     if (res.data == "") {
                         $scope.DataListSize = 0;
                         $scope.DataList = [];
@@ -105,12 +105,16 @@ userManagerApp.service("UserManagerService", function ($http, $q, $location) {
     };
 
     function Load_Users($scope) {
+        let token = localStorage.getItem("raccoon_token");
         var request = $http({
             method: "get",
             url: "/api/users/",
             params: {
                 _count: $scope.resultPerPage,
                 _offset: $scope.resultPerPage * ($scope.resultCurPage - 1)
+            },
+            headers: {
+                Authorization: `Bearer ${token}`
             }
         });
         return request.then(handleSuccess, handleError);
@@ -147,7 +151,6 @@ userManagerApp.service("UserManagerService", function ($http, $q, $location) {
     }
 
     function handleSuccess(response) {
-        console.log(response);
         return response;
     }
 

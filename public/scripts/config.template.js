@@ -17,10 +17,10 @@ var envConfig = {
         api: "api/fhir",
         http: "http"
     },
-    /**
-     * *If true, get token from localStorage and add headers for every requests
-     */
-    jwt: false,
+    login: {
+        enable: true,
+        jwt: true //*If true, get token from localStorage and add headers for every requests
+    },
     backend: {
         baseUrl: "http://localhost:8081"
     }

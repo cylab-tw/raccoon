@@ -77,14 +77,14 @@
                         aria-haspopup="true"
                         aria-expanded="false"
                         ></a>
-                    <div class="dropdown-menu" aria-labelledby="dropdownLang">
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownLang">
                         <a class="dropdown-item" href="#" onclick="raccoon.setLang('en_US')">English</a>
                         <a class="dropdown-item" href="#" onclick="raccoon.setLang('zh_TW')">繁體中文</a>
                     </div>
                 </div>
             </li>
         </ul>
-                <% if (user) { %>
+        <% if (user) { %>
         <ul class="nav navbar-nav navbar-right">
             <li class="nav-item active">
                 <div class="dropdown show">
@@ -105,7 +105,7 @@
         </ul>
         <% } %> 
         <% if (!user) { %>
-        <ul class="nav navbar-nav navbar-right" ng-if="!$parent.loggedUser">
+        <ul class="nav navbar-nav navbar-right nav-login">
             <li class="nav-item active">
                 <a class="nav-link" href="/login">LOGIN</a>
             </li>
@@ -113,3 +113,14 @@
         <% } %>
     </div>
 </nav>
+<script src="/scripts/config.js"></script>
+<script>
+    if (envConfig) {
+         let navLogin = document.querySelector(".nav-login");
+        if (envConfig.login.enable) {
+            navLogin.style.display = "block";
+        } else {
+            navLogin.style.display = "none";
+        }
+    }
+</script>

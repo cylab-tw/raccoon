@@ -19,8 +19,7 @@ router.get("/dicom/UserManager", function (req, res) {
     if (userType != "admin") res.redirect("/");
     res.render("html/UserManager.html", {
         user: user,
-        isAdmin: userType,
-        loginEnable: loginPlugin.enable
+        isAdmin: userType
     });
 });
 
@@ -33,7 +32,6 @@ router.get("/login", function (req, res) {
         return res.render("html/login.html", {
             user: user,
             isAdmin: userType,
-            loginEnable: loginPlugin.enable,
             messages: req.flash("error")[0]
         });
     }

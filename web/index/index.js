@@ -9,8 +9,7 @@ router.get('/', function (req, res) {
     let userType = _.get(req, "user.userType");
     res.render("html/index.html", {
         user: user,
-        isAdmin: userType,
-        loginEnable: loginPlugin.enable
+        isAdmin: userType
     });
 });
 

@@ -31,6 +31,9 @@ uploadApp.controller("UploadCtrl",
         $scope.systemInfo = "";
         $scope.uploadResult = "";
 
+        if (envConfig.login.jwt) raccoon.tokenLogin();
+
+
         $scope.setLang = function(lang) {
             $translate.use(lang);
         }

@@ -13,7 +13,7 @@
 	</div>
 	<div class="container-fluid" style="margin-top: 70px;">
 		<div style="float:right;width:130px"><label translate="userMS.LIST_TOTAL_COUNT" translate-values="{
-			DataListSize: DataListSize-1
+			DataListSize: DataListSize
 		}"></label></div>
 		<div dw-loading="DataList" dw-loading-options="{text: '載入清單...'}"
 			class="scrollable-area table-responsive scrollColor" style="float:left;width:100%;margin:5px">
@@ -36,7 +36,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					<tr name="DataList" ng-repeat="DataItem in DataList | orderBy:orderColMtss:reverseList" ng-if="DataItem.account !=loggedUser">
+					<tr name="DataList" ng-repeat="DataItem in DataList | orderBy:orderColMtss:reverseList">
 						<td>{{($index)+"."}}</td>
 						<td>{{DataItem.account}}</td>
 						<td>{{DataItem.email}}</td>
@@ -69,6 +69,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-translate/2.19.0/angular-translate-loader-static-files/angular-translate-loader-static-files.js" integrity="sha512-zrJTB3VkziIateyhgLI0De3KBGrtK8uK9bR4K//Y0TxqcRXMZAP11m0U12YvGjAv+PlH4jPfVAZyYnao/ecnEQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="../scripts/external/angularjs/ui-bootstrap-tpls-3.0.6.min.js"></script>
 
+<script src="../scripts/config.js"></script>
 <script src="../scripts/common.js"></script>
 <script src="../scripts/ngCommon.js"></script>
 <script src="../scripts/user/manager.js"></script>

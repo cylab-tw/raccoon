@@ -19,22 +19,9 @@ loginApp.controller("loginCtrl", function ($scope, $q,loginService) {
 loginApp.service('loginService', function ($http) {
     return (
         {
-            getToken : getToken , 
             localLogin : localLogin
         }
     )
-    function getToken($scope) {
-        var request = $http(
-            {
-                method: "POST",
-                url: "/loging/getAccessToken",
-                params: {
-                    username : $scope.username  , 
-                    password : $scope.password
-                }
-            });
-        return (request.then(handleSuccess, handleError));
-    }
 
     function localLogin($scope) {
         let request = $http({

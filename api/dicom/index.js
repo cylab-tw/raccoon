@@ -4,9 +4,10 @@ const Joi = require('joi');
 const { isNumber } = require('lodash');
 const router = express.Router();
 const {validateParams} = require("../validator");
+const {isLogin,isOAuthLogin} = require('../Api_function');
 
 
-router.get('/wado/' , validateParams({
+router.get('/wado/' ,isOAuthLogin, validateParams({
     requestType : Joi.string().required().allow('WADO') ,
     studyUID : Joi.any().required() ,
     seriesUID : Joi.any().required() ,

@@ -3,6 +3,10 @@ const moment = require('moment');
 const path = require('path');
 const _ = require('lodash');
 const jwt = require('jsonwebtoken');
+var https = require('https');
+var http = require('https');
+const url = require('url')
+var querystring = require('querystring');
 
 module.exports.Refresh_Param = async function (queryParameter) {
     return new Promise((resolve) => {
@@ -46,37 +50,213 @@ module.exports.textSpaceToOrCond = async function (str) {
         return resolve(undefined);
     });
 }
-module.exports.isAdmin = async function (req, res, next) {
-    let isNormalLogin = req.isAuthenticated();
-    let isTokenLogin = await exports.isTokenLogin(req);
-    let isAuthenticated = (isNormalLogin || isTokenLogin);
-    if (isAuthenticated && req.user.userType.toLowerCase() == "admin") {
+
+// 透過OAuth驗證
+// 參考 https://blog.yorkxin.org/posts/oauth2-6-bearer-token.html
+// Server=https://github.com/pedroetb/node-oauth2-server-example
+module.exports.isOAuthLogin = async function (req,res,next)
+{
+    // 如果開啟 ENABLE_OAUTH_LOGIN
+    if (process.env.ENABLE_OAUTH_LOGIN == "true")
+    {
+        console.log(req.query);
+        if(req.headers["authorization"] != undefined || req.query.access_token != undefined)
+        {
+            console.log("OAUTH狀態:有access token");
+            let TokenVaild = await VerifyOAuthAccessToken(req);
+
+            // 把query放回去...
+            req.query = req.session.oriQuery;
+            if(TokenVaild == true)
+            {
+                return next();
+            }
+
+            // 否則就回401
+            res.status(401);
+            res.render(path.join(__dirname + "/../public/html/errors", "401.html"));
+        }
+        else if(req.query.code != undefined) // 如果有Auth code 就試試看跟OAuth請求token 
+        {
+            console.log("OAUTH狀態:有auth code");
+            console.log("auth code=" + req.query.code);
+            await RequestOAuthToken(req, res);
+        }
+        else // 如果連code都沒
+        {
+            console.log("OAUTH狀態:都沒有");
+            await RedirectToOAuthLoginPage(req,res);
+        }
+    }
+    else // 未開啟則next
+    {
         return next();
     }
-    res.status(403);
-    res.render(path.join(__dirname + "/../public/html/errors", "403.html"));
 }
 
-module.exports.isTokenLogin = async function (req, res, next) {
-    return new Promise((resolve) => {
-        let token = _.get(req.headers, "authorization");
-        if (!token) {
-            return resolve(false);
+async function VerifyOAuthAccessToken(req)
+{
+    // Token驗證是否通過
+    let TokenValidation = false;
+
+    // 預計傳給Oauth Server的http設定
+    const options = {
+        hostname:  process.env.OAUTHSERVER_HOST,
+        path:  process.env.OAUTHSERVER_PATH,
+        port: process.env.OAUTHSERVER_PORT,
+        headers: {
+            Authorization: 'none'
         }
-        token = token.split(' ')[1];
-        jwt.verify(token, "MicalaSecretSalt", function (err, decoded) {
-            if (err) {
-                return resolve(false);
-            }
-            mongodb.users.findOne({ token: token }, function (err, user) {
-                if (err || !user) {
-                    return resolve(false);
-                }
-                req.user = user.account;
-                return resolve(true);
+    }
+
+    console.log(req.body);
+
+    // 檢查 token 是否 放在 HTTP Header 裡面的 authorization 欄位
+    if(req.headers["authorization"] != undefined)
+    {
+        options.headers["Authorization"] = req.headers["authorization"];
+    }
+    else if(req.query.access_token != undefined)
+    {
+        options.headers["Authorization"] = "Bearer " + req.query.access_token;
+    }
+    console.log(req.query);
+
+    // 沒有放就是沒有token
+    console.log("token=" + options.headers["Authorization"]);
+
+    // 如果有token 則將從headers拿到的token丟給oauth server做驗證
+    if(options.headers["Authorization"] != "none")
+    {
+        // 等待Oauth Server 回復結果
+        await new Promise((resolve) => 
+        {
+            https.get(options, (response) => 
+            {
+                var result = ''
+
+                // 資料傳輸中
+                response.on('data', function (chunk) 
+                {
+                    result += chunk;
+                });
+
+                // 資料傳輸結束
+                response.on('end', function () 
+                {
+                    // 傳回的結果如果等於200代表成功 其他則為失敗
+                    if(response.statusCode == 200)
+                    {
+                        TokenValidation = true;
+                    }
+                    console.log(result);
+                    // 結束promise的等待
+                    resolve();
+                });
             });
         })
-    })
+    }
+
+    // 如果驗證通過就繼續
+    return TokenValidation;
+}
+
+async function RequestOAuthToken(req, res)
+{
+    // 重新導回的網址
+    let theUrl = req.originalUrl;
+    console.log("原網址:"+ req.originalUrl);
+
+    // 移除掉OAuth給我們的2個參數
+    theUrl = removeURLParameter(removeURLParameter(theUrl,"session_state"),"code");
+
+    let post_data = querystring.stringify({
+        client_id: process.env.OAUTHSERVER_CLIENT_ID,
+        grant_type: 'authorization_code',
+        method: 'POST',
+        code: req.query.code,
+        session_state:req.query.session_state,
+        redirect_uri: `${process.env.OAUTHSERVER_HTTP}://${process.env.SERVER_HOST}${theUrl}`
+    });
+
+    const token_options = {
+        hostname:  process.env.OAUTHSERVER_HOST,
+        path: process.env.OAUTHSERVER_TOKEN_PATH + `?session_state=${req.query.session_state}&code=${req.query.code}`,
+        port: process.env.OAUTHSERVER_PORT,
+        method: 'POST',
+        headers:
+        {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Length': Buffer.byteLength(post_data),
+        }
+    }
+    await new Promise((resolve) => 
+    {
+        let post_req = https.request(token_options, (response) => 
+        {
+            var result = ''
+
+            // 資料傳輸中
+            response.on('data', function (chunk) 
+            {
+                result += chunk;
+            });
+
+            // 資料傳輸結束
+            response.on('end', function () 
+            {
+                //有取得到token就重新來一次
+                console.log(JSON.parse(result));
+                let resultObj = JSON.parse(result);
+                if(resultObj["access_token"] != undefined)
+                {
+                    res.set({'authorization':`Bearer ${resultObj["access_token"]}`});
+                    //console.log("利用Auth Code取得了Token=" + resultObj["access_token"]); 
+                    //console.log("導回網址="+ theUrl + `?access_token=${resultObj["access_token"]}`);
+                    res.redirect(theUrl+ `?access_token=${resultObj["access_token"]}`);
+                }
+
+                // 結束promise的等待
+                resolve();
+            });
+        });
+
+        // post the data
+        post_req.write(post_data);
+        post_req.end();
+    });
+}
+
+async function RedirectToOAuthLoginPage(req, res)
+{
+    // 可能keycloak有點bug，會遺失掉放在網址的參數，我們這邊從先把query的Parameters存在session...。
+    var _theUrl = req.originalUrl.split('?')[0];
+    console.log("OAuth2轉址位址:"+ `${process.env.OAUTHSERVER_HTTP}://${process.env.SERVER_HOST}${_theUrl}`);
+    req.session.oriQuery = req.query;
+
+    // 導向至登入畫面...
+    res.redirect(`${process.env.OAUTHSERVER_HTTP}://${process.env.OAUTHSERVER_HOST}/${process.env.OAUTHSERVER_AUTH_PATH}?client_id=${process.env.OAUTHSERVER_CLIENT_ID}&grant_type=authorization_code&response_type=code&redirect_uri=${process.env.OAUTHSERVER_HTTP}://${process.env.SERVER_HOST}${_theUrl}`);
+}
+
+function removeURLParameter(url, parameter) {
+    //prefer to use l.search if you have a location/link object
+    var urlparts = url.split('?');   
+    if (urlparts.length >= 2) {
+
+        var prefix = encodeURIComponent(parameter) + '=';
+        var pars = urlparts[1].split(/[&;]/g);
+
+        //reverse iteration as may be destructive
+        for (var i = pars.length; i-- > 0;) {    
+            //idiom for string.startsWith
+            if (pars[i].lastIndexOf(prefix, 0) !== -1) {  
+                pars.splice(i, 1);
+            }
+        }
+
+        return urlparts[0] + (pars.length > 0 ? '?' + pars.join('&') : '');
+    }
+    return url;
 }
 //#endregion
 

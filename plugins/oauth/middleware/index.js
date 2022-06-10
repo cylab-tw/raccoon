@@ -39,7 +39,7 @@ module.exports.isOAuthLogin = async function (req, res, next) {
             return res
                 .status(401)
                 .render(
-                    path.join(__dirname + "/../public/html/errors", "401.html")
+                    "html/errors/401.html"
                 );
         } else if (req.query.code != undefined) {
             // 如果有Auth code 就試試看跟OAuth請求token

@@ -7,18 +7,18 @@ const _ = require('lodash');
 
 
 //#region wado-rs
-router.get('/studies/:studyID' ,isOAuthLogin ,require('./controller/wado-rs'));
-router.get('/studies/:studyID/series/:seriesID' ,isOAuthLogin ,require('./controller/wado-rs'));
-router.get('/studies/:studyID/series/:seriesID/instances/:instanceID' ,isOAuthLogin ,require('./controller/wado-rs'));
+router.get('/studies/:studyID', require('./controller/wado-rs'));
+router.get('/studies/:studyID/series/:seriesID', require('./controller/wado-rs'));
+router.get('/studies/:studyID/series/:seriesID/instances/:instanceID', require('./controller/wado-rs'));
 //#endregion
 
 //#region wado-rs-bulkdata
-router.get('/studies/:studyUID/series/:seriesUID/instances/:instanceUID/bulkdata/:objKey' ,isOAuthLogin ,require('./controller/wado-rs-instances-bulkdata'));
+router.get('/studies/:studyUID/series/:seriesUID/instances/:instanceUID/bulkdata/:objKey', require('./controller/wado-rs-instances-bulkdata'));
 
 //#endregion
 
 //#region frameNumber
-router.get('/studies/:studyID/series/:seriesID/instances/:instanceID/frames/:frameList' ,isOAuthLogin ,require('./controller/wado-rs-framenumber'));
+router.get('/studies/:studyID/series/:seriesID/instances/:instanceID/frames/:frameList', require('./controller/wado-rs-framenumber'));
 
 router.get('/studies/:studyID/series/:seriesID/instances/:instanceID/frames/:frameNumber/rendered' ,validateParams({
     frameNumber : Joi.number().integer().min(1)
@@ -54,7 +54,7 @@ router.get('/studies/:studyID/series/:seriesID/instances/:instanceID/frames/:fra
         } 
         return helper.message("invalid viewport parameter, viewport=vw,vh or viewport=vw,vh,sx,sy,sw,sh");
     }),
-}, "query", { allowUnknown: false }) ,isOAuthLogin  , require('./controller/wado-rs-framenumber-rendered'));
+}, "query", { allowUnknown: false }), require('./controller/wado-rs-framenumber-rendered'));
 //#endregion
 
 //#region metadata

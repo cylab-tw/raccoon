@@ -32,10 +32,9 @@ CONDA_PATH="path/conda.exe"
 CONDA_GDCM_ENV_NAME ="gdcm"
 
 USE_DCM2JPEG_PYTHONAPI=true
+DCM2JPEG_PYTHONAPI_HOST="127.0.0.1"
 DCM2JPEG_PYTHONAPI_PORT=5000
-
-ENABLE_LOGIN_ACCESS=false
-`
+`;
 async function main() {
     if (!fs.existsSync('./temp')) {
         mkdirp.sync('./temp' , 0775);
@@ -117,7 +116,6 @@ CONDA_GDCM_ENV_NAME="gdcm"
 USE_DCM2JPEG_PYTHONAPI=true
 DCM2JPEG_PYTHONAPI_PORT=5000
 
-ENABLE_LOGIN_ACCESS=true
 `
                         return resolve(true);
                     }

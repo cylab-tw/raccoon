@@ -2,6 +2,48 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0](https://github.com/cylab-tw/raccoon/compare/v1.3.0...v1.4.0) (2022-06-15)
+
+
+### Features
+
+* add jwt and refactor local-login logic ([a4c0130](https://github.com/cylab-tw/raccoon/commit/a4c01301ab883b21d17e74a93f7eaafed081f2c8))
+* add jwt login mechanism ([848c613](https://github.com/cylab-tw/raccoon/commit/848c61388df8c9d2775e35dd51a97b9241212d4b))
+* add manual dcm2jpeg pythonapi host config support ([b925e4d](https://github.com/cylab-tw/raccoon/commit/b925e4da3d385007b7979be6048d95784e9c4050))
+* add token in header when jwt enable ([92a9eb8](https://github.com/cylab-tw/raccoon/commit/92a9eb8a79bc2130ab7c17c00723296879bf4359))
+* change basic login mechanism to plugin ([37ccd2c](https://github.com/cylab-tw/raccoon/commit/37ccd2cfe44d516ce0d92297cc9689eb726f7de2))
+* change front-end login method ([338f93c](https://github.com/cylab-tw/raccoon/commit/338f93c36215f152f67296a2d9d3292e07643f5a))
+* change login route, refactor plugin config ([e98220d](https://github.com/cylab-tw/raccoon/commit/e98220d0b087fe0581d13f2fb59a136c751bc7c5))
+* change nav layout, add i18n of every pages ([e3ed5eb](https://github.com/cylab-tw/raccoon/commit/e3ed5ebb050cf39e8ab05cd903c8bdd79e45afe7))
+* front-end check the login plugin is enable ([2f961ba](https://github.com/cylab-tw/raccoon/commit/2f961ba85b235b8f2f80fd99978a1d4053ab6a87))
+* move `login` route to plugin route of login ([d13b83d](https://github.com/cylab-tw/raccoon/commit/d13b83dcf36c47ae47f3d1d489f504ad2faf2045))
+* return users that user type is not admin ([5cc8696](https://github.com/cylab-tw/raccoon/commit/5cc8696edfa14b46c652a3cd02e663594f0afc02))
+* separate oauth from main code ([34221a6](https://github.com/cylab-tw/raccoon/commit/34221a6aec3d1cd771b73830f3e2dfe545184f0b))
+* use `before:false` instead of after ([79f2a98](https://github.com/cylab-tw/raccoon/commit/79f2a9841f00107c889e529496a087288c7b2509))
+
+
+### Bug Fixes
+
+* add MongoDB 5.x support ([d447a0e](https://github.com/cylab-tw/raccoon/commit/d447a0ed7e1b058af4c3b5a3da35ae6cb4304a14))
+* can not get correct number of frames ([7f44498](https://github.com/cylab-tw/raccoon/commit/7f4449890cd8cdc4ec534c88427de38c8f4b0197))
+* can not get username and update user ([198a599](https://github.com/cylab-tw/raccoon/commit/198a5998dcbc9b9506c3421b31910f11e5bce1fc))
+* incorrect path of 401.html ([7b2df5f](https://github.com/cylab-tw/raccoon/commit/7b2df5f86dd49aeed15d0583036f5244718d24b2))
+* incorrect query of findOne in delete user ([5d4ab36](https://github.com/cylab-tw/raccoon/commit/5d4ab364b62f743af23cc32615223f5b6330aa4d))
+* increase request body size limit ([41f1804](https://github.com/cylab-tw/raccoon/commit/41f1804709bf9db796a346812f177b1aebe60d92))
+* limit of json body not working ([051d129](https://github.com/cylab-tw/raccoon/commit/051d129f07710eefe1c4327ce4c58ca9816b5281))
+* mongoose authSource param not working ([708b00a](https://github.com/cylab-tw/raccoon/commit/708b00ad7afe506181119a25820299b40712b309))
+* mongoose duplicate query execution ([3bae3fb](https://github.com/cylab-tw/raccoon/commit/3bae3fbf108de34f0bb0e48ca9c38d2383ce0352))
+* not allow apikey, user-agent headers ([7a13042](https://github.com/cylab-tw/raccoon/commit/7a13042e452efd80ae4731f4e781d351d61a82b0))
+* not redirect to login page after sign up ([4772be3](https://github.com/cylab-tw/raccoon/commit/4772be3d0a80b9f73216944f98d988ee1ad81255))
+* redirect to logout when client error ([c191fdf](https://github.com/cylab-tw/raccoon/commit/c191fdffee164694efcd95b5df10c5d7576bc220))
+* redundant await ([349bc85](https://github.com/cylab-tw/raccoon/commit/349bc8526570065add507fb24bc55c93d0f5a577))
+* typo ([0186b38](https://github.com/cylab-tw/raccoon/commit/0186b38c4a1a0e91cadb19da0425a89f02ff8abb))
+
+
+### Build
+
+* update dotenv of build script ([4838ad7](https://github.com/cylab-tw/raccoon/commit/4838ad7cadbe502ea0a457122a875f038b37a902))
+
 ## [1.3.0](https://github.com/cylab-tw/raccoon/compare/v1.2.1...v1.3.0) (2022-05-22)
 
 

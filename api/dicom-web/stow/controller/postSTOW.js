@@ -211,8 +211,8 @@ async function convertDICOMFileToJSONModule(filename) {
         started_date =
             dcm2jsonV8.dcmString(dicomJson, "00080020") +
             dcm2jsonV8.dcmString(dicomJson, "00080030");
-        if (!started_date) started_date = Date.now();
-        started_date = moment(started_date, "YYYYMMDDhhmmss").toISOString();
+        if (!started_date) started_date = moment().toISOString();
+        else started_date = moment(started_date, "YYYYMMDDhhmmss").toISOString();
         let started_date_split = started_date.split("-");
         let year = started_date_split[0];
         let month = started_date_split[1];

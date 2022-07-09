@@ -2,7 +2,7 @@ const path = require("path");
 const fs = require("fs");
 const request = require("request");
 const _ = require("lodash");
-const { performance } = require("node:perf_hooks");
+const { performance } = require("perf_hooks");
 
 const FHIR_Imagingstudy_model = require("../../../../models/FHIR/DICOM2FHIRImagingStudy");
 const {

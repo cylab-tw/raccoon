@@ -1,5 +1,5 @@
 let imageMSApp = angular.module("imageMSApp", [
-    // "ui.bootstrap",
+    "ui.bootstrap",
     "commonApp",
     "pascalprecht.translate",
     "ngCookies",
@@ -21,10 +21,11 @@ imageMSApp.config([
     }
 ]);
 
-imageMSApp.controller("imageMSCtrl", 
+imageMSApp.controller(
+    "imageMSCtrl",
     function ($scope, $translate, imageMSService, commonService) {
         if (envConfig.login.jwt) raccoon.tokenLogin();
-        
+
         $scope.loggedUser = "";
         $scope.dataList = [];
         $scope.openSeries = { studyID: "", seriesList: [] };
@@ -436,6 +437,4 @@ $(function () {
     $("#deletionInstanceModal").on("show.bs.modal", function () {
         $("#deleteInstanceConfirmInput").val("");
     });
-
-    raccoon.tokenLogin();
 });

@@ -21,16 +21,15 @@ const oauthPlugin = pluginsConfig.oauth;
 module.exports.isOAuthLogin = async function (req, res, next) {
     // 如果開啟 ENABLE_OAUTH_LOGIN
     if (oauthPlugin.enable) {
-        console.log(req.query);
         if (
             req.headers["authorization"] != undefined ||
             req.query.access_token != undefined
         ) {
-            console.log("OAUTH狀態:有access token");
+            console.log("OAUTH status: has access token");
             let isTokenValid = await verifyOAuthAccessToken(req);
 
             // 把query放回去...
-            req.query = req.session.oriQuery;
+            if (req.session.oriQuery) req.query = req.session.oriQuery;
             if (isTokenValid == true) {
                 return next();
             }
@@ -43,13 +42,13 @@ module.exports.isOAuthLogin = async function (req, res, next) {
                 );
         } else if (req.query.code != undefined) {
             // 如果有Auth code 就試試看跟OAuth請求token
-            console.log("OAUTH狀態:有auth code");
+            console.log("OAUTH status: has auth code");
             console.log("auth code=" + req.query.code);
             await requestOAuthToken(req, res);
             return;
         } // 如果連code都沒
         else {
-            console.log("OAUTH狀態:都沒有");
+            console.log("OAUTH status: missing token nad auth code");
             await redirectToOAuthLoginPage(req, res);
             return;
         }
@@ -73,7 +72,6 @@ async function verifyOAuthAccessToken(req) {
         }
     };
 
-    console.log(req.body);
 
     // 檢查 token 是否 放在 HTTP Header 裡面的 authorization 欄位
     if (req.headers["authorization"] != undefined) {
@@ -81,10 +79,7 @@ async function verifyOAuthAccessToken(req) {
     } else if (req.query.access_token != undefined) {
         options.headers["Authorization"] = "Bearer " + req.query.access_token;
     }
-    console.log(req.query);
 
-    // 沒有放就是沒有token
-    console.log("token=" + options.headers["Authorization"]);
 
     // 如果有token 則將從headers拿到的token丟給oauth server做驗證
     if (options.headers["Authorization"] != "none") {
@@ -104,7 +99,6 @@ async function verifyOAuthAccessToken(req) {
                     if (response.statusCode == 200) {
                         tokenValidation = true;
                     }
-                    console.log(result);
                     // 結束promise的等待
                     resolve();
                 });

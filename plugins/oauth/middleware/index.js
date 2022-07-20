@@ -98,6 +98,10 @@ async function verifyOAuthAccessToken(req) {
                     // 傳回的結果如果等於200代表成功 其他則為失敗
                     if (response.statusCode == 200) {
                         tokenValidation = true;
+
+                        // put user email in the request header
+                        let result_data = JSON.parse(result);
+                        req.headers["email"] = result_data.email;
                     }
                     // 結束promise的等待
                     resolve();

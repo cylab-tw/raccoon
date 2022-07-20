@@ -90,6 +90,7 @@
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",
     "log4js": "^6.4.4",
+    "md5": "^2.3.0",
     "moment": "^2.24.0",
     "mongoose": "^6.3.4",
     "mongoose-schema-jsonschema": "^2.0.2",

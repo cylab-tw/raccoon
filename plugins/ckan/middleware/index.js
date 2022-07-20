@@ -29,13 +29,14 @@ module.exports.ckanCollaboratorCheck = async function (req, res, next) {
             // find out if input email is in ckan user list.
             for(let i = 0 ; i < ckan_userlist.length; i++){
                 // if find user in ckan
-                if(ckan_userlist[i].email == i_emailhash){
+                if(ckan_userlist[i].email === i_emailhash){
+                    console.log(ckan_userlist[i]);
                     // find out if user's package collaborator list has input package id
                     let user_packages = await GetCkanUserPackageList(req.headers["ckan_token"], ckan_userlist[i].name);
                     console.log(`user_packages=${user_packages}`);
-                    for(let i = 0 ; i < user_packages.length; i++){
+                    for(let j = 0 ; j < user_packages.length; j++){
                         console.log(`user [${ckan_userlist[i].name}] is in package [${req.headers["package_id"]}]`);
-                        if(user_packages[i].package_id == req.headers["package_id"]){
+                        if(user_packages[j].package_id == req.headers["package_id"]){
                             return next();
                         }
                     }

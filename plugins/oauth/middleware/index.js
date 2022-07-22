@@ -48,7 +48,7 @@ module.exports.isOAuthLogin = async function (req, res, next) {
             return;
         } // 如果連code都沒
         else {
-            console.log("OAUTH status: missing token nad auth code");
+            console.log("OAUTH status: missing token and auth code");
             await redirectToOAuthLoginPage(req, res);
             return;
         }

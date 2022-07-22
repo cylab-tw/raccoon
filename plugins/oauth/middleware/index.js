@@ -100,8 +100,8 @@ async function verifyOAuthAccessToken(req) {
                         tokenValidation = true;
 
                         // put user email in the request header
-                        let result_data = JSON.parse(result);
-                        req.headers["email"] = result_data.email;
+                        let resultData = JSON.parse(result);
+                        req.headers["email"] = resultData.email;
                     }
                     // 結束promise的等待
                     resolve();
@@ -126,7 +126,7 @@ async function requestOAuthToken(req, res) {
     );
 
     let post_data = querystring.stringify({
-        client_id: oauthPlugin.client_id,
+        client_id: oauthPlugin.clientId,
         grant_type: "authorization_code",
         method: "POST",
         code: req.query.code,
@@ -137,7 +137,7 @@ async function requestOAuthToken(req, res) {
     const token_options = {
         hostname: oauthPlugin.host,
         path:
-            oauthPlugin.token_path +
+            oauthPlugin.tokenPath +
             `?session_state=${req.query.session_state}&code=${req.query.code}`,
         port: oauthPlugin.port,
         method: "POST",
@@ -147,7 +147,7 @@ async function requestOAuthToken(req, res) {
         }
     };
     await new Promise((resolve) => {
-        let post_req = https.request(token_options, (response) => {
+        let postReq = https.request(token_options, (response) => {
             let result = "";
 
             // 資料傳輸中
@@ -177,8 +177,8 @@ async function requestOAuthToken(req, res) {
         });
 
         // post the data
-        post_req.write(post_data);
-        post_req.end();
+        postReq.write(post_data);
+        postReq.end();
     });
 }
 
@@ -193,7 +193,7 @@ async function redirectToOAuthLoginPage(req, res) {
 
     // 導向至登入畫面...
     res.redirect(
-        `${oauthPlugin.http}://${oauthPlugin.host}/${oauthPlugin.auth_path}?client_id=${oauthPlugin.client_id}&grant_type=authorization_code&response_type=code&redirect_uri=${oauthPlugin.http}://${process.env.SERVER_HOST}${_theUrl}`
+        `${oauthPlugin.http}://${oauthPlugin.host}/${oauthPlugin.authPath}?client_id=${oauthPlugin.client_id}&grant_type=authorization_code&response_type=code&redirect_uri=${oauthPlugin.http}://${process.env.SERVER_HOST}${_theUrl}`
     );
 }
 

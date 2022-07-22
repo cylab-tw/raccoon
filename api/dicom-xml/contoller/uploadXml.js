@@ -1,8 +1,8 @@
-const Busboy = require('busboy');
+const Busboy = require('busboy'); // eslint-disable-line @typescript-eslint/naming-convention
 const path = require('path');
 const fs = require('fs');
 const { xml2dcm } = require('../../../models/dcmtk');
-const ReadableStreamClone = require("readable-stream-clone");
+const ReadableStreamClone = require("readable-stream-clone"); // eslint-disable-line @typescript-eslint/naming-convention
 
 
 const uploadFile = (req) => {

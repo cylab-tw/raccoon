@@ -1,11 +1,11 @@
 const {dicomjson} = require('../../../models/FHIR/dicom-tag');
-const {QIDORetAtt} = require('../../../models/FHIR/dicom-tag');
+const {qidoRetAtt} = require('../../../models/FHIR/dicom-tag');
 const mongoFunc = require('../../../models/mongodb/func');
-const {ToRegex} = require('../../Api_function');
+const {toRegex} = require('../../Api_function');
 const {mongoDateQuery} = require('../../../models/mongodb/func');
-const {Refresh_Param} = require('../../Api_function');
+const {refreshParam} = require('../../Api_function');
 const {textSpaceToOrCond} = require('../../Api_function');
-const _ =require('lodash');
+const _ =require('lodash'); // eslint-disable-line @typescript-eslint/naming-convention
 const moment = require('moment');
 const {qidorsFunc} = require('./qido-rs');
 const { setRetrieveURL } = require('../../../models/DICOMWeb');
@@ -28,7 +28,7 @@ module.exports = async function (req , res) {
     }
     //將搜尋欄位改成全是dicomTag代碼
     let newQS = await qidorsFunc.qsDICOMTag(qs);
-    newQS = await Refresh_Param(newQS);
+    newQS = await refreshParam(newQS);
     let keys = Object.keys(req.params);
     let paramsStr = "";
     for (let i = 0 ; i < keys.length ; i++) {

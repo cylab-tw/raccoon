@@ -19,20 +19,20 @@ module.exports = async function (req, res) {
             return res.status(500).send(handleError.exception(errorMessage.message));
         }
     };
-    let Insert_Data = req.body;
-    let [status , doc]  = await insertEndpoint(Insert_Data);
+    let insertData = req.body;
+    let [status , doc]  = await insertEndpoint(insertData);
     return resFunc[status](doc);
 };
 
-async function insertEndpoint(req) {
+async function insertEndpoint(insertData) {
     return new Promise(async (resolve, reject) => {
-        Insert_Data.id = hash(Insert_Data);
-        let newEndpoint = new mongodb.endpoint(Insert_Data);
+        insertData.id = hash(insertData);
+        let newEndpoint = new mongodb.endpoint(insertData);
         newEndpoint.save(function (err, doc) {
             if (err) {
-                errorMessage.code  = 500;
+                errorMessage.code = 500;
                 errorMessage.message = err;
-                return resolve([false ,err]);
+                return resolve([false, err]);
             }
             return resolve([true, doc.getFHIRField()]);
         });

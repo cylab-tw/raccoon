@@ -6234,7 +6234,7 @@ module.exports.dicomjson = {
     }
 };
 
-module.exports.QIDORetAtt = {
+module.exports.qidoRetAtt = {
     study: {
         "00080005": {
             vr: "CS",

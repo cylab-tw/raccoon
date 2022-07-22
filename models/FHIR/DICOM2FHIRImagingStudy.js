@@ -1,18 +1,18 @@
 const fs = require('fs');
 const dicomParser = require('dicom-parser');
-const Moment = require('moment');
+const moment = require('moment');
 const path = require('path');
-const Fhir = require('fhir').Fhir;
+const Fhir = require('fhir').Fhir; // eslint-disable-line @typescript-eslint/naming-convention
 const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const fileFunc = require('../file/file_Func');
 
 
-let ImagingStudy_List = [];
+let imagingStudyList = [];
 class ToJsonParent {
     constructor() {
 
     }
-    ToJson() {
+    toJson() {
         return Object.getOwnPropertyNames(this).reduce((a, b) => {
             a[b] = this[b];
             return a;
@@ -37,7 +37,7 @@ class ImagingStudy extends ToJsonParent {
         this.series = []; //0..*
     }
 }
-class ImagingStudy_Series extends ToJsonParent {
+class ImagingStudySeries extends ToJsonParent {
     constructor() {
         super();
         this.uid = ""; //1..1 
@@ -54,7 +54,7 @@ class ImagingStudy_Series extends ToJsonParent {
         this.instance = []; //0..* 
     }
 }
-class ImagingStudy_Series_Instance extends ToJsonParent {
+class ImagingStudySeriesInstance extends ToJsonParent {
     constructor() {
         super();
         this.uid = ""; //1..1 
@@ -79,7 +79,7 @@ class Identifier {
         this.type = new CodeableConcept();
         this.system = undefined;
         this.value = undefined;
-        this.period = new period();
+        this.Period = new Period();
     }
 }
 class Reference {
@@ -98,7 +98,7 @@ class CodeableConcept {
         this.text = undefined;
     }
 }
-class period {
+class Period {
     constructor() {
         this.start = undefined;
         this.end = undefined;
@@ -115,16 +115,20 @@ module.exports.getObjectBelong = async function (iArr, uid, element) {
         return resolve(mergedArray);
     });
 };
-async function Func_DicomParser(filename) {
+async function funcDicomParser(filename) {
     return new Promise(async (resolve) => {
         try {
             let dataset = dicomParser.parseDicom(filename);
             let studyobj = new ImagingStudy();
             let studyInstanceUID = dataset.string('x0020000d');
-            let ANandIssuer = await Get_TwoTag(dataset, 'x00080050', 'x00080051');
+            let anAndIssuer = await getTwoTagDataset(
+                dataset,
+                "x00080050",
+                "x00080051"
+            ); // Accession Number and Issuer
             studyobj.id = studyInstanceUID;
-            let identifiers = [studyInstanceUID, ANandIssuer, dataset.string('x00200010')];
-            studyobj.identifier = await Get_ImagingStudy_identifiers(identifiers);
+            let identifiers = [studyInstanceUID, anAndIssuer, dataset.string('x00200010')];
+            studyobj.identifier = await getImagingStudyIdentifiers(identifiers);
             studyobj.modality = dataset.string('x00080061');
             let patientId = dataset.string('x00100020');
             if (patientId) {
@@ -139,30 +143,30 @@ async function Func_DicomParser(filename) {
                 studyobj.subject.identifier.value = "unknown";
             }
 
-            let imaging_started = dataset.string('x00080020') + dataset.string('x00080030');
-            const date = Moment(imaging_started, "YYYYMMDDhhmmss").toISOString();
+            let imagingStarted = dataset.string('x00080020') + dataset.string('x00080030');
+            const date = moment(imagingStarted, "YYYYMMDDhhmmss").toISOString();
             studyobj.started = date;
             studyobj.numberOfSeries = dataset.string('x00201206');
             studyobj.numberOfInstances = dataset.string('x00201208');
             studyobj.description = dataset.string('x00081030');
-            let study_series_obj = new ImagingStudy_Series();
-            study_series_obj.uid = dataset.string('x0020000e');
-            study_series_obj.number = dataset.intString('x00200011');
-            study_series_obj.modality.code = dataset.string('x00080060');
-            study_series_obj.description = dataset.string('x0008103e');
-            study_series_obj.numberOfInstances = dataset.intString('x00201209');
-            study_series_obj.bodySite.display = dataset.string('x00180015');
-            let series_started = dataset.string('x00080021') + dataset.string('x00080031');
-            const series_date = Moment(series_started, "YYYYMMDDhhmmss").toDate();
-            study_series_obj.started = series_date != null ? series_date : undefined;
-            study_series_obj.performer = dataset.string('x00081050') || dataset.string('x00081052') || dataset.string('x00081070') || dataset.string('x00081072');
-            let study_series_insatance_obj = new ImagingStudy_Series_Instance();
-            study_series_insatance_obj.uid = dataset.string('x00080018');
-            study_series_insatance_obj.sopClass.system = "urn:ietf:rfc:3986";
-            study_series_insatance_obj.sopClass.code = "urn:oid:" + dataset.string('x00080016');
-            study_series_insatance_obj.number = dataset.intString('x00200013');
-            study_series_insatance_obj.title = dataset.string('x00080008') || dataset.string('x00070080') || ((dataset.string('x0040a043') != undefined) ? dataset.string('x0040a043') + dataset.string('x00080104') : undefined) || dataset.string('x00420010');
-            let imagingStudyJson = await CombineImagingStudyClass(studyobj, study_series_obj, study_series_insatance_obj);
+            let studySeriesObj = new ImagingStudySeries();
+            studySeriesObj.uid = dataset.string('x0020000e');
+            studySeriesObj.number = dataset.intString('x00200011');
+            studySeriesObj.modality.code = dataset.string('x00080060');
+            studySeriesObj.description = dataset.string('x0008103e');
+            studySeriesObj.numberOfInstances = dataset.intString('x00201209');
+            studySeriesObj.bodySite.display = dataset.string('x00180015');
+            let seriesStarted = dataset.string('x00080021') + dataset.string('x00080031');
+            const seriesDate = moment(seriesStarted, "YYYYMMDDhhmmss").toDate();
+            studySeriesObj.started = seriesDate != null ? seriesDate : undefined;
+            studySeriesObj.performer = dataset.string('x00081050') || dataset.string('x00081052') || dataset.string('x00081070') || dataset.string('x00081072');
+            let studySeriesInstanceObj = new ImagingStudySeriesInstance();
+            studySeriesInstanceObj.uid = dataset.string('x00080018');
+            studySeriesInstanceObj.sopClass.system = "urn:ietf:rfc:3986";
+            studySeriesInstanceObj.sopClass.code = "urn:oid:" + dataset.string('x00080016');
+            studySeriesInstanceObj.number = dataset.intString('x00200013');
+            studySeriesInstanceObj.title = dataset.string('x00080008') || dataset.string('x00070080') || ((dataset.string('x0040a043') != undefined) ? dataset.string('x0040a043') + dataset.string('x00080104') : undefined) || dataset.string('x00420010');
+            let imagingStudyJson = await combineImagingStudyClass(studyobj, studySeriesObj, studySeriesInstanceObj);
             resolve(imagingStudyJson);
         }
         catch (ex) {
@@ -172,10 +176,10 @@ async function Func_DicomParser(filename) {
     });
 }
 
-async function Get_TwoTag(dataset, I_Tag1, I_Tag2) {
+async function getTwoTagDataset(dataset, iTag1, iTag2) {
     return new Promise((resolve) => {
-        let str1 = dataset.string(I_Tag1);
-        let str2 = dataset.string(I_Tag2);
+        let str1 = dataset.string(iTag1);
+        let str2 = dataset.string(iTag2);
         let result = "";
         if (str1 != undefined && str2 != undefined) {
             result = str1 + str2;
@@ -194,28 +198,28 @@ async function Get_TwoTag(dataset, I_Tag1, I_Tag2) {
 }
 
 
-function DCMstring(json, tag) {
+function dcmString(json, tag) {
     let data = _.get(json, tag);
     //console.log("d" , data);
     let value = _.get(data, "Value.0");
     return value;
 }
-module.exports.DCMstring = DCMstring;
+module.exports.dcmString = dcmString;
 async function getFHIRUseJson(json) {
     return new Promise(async (resolve) => {
         try {
             let studyobj = new ImagingStudy();
-            let studyInstanceUID = DCMstring(json, '0020000D');
-            let ANandIssuer = await getTwoTag(json, '00080050', '00080051');
+            let studyInstanceUID = dcmString(json, '0020000D');
+            let anAndIssuer = await getTwoTag(json, '00080050', '00080051');
             studyobj.id = studyInstanceUID;
-            let identifiers = [studyInstanceUID, ANandIssuer, DCMstring(json, '00200010')];
-            studyobj.identifier = await Get_ImagingStudy_identifiers(identifiers);
-            let patientId = DCMstring(json, '00100020');
+            let identifiers = [studyInstanceUID, anAndIssuer, dcmString(json, '00200010')];
+            studyobj.identifier = await getImagingStudyIdentifiers(identifiers);
+            let patientId = dcmString(json, '00100020');
             if (patientId) {
-                studyobj.subject.reference = "Patient/" + DCMstring(json, '00100020');
+                studyobj.subject.reference = "Patient/" + dcmString(json, '00100020');
                 studyobj.subject.type = "Patient";
                 studyobj.subject.identifier.use = "usual";
-                studyobj.subject.identifier.value = DCMstring(json, '00100020');
+                studyobj.subject.identifier.value = dcmString(json, '00100020');
             } else {
                 studyobj.subject.reference = "Patient/unknown";
                 studyobj.subject.type = "Patient";
@@ -223,30 +227,30 @@ async function getFHIRUseJson(json) {
                 studyobj.subject.identifier.value = "unknown";
             }
 
-            let imaging_started = DCMstring(json, '00080020') + DCMstring(json, '00080030');
-            const date = Moment(imaging_started, "YYYYMMDDhhmmss").toISOString();
+            let imagingStarted = dcmString(json, '00080020') + dcmString(json, '00080030');
+            const date = moment(imagingStarted, "YYYYMMDDhhmmss").toISOString();
             studyobj.started = date;
-            studyobj.numberOfSeries = DCMstring(json, '00201206');
-            studyobj.numberOfInstances = DCMstring(json, '00201208');
-            studyobj.description = DCMstring(json, '00081030');
-            let study_series_obj = new ImagingStudy_Series();
-            study_series_obj.uid = DCMstring(json, '0020000E');
-            study_series_obj.number = DCMstring(json, '00200011');
-            study_series_obj.modality.code = DCMstring(json, '00080060');
-            study_series_obj.description = DCMstring(json, '0008103E');
-            study_series_obj.numberOfInstances = DCMstring(json, '00201209');
-            study_series_obj.bodySite.display = DCMstring(json, '00180015');
-            let series_started = DCMstring(json, '00080021') + DCMstring(json, '00080031');
-            const series_date = Moment(series_started, "YYYYMMDDhhmmss").toDate();
-            study_series_obj.started = series_date != null ? series_date : undefined;
-            study_series_obj.performer = DCMstring(json, '00081050') || DCMstring(json, '00081052') || DCMstring(json, '00081070') || DCMstring(json, '00081072');
-            let study_series_insatance_obj = new ImagingStudy_Series_Instance();
-            study_series_insatance_obj.uid = DCMstring(json, '00080018');
-            study_series_insatance_obj.sopClass.system = "urn:ietf:rfc:3986";
-            study_series_insatance_obj.sopClass.code = "urn:oid:" + DCMstring(json, '00080016');
-            study_series_insatance_obj.number = DCMstring(json, '00200013');
-            study_series_insatance_obj.title = DCMstring(json, '00080008') || DCMstring(json, '00070080') || ((DCMstring(json, '0040a043') != undefined) ? DCMstring(json, '0040a043') + DCMstring(json, '00080104') : undefined) || DCMstring(json, '00420010');
-            let imagingStudyJson = await CombineImagingStudyClass(studyobj, study_series_obj, study_series_insatance_obj);
+            studyobj.numberOfSeries = dcmString(json, '00201206');
+            studyobj.numberOfInstances = dcmString(json, '00201208');
+            studyobj.description = dcmString(json, '00081030');
+            let studySeriesObj = new ImagingStudySeries();
+            studySeriesObj.uid = dcmString(json, '0020000E');
+            studySeriesObj.number = dcmString(json, '00200011');
+            studySeriesObj.modality.code = dcmString(json, '00080060');
+            studySeriesObj.description = dcmString(json, '0008103E');
+            studySeriesObj.numberOfInstances = dcmString(json, '00201209');
+            studySeriesObj.bodySite.display = dcmString(json, '00180015');
+            let seriesStarted = dcmString(json, '00080021') + dcmString(json, '00080031');
+            const seriesDate = moment(seriesStarted, "YYYYMMDDhhmmss").toDate();
+            studySeriesObj.started = seriesDate != null ? seriesDate : undefined;
+            studySeriesObj.performer = dcmString(json, '00081050') || dcmString(json, '00081052') || dcmString(json, '00081070') || dcmString(json, '00081072');
+            let studySeriesInstanceObj = new ImagingStudySeriesInstance();
+            studySeriesInstanceObj.uid = dcmString(json, '00080018');
+            studySeriesInstanceObj.sopClass.system = "urn:ietf:rfc:3986";
+            studySeriesInstanceObj.sopClass.code = "urn:oid:" + dcmString(json, '00080016');
+            studySeriesInstanceObj.number = dcmString(json, '00200013');
+            studySeriesInstanceObj.title = dcmString(json, '00080008') || dcmString(json, '00070080') || ((dcmString(json, '0040a043') != undefined) ? dcmString(json, '0040a043') + dcmString(json, '00080104') : undefined) || dcmString(json, '00420010');
+            let imagingStudyJson = await combineImagingStudyClass(studyobj, studySeriesObj, studySeriesInstanceObj);
             resolve(imagingStudyJson);
         }
         catch (ex) {
@@ -256,10 +260,10 @@ async function getFHIRUseJson(json) {
     });
 }
 
-async function getTwoTag(dataset, I_Tag1, I_Tag2) {
+async function getTwoTag(dataset, iTag1, iTag2) {
     return new Promise((resolve) => {
-        let str1 = DCMstring(dataset, I_Tag1);
-        let str2 = DCMstring(dataset, I_Tag2);
+        let str1 = dcmString(dataset, iTag1);
+        let str2 = dcmString(dataset, iTag2);
         let result = "";
         if (str1 != undefined && str2 != undefined) {
             result = str1 + str2;
@@ -277,7 +281,7 @@ async function getTwoTag(dataset, I_Tag1, I_Tag2) {
     });
 }
 //Common just use official
-async function Get_ImagingStudy_identifiers(identifiers) {
+async function getImagingStudyIdentifiers(identifiers) {
     return new Promise((resolve) => {
         let result = [];
         if (identifiers[0] != undefined) {
@@ -305,21 +309,21 @@ async function Get_ImagingStudy_identifiers(identifiers) {
     });
 }
 
-function IsEmptyObj(obj) {
+function isEmptyObj(obj) {
     if (typeof (obj) != "object") {
         return false;
     }
     return Object.keys(obj).length === 0 && typeof (obj) == "object";
 }
 
-function DeleteEmptyObj(obj) {
+function deleteEmptyObj(obj) {
     try {
         let cloneObj = _.cloneDeep(obj);
         Object.keys(cloneObj).forEach((key) => {
             if (typeof (cloneObj[key]) == "object") {
-                DeleteEmptyObj(cloneObj[key]);
+                deleteEmptyObj(cloneObj[key]);
             }
-            if (IsEmptyObj(cloneObj[key]) || cloneObj[key] == undefined || cloneObj[key] == "" || cloneObj[key] == null) {
+            if (isEmptyObj(cloneObj[key]) || cloneObj[key] == undefined || cloneObj[key] == "" || cloneObj[key] == null) {
                 delete obj[key];
             }
         });
@@ -348,17 +352,19 @@ function removeEmpty(obj) {
         .assign(_.pickBy(_.omitBy(obj, _.isObject) , _.identity))
         .value();
 }
-async function CombineImagingStudyClass(ImagingStudy, ImagingStudy_Series, ImagingStudy_Series_Instance) {
+async function combineImagingStudyClass(iImagingStudy, iImagingStudySeries, iImagingStudySeriesInstance) {
     try {
-        let ImagingStudy_Json = ImagingStudy.ToJson();
-        let ImagingStudy_Series_Json = ImagingStudy_Series.ToJson();
-        let ImagingStudy_Series_Instance_Json = ImagingStudy_Series_Instance.ToJson();
-        ImagingStudy_Series_Json.instance.push(ImagingStudy_Series_Instance_Json);
-        ImagingStudy_Json.series.push(ImagingStudy_Series_Json);
-        ImagingStudy_Json = removeEmpty(ImagingStudy_Json);
-        ImagingStudy_Json = _.pickBy(ImagingStudy_Json, _.identity);
-        //ImagingStudy_List.push(ImagingStudy_Json);
-        return ImagingStudy_Json;
+        let imagingStudyJson = iImagingStudy.toJson();
+        let imagingStudySeriesJson = iImagingStudySeries.toJson();
+        let imagingStudySeriesInstanceJson =
+            iImagingStudySeriesInstance.toJson();
+            
+        imagingStudySeriesJson.instance.push(imagingStudySeriesInstanceJson);
+        imagingStudyJson.series.push(imagingStudySeriesJson);
+        imagingStudyJson = removeEmpty(imagingStudyJson);
+        imagingStudyJson = _.pickBy(imagingStudyJson, _.identity);
+        //imagingStudyList.push(ImagingStudy_Json);
+        return imagingStudyJson;
     } catch (e) {
         console.error(e);
         return false;
@@ -366,7 +372,7 @@ async function CombineImagingStudyClass(ImagingStudy, ImagingStudy_Series, Imagi
 }
 
 
-async function Valid(item) {
+async function isValidFHIR(item) {
     return new Promise((resolve) => {
         let fhir = new Fhir();
         let result = fhir.validate(item, { errorOnUnexcepted: true });
@@ -384,18 +390,18 @@ async function getFileDicomParser(filename) {
 module.exports.DCM2FHIR = async function main(dirname) {
     return new Promise(async (resolve) => {
         let dicomfile = "";
-        ImagingStudy_List = null;
-        ImagingStudy_List = [];
-        ImagingStudy_List.length = 0;
+        imagingStudyList = null;
+        imagingStudyList = [];
+        imagingStudyList.length = 0;
         //取得local file 或 api 上的blob file
         dicomfile = await getFileDicomParser(dirname);
-        let imagingStudyJson = await Func_DicomParser(dicomfile);
-        let IsValid = await Valid(imagingStudyJson);
-        if (IsValid) {
+        let imagingStudyJson = await funcDicomParser(dicomfile);
+        let isValid = await isValidFHIR(imagingStudyJson);
+        if (isValid) {
             //console.log("Is valid fhir");
-            //fs.writeFileSync(path.parse(dirname).name + '.json' ,JSON.stringify(ImagingStudy_List[0]));
+            //fs.writeFileSync(path.parse(dirname).name + '.json' ,JSON.stringify(imagingStudyList[0]));
 
-            await ImagingStudy_ToDate(imagingStudyJson);
+            await imagingStudyToDate(imagingStudyJson);
             return resolve(imagingStudyJson);
         }
         else {
@@ -407,17 +413,17 @@ module.exports.DCM2FHIR = async function main(dirname) {
 
 module.exports.DCMJson2FHIR = async function (iData) {
     return new Promise(async (resolve) => {
-        ImagingStudy_List = null;
-        ImagingStudy_List = [];
-        ImagingStudy_List.length = 0;
+        imagingStudyList = null;
+        imagingStudyList = [];
+        imagingStudyList.length = 0;
         //取得local file 或 api 上的blob file
         let imagingStudyJson = await getFHIRUseJson(iData);
-        let IsValid = await Valid(imagingStudyJson);
-        if (IsValid) {
+        let isValid = await isValidFHIR(imagingStudyJson);
+        if (isValid) {
             //console.log("Is valid fhir");
-            //fs.writeFileSync(path.parse(dirname).name + '.json' ,JSON.stringify(ImagingStudy_List[0]));
+            //fs.writeFileSync(path.parse(dirname).name + '.json' ,JSON.stringify(imagingStudyList[0]));
             //console.log(imagingStudyJson)
-            await ImagingStudy_ToDate(imagingStudyJson);
+            await imagingStudyToDate(imagingStudyJson);
             return resolve(imagingStudyJson);
         }
         else {
@@ -426,12 +432,12 @@ module.exports.DCMJson2FHIR = async function (iData) {
         }
     });
 };
-async function ImagingStudy_ToDate(List) {
+async function imagingStudyToDate(list) {
     return new Promise((resolve) => {
-        for (let i = 0; i < List.length; i++) {
-            List[i].started = new Date(List[i].started);
-            for (let j = 0; j < List[i].series.length; j++) {
-                List[i].series[j].started = new Date(List[i].started);
+        for (let i = 0; i < list.length; i++) {
+            list[i].started = new Date(list[i].started);
+            for (let j = 0; j < list[i].series.length; j++) {
+                list[i].series[j].started = new Date(list[i].started);
             }
         }
         resolve(true);

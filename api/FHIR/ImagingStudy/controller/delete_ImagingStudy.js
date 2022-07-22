@@ -85,7 +85,7 @@ async function deleteStudy (iParams) {
         return true;
     } catch(e) {
         console.error(e);
-        errorMessage = err;
+        errorMessage = e;
         return false;
     }
 }

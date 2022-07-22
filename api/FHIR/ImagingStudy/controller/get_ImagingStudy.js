@@ -4,7 +4,7 @@ const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-co
 const {createBundle} = require('models/FHIR/func');
 const {handleError} = require('../../../../models/FHIR/httpMessage');
 const queryBuild = require('../../../../models/FHIR/queryBuild');
-const FHIRFilter = {
+const fhirFilter = {
     _id: 0,
     __v: 0,
     'identifier._id': 0,
@@ -71,7 +71,7 @@ module.exports = async function (req, res) {
 
 async function defaultSearch(query , skip , limit) {
     return new Promise((resolve, reject) => {
-        mongodb.ImagingStudy.find(query, FHIRFilter)
+        mongodb.ImagingStudy.find(query, fhirFilter)
         .limit(limit)
         .skip(skip)
         .exec((err, result) => {

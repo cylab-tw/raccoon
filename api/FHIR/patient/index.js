@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {validateParams , FHIRValidateParams} = require('../../validator');
+const {validateParams , fhirValidateParams} = require('../../validator');
 const joi = require('joi');
 
 router.use((req, res, next) => {
@@ -16,12 +16,12 @@ router.get('/' , validateParams({
 router.get('/:id', validateParams({} ,"query" , {allowUnknown: false}) ,require('./controller/get_patientById'));
 //create patient
 
-router.post('/' , FHIRValidateParams({
+router.post('/' , fhirValidateParams({
     gender: joi.string().valid('male' , 'female' , 'other' , 'unknown') ,
     resourceType: joi.string().valid('Patient').required()
 } , "body" ,{ allowUnknown : true }),require('./controller/post_patient'));
 //update patient
-router.put('/:id' , FHIRValidateParams({
+router.put('/:id' , fhirValidateParams({
     gender: joi.string().valid('male', 'female', 'other', 'unknown'), resourceType: joi.string().valid('Patient').required()
 } , "body" ,{ allowUnknown : true }) ,require("./controller/putPatient"));
 //delete patient

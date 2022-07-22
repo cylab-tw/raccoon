@@ -3,7 +3,7 @@ const {handleError} = require('../../../../models/FHIR/httpMessage');
 
 module.exports = async function (req, res) {
     
-    const FHIRFilter = {
+    const fhirFilter = {
         _id:0 , 
         __v:0 , 
         'identifier._id' :0 , 
@@ -19,7 +19,7 @@ module.exports = async function (req, res) {
     };
     let id = req.params.id;
     try {
-        let docs = await mongodb.ImagingStudy.findOne({id : id} , FHIRFilter).exec();
+        let docs = await mongodb.ImagingStudy.findOne({id : id} , fhirFilter).exec();
         if (docs) {
             return res.status(200).json(docs);    
         }

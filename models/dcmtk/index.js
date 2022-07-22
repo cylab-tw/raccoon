@@ -1,4 +1,4 @@
-const child_process = require('child_process');
+const childProcess = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
@@ -39,44 +39,54 @@ function dcm2json(filename) {
         let baseName = path.basename(filename);
         let outFile = filename.replace(baseName , `${new Date().getTime()}$&.json`);
         if (process.env.ENV == "windows") {
-            child_process.execFile('models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcm2json.exe', [filename, '-ll', 'fatal' , outFile,'--compact-code'], {
-                cwd: process.cwd()
-            }, function (error, stdout, stderr) {
-                if (error) {
-                    console.error(error);
-                    return reject(new Error(error));
-                }
-                try {
-                    let resultJson = readGenJson(outFile);
-                    if (!resultJson) {
-                        return reject(new Error("dcm2json fail"));
+            childProcess.execFile(
+                "models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcm2json.exe",
+                [filename, "-ll", "fatal", outFile, "--compact-code"],
+                {
+                    cwd: process.cwd()
+                },
+                function (error, stdout, stderr) {
+                    if (error) {
+                        console.error(error);
+                        return reject(new Error(error));
                     }
-                    return resolve(resultJson);
-                } catch (e) {
-                    console.error(e);
-                    return reject(new Error(e));
+                    try {
+                        let resultJson = readGenJson(outFile);
+                        if (!resultJson) {
+                            return reject(new Error("dcm2json fail"));
+                        }
+                        return resolve(resultJson);
+                    } catch (e) {
+                        console.error(e);
+                        return reject(new Error(e));
+                    }
                 }
-            });
+            );
         } else if (process.env.ENV == "linux") {
-            child_process.execFile('dcm2json', [filename, '-ll', 'fatal' , outFile,'--compact-code'], {
-                cwd: process.cwd()
-            }, function (error, stdout, stderr) {
-                if (error) {
-                    console.error(error);
-                    return reject(new Error(error));
-                }
-                try {
-                    let resultJson = readGenJson(outFile);
-                    if (!resultJson) {
-                        return reject(new Error("dcm2json fail"));
+            childProcess.execFile(
+                "dcm2json",
+                [filename, "-ll", "fatal", outFile, "--compact-code"],
+                {
+                    cwd: process.cwd()
+                },
+                function (error, stdout, stderr) {
+                    if (error) {
+                        console.error(error);
+                        return reject(new Error(error));
                     }
-                    //stdout = jsonFile.replace(/[\\\/\0]/g, '\\$&');
-                    return resolve(resultJson);
-                } catch (e) {
-                    console.error(e);
-                    return reject(new Error(e));
+                    try {
+                        let resultJson = readGenJson(outFile);
+                        if (!resultJson) {
+                            return reject(new Error("dcm2json fail"));
+                        }
+                        //stdout = jsonFile.replace(/[\\\/\0]/g, '\\$&');
+                        return resolve(resultJson);
+                    } catch (e) {
+                        console.error(e);
+                        return reject(new Error(e));
+                    }
                 }
-            });
+            );
         }
     });
 }
@@ -118,7 +128,7 @@ async function dcm2jpeg (dicomFile) {
         }
         let [dcmtk , ...cmd] = execCmd.split(" ");
         if (process.env.ENV == "windows") dcmtk = path.resolve(dcmtk);
-        let dcm2jpegSpawn = child_process.spawn(dcmtk , cmd , {
+        let dcm2jpegSpawn = childProcess.spawn(dcmtk, cmd, {
             cwd: process.cwd(),
             shell: true
         });
@@ -138,8 +148,8 @@ async function dcm2jpegCustomCmd (execCmd) {
     return new Promise((resolve , reject)=> {
         let [dcmtk, ...cmd] = execCmd.split(" ");
         if (process.env.ENV == "windows") dcmtk = path.resolve(dcmtk);
-        let dcm2jpegSpawn = child_process.spawn(dcmtk , cmd , {
-            cwd : process.cwd(),
+        let dcm2jpegSpawn = childProcess.spawn(dcmtk, cmd, {
+            cwd: process.cwd(),
             shell: true
         });
         dcm2jpegSpawn.stdout.on("data" , function (data) {
@@ -159,6 +169,7 @@ async function dcm2jpegCustomCmd (execCmd) {
 
 async function jpeg2dcmFromDataset (filename , dcmFilename , outputFilename) {
     return new Promise((resolve , reject)=> {
+        let execCmd = "";
         filename = path.normalize(filename);
         outputFilename = path.normalize(outputFilename);
         if (process.env.ENV == "windows") {
@@ -167,23 +178,29 @@ async function jpeg2dcmFromDataset (filename , dcmFilename , outputFilename) {
             execCmd = `img2dcm ${filename} ${outputFilename} -df ${dcmFilename}`;
         }
         let [dcmtk , ...cmd] = execCmd.split(" ");
-        child_process.execFile(dcmtk , cmd , {
-            cwd : process.cwd()
-        } , function (error, stdout, stderr) {
-            if (stderr) {
-                console.error("stderr: " , stderr);
-                return reject(new Error(stderr));
-            } else if (error) {
-                console.error("error:" , error );
-                return reject(new Error(error));
+        childProcess.execFile(
+            dcmtk,
+            cmd,
+            {
+                cwd: process.cwd()
+            },
+            function (error, stdout, stderr) {
+                if (stderr) {
+                    console.error("stderr: ", stderr);
+                    return reject(new Error(stderr));
+                } else if (error) {
+                    console.error("error:", error);
+                    return reject(new Error(error));
+                }
+                return resolve(true);
             }
-            return resolve(true);
-        });
+        );
     });
 }
 
 async function xml2dcm (filename , outputFilename) {
     return new Promise((resolve , reject)=> {
+        let execCmd= "";
         filename = path.normalize(filename);
         outputFilename = path.normalize(outputFilename);
         if (process.env.ENV == "windows") {
@@ -192,17 +209,22 @@ async function xml2dcm (filename , outputFilename) {
             execCmd = `xml2dcm ${filename} ${outputFilename}`;
         }
         let [dcmtk , ...cmd] = execCmd.split(" ");
-        child_process.execFile(dcmtk , cmd ,{encoding : 'buffer'} , function (error, stdout, stderr) {
-            stderr = iconv.decode(stderr , 'cp950');
-            if (stderr) {
-                console.error("stderr: "  );
-                return reject(new Error(stderr));
-            } else if (error) {
-                console.error("error:" , error );
-                return reject(new Error(error));
+        childProcess.execFile(
+            dcmtk,
+            cmd,
+            { encoding: "buffer" },
+            function (error, stdout, stderr) {
+                stderr = iconv.decode(stderr, "cp950");
+                if (stderr) {
+                    console.error("stderr: ");
+                    return reject(new Error(stderr));
+                } else if (error) {
+                    console.error("error:", error);
+                    return reject(new Error(error));
+                }
+                return resolve(true);
             }
-            return resolve(true);
-        });
+        );
     });
 }
 
@@ -215,6 +237,7 @@ async function xml2dcm (filename , outputFilename) {
  */
 
 async function getFrameImage (imagesPath , frameNumber ,otherOptions=[]) {
+    let execCmd = "";
     let images = `${process.env.DICOM_STORE_ROOTPATH}${imagesPath}`;
     let jpegFile = images.replace(/\.dcm\b/gi , `.${frameNumber-1}.jpg`);
     if (fs.existsSync(jpegFile)) {

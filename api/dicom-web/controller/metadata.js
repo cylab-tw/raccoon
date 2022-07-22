@@ -174,7 +174,7 @@ async function getInstanceMetadata(params) {
 
 
 async function getStudyInstanceStorePath(params) {
-    let aggregate_Query =
+    let aggregateQuery =
         [
             {
                 $match: {
@@ -202,20 +202,20 @@ async function getStudyInstanceStorePath(params) {
                 }
             }
         ];
-    let instances = await find_Aggregate_Func('ImagingStudy', aggregate_Query);
+    let instances = await findAggregateFunc('ImagingStudy', aggregateQuery);
     if (instances[0].instanceStorePathList.length <= 0) return false;
     try {
         return (instances[0].instanceStorePathList);
     } catch (e) {
-        console.log("getInstancePath error\r\n" + JSON.stringify(aggregate_Query, null, 4));
-        //console.log(aggregate_Query);
+        console.log("getInstancePath error\r\n" + JSON.stringify(aggregateQuery, null, 4));
+        //console.log(aggregateQuery);
         return false;
     }
 
 }
 
 async function getSeriesInstanceStorePath(params) {
-    let aggregate_Query =
+    let aggregateQuery =
         [
             {
                 $match: {
@@ -249,19 +249,19 @@ async function getSeriesInstanceStorePath(params) {
                 }
             }
         ];
-    let instances = await find_Aggregate_Func('ImagingStudy', aggregate_Query);
+    let instances = await findAggregateFunc('ImagingStudy', aggregateQuery);
     if (instances[0].instanceStorePathList.length <= 0) return false;
     try {
         return (instances[0].instanceStorePathList);
     } catch (e) {
-        console.log("getInstancePath error\r\n" + JSON.stringify(aggregate_Query, null, 4));
-        //console.log(aggregate_Query);
+        console.log("getInstancePath error\r\n" + JSON.stringify(aggregateQuery, null, 4));
+        //console.log(aggregateQuery);
         return false;
     }
 }
 
 async function getInstanceStorePath(params) {
-    let aggregate_Query =
+    let aggregateQuery =
         [
             {
                 $match: {
@@ -301,21 +301,21 @@ async function getInstanceStorePath(params) {
                 }
             }
         ];
-    let instances = await find_Aggregate_Func('ImagingStudy', aggregate_Query);
+    let instances = await findAggregateFunc('ImagingStudy', aggregateQuery);
     if (instances[0].instanceStorePathList.length <= 0) return false;
     try {
         return (instances[0].instanceStorePathList);
     } catch (e) {
-        console.log("getInstancePath error\r\n" + JSON.stringify(aggregate_Query, null, 4));
-        //console.log(aggregate_Query);
+        console.log("getInstancePath error\r\n" + JSON.stringify(aggregateQuery, null, 4));
+        //console.log(aggregateQuery);
         return false;
     }
 }
 
-async function find_Aggregate_Func(collection_Name, i_Query) {
+async function findAggregateFunc(collectionName, iQuery) {
     return new Promise(async (resolve, reject) => {
-        let agg = await mongodb[collection_Name].aggregate(
-            i_Query);
+        let agg = await mongodb[collectionName].aggregate(
+            iQuery);
         return resolve(agg);
     });
 }

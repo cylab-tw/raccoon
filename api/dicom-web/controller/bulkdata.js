@@ -3,8 +3,8 @@ const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-co
 const uuid = require('uuid');
 const fs = require('fs');
 const {
-    MultipartWriter
-} = require('../../../utils/multipartWriter');
+    MultipartWriter // eslint-disable-line @typescript-eslint/naming-convention
+} = require("../../../utils/multipartWriter"); 
 
 /**
  * 

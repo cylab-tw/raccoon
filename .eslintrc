@@ -17,10 +17,17 @@
         "no-console": 0 ,
         "no-useless-escape": "off",
         "no-useless-catch": "off",
+        "no-async-promise-executor": "off",
         /* from https://github.com/typescript-eslint/typescript-eslint/pull/1318 */
         "@typescript-eslint/naming-convention": ["error",
-        { "selector": "variableLike", "format": ["camelCase"] },
-        { "selector": "variable", "format": ["camelCase", "UPPER_CASE"] },
+        { "selector": "variableLike", "format": ["camelCase"], "filter": {
+            "regex": "(_id|_offset|_count|_include)$",
+            "match": false
+        } },
+        { "selector": "variable", "format": ["camelCase", "UPPER_CASE"], "filter": {
+            "regex": "(_id|_offset|_count|_include)$",
+            "match": false
+        } },
         { "selector": "parameter", "format": ["camelCase"], "leadingUnderscore": "allow" },
       
         { "selector": "memberLike", "format": ["camelCase"] },

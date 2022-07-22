@@ -8,6 +8,6 @@
  * 
  */
 
-const BulkData = true;
+const bulkData = true;
 
-export {BulkData};
+export {bulkData};

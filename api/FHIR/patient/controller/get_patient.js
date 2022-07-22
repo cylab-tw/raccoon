@@ -33,7 +33,7 @@ module.exports = async function (req, res) {
     if (errorMessage) {
         return res.status(400).json(errorMessage);
     }
-    const FHIRFilter = {
+    const fhirFilter = {
         _id: 0,
         __v: 0,
         'name._id': 0
@@ -42,8 +42,8 @@ module.exports = async function (req, res) {
         delete queryParameter["$and"];
     }
     try {
-        //let docs = await mongoFunc.findFilterFields('patients', queryParameter, FHIRFilter, paginationLimit, paginationSkip);
-        let docs = await mongodb.patients.find(queryParameter ,FHIRFilter).
+        //let docs = await mongoFunc.findFilterFields('patients', queryParameter, fhirFilter, paginationLimit, paginationSkip);
+        let docs = await mongodb.patients.find(queryParameter ,fhirFilter).
         limit(realLimit).
         skip(paginationSkip).
         exec();

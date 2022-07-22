@@ -2,7 +2,7 @@ const identifierSchema = require('../FHIRmodel/Identifier');
 const codingSchema = require('../FHIRmodel/Coding');
 const refSchema = require('../FHIRmodel/Reference');
 const fs = require('fs');
-const _  =require('lodash');
+const _  =require('lodash'); // eslint-disable-line @typescript-eslint/naming-convention
 const moment = require('moment');
 module.exports = function (mongodb) {
     require('mongoose-schema-jsonschema')(mongodb);
@@ -100,7 +100,7 @@ module.exports = function (mongodb) {
 
     
 
-    const ImagingStudySchema = new mongodb.Schema(
+    const imagingStudySchema = new mongodb.Schema(
         {
             resourceType:
             {
@@ -164,7 +164,7 @@ module.exports = function (mongodb) {
                 } 
             }
         }, { strict: false });
-    ImagingStudySchema.index(
+    imagingStudySchema.index(
         {
             "id": 1
         },
@@ -172,77 +172,77 @@ module.exports = function (mongodb) {
             unique: true
         }
     );
-    ImagingStudySchema.index(
+    imagingStudySchema.index(
         {
             "identifier.value": 1
         }
     );
-    ImagingStudySchema.index(
+    imagingStudySchema.index(
         {
             "series.uid": 1
         }
     );
-    ImagingStudySchema.index(
+    imagingStudySchema.index(
         {
             "series.instance.uid": 1
         }
     );
-    ImagingStudySchema.index(
+    imagingStudySchema.index(
         {
             "subject.identifier.value" : 1
         }
     );
-    ImagingStudySchema.index(
+    imagingStudySchema.index(
         {
             "dicomJson.0020000D.Value" : 1
         }
     );
-    ImagingStudySchema.index(
+    imagingStudySchema.index(
         {
             'series.dicomJson.0020000E.Value' : 1
         }
     );
-    ImagingStudySchema.index(
+    imagingStudySchema.index(
         {
             'series.instance.dicomJson.00080018.Value' : 1
         }
     );
-    ImagingStudySchema.index(
+    imagingStudySchema.index(
         {
             "dicomJson.00100010.Value.Alphabetic" : 1 
         }
     );
-    ImagingStudySchema.index(
+    imagingStudySchema.index(
         {
             "dicomJson.00100010.Value.familyName" : 1 
         }
     );
-    ImagingStudySchema.index(
+    imagingStudySchema.index(
         {
             "dicomJson.00100010.Value.givenName" : 1 
             
         }
     );
-    ImagingStudySchema.index(
+    imagingStudySchema.index(
         {
             "dicomJson.00100010.Value.middleName" : 1 
             
         }
     );
-    ImagingStudySchema.index(
+    imagingStudySchema.index(
         {
             "dicomJson.00100010.Value.prefix" : 1 
             
         }
     );
-    ImagingStudySchema.index(
+    imagingStudySchema.index(
         {
             "dicomJson.00100010.Value.suffix" : 1 
             
         }
     );
 
-    ImagingStudySchema.methods.getFHIRField = function () {
+    imagingStudySchema.methods.getFHIRField = function () {
         let result =  this.toObject();
         delete result._id;
         delete result.__v;
@@ -257,7 +257,7 @@ module.exports = function (mongodb) {
         delete result["patient"];
         return result;
     };
-    ImagingStudySchema.pre('save' , function (next) {
+    imagingStudySchema.pre('save' , function (next) {
         let dicomStudyDate  = _.get(this , "dicomJson.00080020.Value");
         if (dicomStudyDate) {
             for (let i in dicomStudyDate) {
@@ -266,8 +266,8 @@ module.exports = function (mongodb) {
         }
         next();
     });
-   // fs.writeFileSync("./data/imagingstudySchema.json" ,JSON.stringify (ImagingStudySchema.jsonSchema() , null ,4) , {flag: "w+"});
-    const ImagingStudy = mongodb.model('ImagingStudy', ImagingStudySchema);
-    return ImagingStudy;
+   // fs.writeFileSync("./data/imagingstudySchema.json" ,JSON.stringify (imagingStudySchema.jsonSchema() , null ,4) , {flag: "w+"});
+    const imagingStudy = mongodb.model("ImagingStudy", imagingStudySchema);
+    return imagingStudy;
 };
 

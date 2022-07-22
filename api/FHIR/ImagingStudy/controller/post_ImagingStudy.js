@@ -18,17 +18,17 @@ module.exports = async (req, res) => {
             return res.status(500).send(handleError.exception(errorMessage.message));
         }
     };
-    let Insert_Data = req.body;
-    let [status , doc]  = await InsertImagingStudy(Insert_Data);
+    let insertData = req.body;
+    let [status , doc]  = await insertImagingStudy(insertData);
     return resFunc[status](doc);
 };
 
 
-async function InsertImagingStudy(Insert_Data) {
+async function insertImagingStudy(insertData) {
     try {
-        Insert_Data.id = hash(Insert_Data);
-        let ImagingStudy = new mongodb.ImagingStudy(Insert_Data);
-        let savedDoc = await ImagingStudy.save();
+        insertData.id = hash(insertData);
+        let imagingStudy = new mongodb.ImagingStudy(insertData);
+        let savedDoc = await imagingStudy.save();
         return [true, savedDoc];
     } catch(e) {
         errorMessage.message = e;

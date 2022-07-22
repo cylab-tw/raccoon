@@ -20,8 +20,8 @@ module.exports = async function (req, res) {
                 return res.status(500).send(handleError.exception(errorMessage.message));
             }
         };
-        let Insert_Data = req.body;
-        let [status , doc]  = await Insert_Patient(Insert_Data);
+        let insertData = req.body;
+        let [status , doc]  = await insertPatient(insertData);
         return resFunc[status](doc);
     } catch(e) {
         console.error(`error`);
@@ -29,12 +29,12 @@ module.exports = async function (req, res) {
     }
 };
 
-async function Insert_Patient(Insert_Data) {
+async function insertPatient(insertData) {
     return new Promise(async (resolve, reject) => {
         try {
-            Insert_Data.id = uuid.v4();
-            let New_Patient = new mongodb.patients(Insert_Data);
-            New_Patient.save(function (err, doc) {
+            insertData.id = uuid.v4();
+            let newPatient = new mongodb.patients(insertData);
+            newPatient.save(function (err, doc) {
                 if (err) {
                     errorMessage.message = err;
                     return resolve([false ,err]);

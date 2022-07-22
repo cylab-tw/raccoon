@@ -17,7 +17,7 @@ module.exports = async function (req, res) {
         }
     });
 
-    const FHIRFilter = {
+    const fhirFilter = {
         _id: 0 ,
         __v: 0 ,
         "connectionType._id": 0 ,
@@ -27,7 +27,7 @@ module.exports = async function (req, res) {
         queryParameter['id'] = req.params.id;
     }
     try {
-        let docs = await mongodb.endpoint.find(queryParameter, FHIRFilter).
+        let docs = await mongodb.endpoint.find(queryParameter, fhirFilter).
             limit(realLimit).
             skip(paginationSkip).
             exec();

@@ -7,9 +7,9 @@ const fs = require('fs');
 const path= require('path');
 const uuid = require('uuid');
 const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
-const DICOMWebHandleError = require('../../../models/DICOMWeb/httpMessage');
+const dicomWebHandleError = require('../../../models/DICOMWeb/httpMessage');
 const { writeImageMultipart } = require('../../../models/DICOMWeb');
-const { MultipartWriter } = require('../../../utils/multipartWriter');
+const { MultipartWriter } = require('../../../utils/multipartWriter'); // eslint-disable-line @typescript-eslint/naming-convention
 const { streamToBuffer } = require('@jorgeferrero/stream-to-buffer');
 module.exports = async function (req , res) {
     let keys = Object.keys(req.params);
@@ -18,7 +18,7 @@ module.exports = async function (req , res) {
     for (let i = 0 ; i < keys.length ; i++) {
         paramsStr += keys[i]; 
     }
-    let WADOFunc = {"studyID" : "", "studyIDseriesID": "" , "studyIDseriesIDinstanceID": ""};
+    let wadoFunc = {"studyID" : "", "studyIDseriesID": "" , "studyIDseriesIDinstanceID": ""};
     if (req.headers.accept.toLowerCase() == "application/zip") {
         let wadoZip = new WADOZip(req.params, res);
         let zipProcess = await wadoZip[`method-${paramsStr}`]();
@@ -26,7 +26,7 @@ module.exports = async function (req , res) {
             res.end();
             return;
         }
-        return DICOMWebHandleError.sendNotFoundMessage(req , res);
+        return dicomWebHandleError.sendNotFoundMessage(req , res);
     } else if (req.headers.accept.includes("multipart/related")) {
         let typeSplit = req.headers.accept.split(',');
         let acceptTypes=  [];
@@ -62,8 +62,8 @@ module.exports = async function (req , res) {
         }
         console.log(acceptTypes);
         let type = req.headers.accept.match(/type=(.*)/gi)[0].split(/[,;]/)[0].substring(5).replace(/"/g  ,"");
-        WADOFunc = {"studyID" :"getStudyDicom", "studyIDseriesID": "getSeriesDicom" , "studyIDseriesIDinstanceID": "getInstance"};
-        let getFunc = WADOFunc[paramsStr];
+        wadoFunc = {"studyID" :"getStudyDicom", "studyIDseriesID": "getSeriesDicom" , "studyIDseriesIDinstanceID": "getInstance"};
+        let getFunc = wadoFunc[paramsStr];
         if (!multipartFunc[type]) {
             return  sendNotSupportMessage(req ,res);
         }
@@ -76,16 +76,16 @@ module.exports = async function (req , res) {
         } catch (e) {
             return sendNotSupportMessage(req ,res);
         }
-        return DICOMWebHandleError.sendNotFoundMessage(req , res);
+        return dicomWebHandleError.sendNotFoundMessage(req , res);
     } else if (req.headers.accept.includes("*/*")) {
-        WADOFunc = {"studyID" :"getStudyDicom", "studyIDseriesID": "getSeriesDicom" , "studyIDseriesIDinstanceID": "getInstance"};
-        let getFunc = WADOFunc[paramsStr];
+        wadoFunc = {"studyID" :"getStudyDicom", "studyIDseriesID": "getSeriesDicom" , "studyIDseriesIDinstanceID": "getInstance"};
+        let getFunc = wadoFunc[paramsStr];
         let resWriteStatus =  await multipartFunc["application/dicom"][getFunc](req.params , res , "application/dicom");
         if (resWriteStatus) {
             res.end();
             return;
         }
-        return DICOMWebHandleError.sendNotFoundMessage(req , res);
+        return dicomWebHandleError.sendNotFoundMessage(req , res);
     }
     return sendNotSupportMessage(req , res);
 };

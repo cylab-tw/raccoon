@@ -1,7 +1,7 @@
 const dicomParser= require("dicom-parser");
 const fs = require('fs');
 const path = require('path');
-const _ =require("lodash");
+const _ =require("lodash"); //eslint-disable-line @typescript-eslint/naming-convention
 const moment = require("moment");
 
 class HumanName {
@@ -13,7 +13,7 @@ class HumanName {
         this.prefix = undefined;
         this.suffix = undefined;
     }
-    ToJson()
+    toJson()
     {
         return Object.getOwnPropertyNames(this).reduce((a, b) => {
             a[b] = this[b];
@@ -22,19 +22,19 @@ class HumanName {
     }
 }
 
-async function DCM2Patient(filename)
+async function dcm2Patient(filename)
 {
     let dicomfile = await getFile(filename);
     let dataset = dicomParser.parseDicom(dicomfile);
     let pName = dataset.string('x00100010');
     let pGender = dataset.string('x00100040') || "unknown";
-    let FHIRGender = {
+    const FHIR_GENDER = {
         "M": "male",
         "F": "female",
         "O": "other",
         "UNKNOWN": "unknown"
     };
-    pGender = FHIRGender[pGender.toUpperCase()];
+    pGender = FHIR_GENDER[pGender.toUpperCase()];
     let pBD = dataset.string('x00100030');
     let patientName = new HumanName();
     if (pName == undefined) {
@@ -43,52 +43,52 @@ async function DCM2Patient(filename)
         patientName.use = "usual";
     }
     patientName.text = pName;
-    let DICOMpName = _.pickBy(dicomParser.parsePN(pName) ,  _.identity); //remove undefined or null key
+    let dicomPatientName = _.pickBy(dicomParser.parsePN(pName) ,  _.identity); //remove undefined or null key
     
-    patientName = patientName.ToJson();
+    patientName = patientName.toJson();
     let pJson = JSON.stringify(patientName);
     pJson = JSON.parse(pJson);
-    let FHIRpName = {
+    let fhirPatientName = {
         familyName: (pJson) => {
-            pJson.family = DICOMpName.familyName;
+            pJson.family = dicomPatientName.familyName;
         },
         givenName: (pJson) => {
             if (pJson.given) {
-                pJson.given.push(DICOMpName.givenName);
+                pJson.given.push(dicomPatientName.givenName);
             } else {
                 pJson.given = [];
-                pJson.given.push(DICOMpName.givenName);
+                pJson.given.push(dicomPatientName.givenName);
             }
         },
         middleName: (pJson) => {
             if (pJson.given) {
-                pJson.given.push(DICOMpName.middleName);
+                pJson.given.push(dicomPatientName.middleName);
             } else {
                 pJson.given = [];
-                pJson.given.push(DICOMpName.middleName);
+                pJson.given.push(dicomPatientName.middleName);
             }
         },
         prefix: (pJson) => {
             if (pJson.prefix) {
-                pJson.prefix.push(DICOMpName.middleName);
+                pJson.prefix.push(dicomPatientName.middleName);
             } else {
                 pJson.prefix = [];
-                pJson.prefix.push(DICOMpName.middleName);
+                pJson.prefix.push(dicomPatientName.middleName);
             }
         },
         suffix: (pJson) => {
             if (pJson.prefix) {
-                pJson.prefix.push(DICOMpName.middleName);
+                pJson.prefix.push(dicomPatientName.middleName);
             } else {
                 pJson.prefix = [];
-                pJson.prefix.push(DICOMpName.middleName);
+                pJson.prefix.push(dicomPatientName.middleName);
             }
         }
     };
-    for (let key in DICOMpName) {
-        FHIRpName[key](pJson);
+    for (let key in dicomPatientName) {
+        fhirPatientName[key](pJson);
     }
-    let Patient = 
+    let patient = 
     {
         resourceType: "Patient",
         id: dataset.string('x00100020') || "unknown",
@@ -99,21 +99,21 @@ async function DCM2Patient(filename)
         ]
     };
     if (pBD) {
-        Patient.birthDate = moment.utc(pBD).format("YYYY-MM-DD");
+        patient.birthDate = moment.utc(pBD).format("YYYY-MM-DD");
     }
-    return Patient;
+    return patient;
 }
-function DCMJson2Patient(dcmJson)
+function dcmJson2Patient(dcmJson)
 {
     let pName = dcmString(dcmJson , '00100010');
     let pGender = dcmString(dcmJson , '00100040') || "unknown";
-    let FHIRGender = {
-        "M" : "male" , 
-        "F" : "female" , 
-        "O" : "other" , 
-        "UNKNOWN" : "unknown"
+    const FHIR_GENDER = {
+        M: "male",
+        F: "female",
+        O: "other",
+        UNKNOWN: "unknown"
     };
-    pGender = FHIRGender[pGender.toUpperCase()];
+    pGender = FHIR_GENDER[pGender.toUpperCase()];
     let pBD = dcmString(dcmJson , '00100030');
     let patientName = new HumanName();
     if (pName == undefined) {
@@ -123,52 +123,52 @@ function DCMJson2Patient(dcmJson)
         patientName.use = "usual";
     }
     patientName.text = pName.Alphabetic;
-    let DICOMpName = _.pickBy(dicomParser.parsePN(pName.Alphabetic) ,  _.identity); //remove undefined or null key
+    let dicomPatientName = _.pickBy(dicomParser.parsePN(pName.Alphabetic) ,  _.identity); //remove undefined or null key
     
-    patientName = patientName.ToJson();
+    patientName = patientName.toJson();
     let pJson = JSON.stringify(patientName);
     pJson = JSON.parse(pJson);
-    let FHIRpName = {
+    let fhirPatientName = {
         familyName: (pJson) => {
-            pJson.family = DICOMpName.familyName;
+            pJson.family = dicomPatientName.familyName;
         },
         givenName: (pJson) => {
             if (pJson.given) {
-                pJson.given.push(DICOMpName.givenName);
+                pJson.given.push(dicomPatientName.givenName);
             } else {
                 pJson.given = [];
-                pJson.given.push(DICOMpName.givenName);
+                pJson.given.push(dicomPatientName.givenName);
             }
         },
         middleName: (pJson) => {
             if (pJson.given) {
-                pJson.given.push(DICOMpName.middleName);
+                pJson.given.push(dicomPatientName.middleName);
             } else {
                 pJson.given = [];
-                pJson.given.push(DICOMpName.middleName);
+                pJson.given.push(dicomPatientName.middleName);
             }
         },
         prefix: (pJson) => {
             if (pJson.prefix) {
-                pJson.prefix.push(DICOMpName.middleName);
+                pJson.prefix.push(dicomPatientName.middleName);
             } else {
                 pJson.prefix = [];
-                pJson.prefix.push(DICOMpName.middleName);
+                pJson.prefix.push(dicomPatientName.middleName);
             }
         },
         suffix: (pJson) => {
             if (pJson.prefix) {
-                pJson.prefix.push(DICOMpName.middleName);
+                pJson.prefix.push(dicomPatientName.middleName);
             } else {
                 pJson.prefix = [];
-                pJson.prefix.push(DICOMpName.middleName);
+                pJson.prefix.push(dicomPatientName.middleName);
             }
         }
     };
-    for (let key in DICOMpName) {
-        FHIRpName[key](pJson);
+    for (let key in dicomPatientName) {
+        fhirPatientName[key](pJson);
     }
-    let Patient = 
+    let patient = 
     {
         resourceType : "Patient" , 
         id : dcmString(dcmJson , '00100020') || "unknown",
@@ -178,11 +178,11 @@ function DCMJson2Patient(dcmJson)
             pJson
         ]
     };
-    Patient.id = Patient.id.replace(/[\s\u0000]/gim , '');
+    patient.id = patient.id.replace(/[\s\u0000]/gim, ""); //eslint-disable-line no-control-regex
     if (pBD) {
-        Patient.birthDate = moment.utc(pBD).format("YYYY-MM-DD");
+        patient.birthDate = moment.utc(pBD).format("YYYY-MM-DD");
     }
-    return Patient;
+    return patient;
 }
 
 function dcmString(json , tag) {
@@ -203,8 +203,8 @@ async function getFile (filename) {
     });
 }
 module.exports = {
-    DCM2Patient : DCM2Patient ,
-    DCMJson2Patient : DCMJson2Patient
+    dcm2Patient : dcm2Patient ,
+    dcmJson2Patient : dcmJson2Patient
 };
 
 

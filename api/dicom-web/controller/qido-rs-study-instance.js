@@ -1,6 +1,6 @@
 const mongoFunc = require('../../../models/mongodb/func');
-const {Refresh_Param} = require('../../Api_function');
-const _ =require('lodash');
+const {refreshParam} = require('../../Api_function');
+const _ =require('lodash'); // eslint-disable-line @typescript-eslint/naming-convention
 const moment = require('moment');
 const {qidorsFunc} = require('./qido-rs');
 const { setRetrieveURL } = require('../../../models/DICOMWeb');
@@ -23,7 +23,7 @@ module.exports = async function (req , res) {
     }
     //將搜尋欄位改成全是dicomTag代碼
     let newQS = await qidorsFunc.qsDICOMTag(qs);
-    newQS = await Refresh_Param(newQS);
+    newQS = await refreshParam(newQS);
     let keys = Object.keys(req.params);
     let paramsStr = "";
     for (let i = 0 ; i < keys.length ; i++) {
@@ -32,7 +32,7 @@ module.exports = async function (req , res) {
     if (!paramsStr) {
         paramsStr = "studyID";
     }
-    /*let QIDOFunc = {"studyID" :getStudyDicomJson , "studyIDseriesID":getSeriesDicomJson , "studyIDseriesIDinstanceID": getInstanceDicomJson};*/
+    /*let qidoFunc = {"studyID" :getStudyDicomJson , "studyIDseriesID":getSeriesDicomJson , "studyIDseriesIDinstanceID": getInstanceDicomJson};*/
     let docs =  await getStudiesInstanceDicomJson(newQS , req.params , parseInt(limit)  , parseInt(skip));
     for (let i  in docs) {
         let studyDate = _.get(docs[i] , "00080020.Value");

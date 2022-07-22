@@ -1,7 +1,6 @@
 const mongodb = require('models/mongodb');
 const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const mongoose = require("mongoose");
-const base_version  ="4_0_0";
 const {cleanDoc}  =require("api/Api_function");
 
 

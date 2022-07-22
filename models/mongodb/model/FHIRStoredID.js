@@ -5,7 +5,7 @@
  */
 
 module.exports = function (mongodb) {
-    let FHIRStoredIDSchema = mongodb.Schema({
+    let fhirStoredIDSchema = mongodb.Schema({
         id: {
             type: String ,
             default : void 0
@@ -17,14 +17,14 @@ module.exports = function (mongodb) {
     } , {
         versionKey : false
     });
-    FHIRStoredIDSchema.index({
+    fhirStoredIDSchema.index({
         "id": 1
     }, {
         unique: true
     });
-    FHIRStoredIDSchema.index({
+    fhirStoredIDSchema.index({
         "resourceType" : 1
     });
-    let FHIRStoredID = mongodb.model('FHIRStoredID', FHIRStoredIDSchema, 'FHIRStoredID');
-    return FHIRStoredID;
+    let fhirStoredID = mongodb.model('FHIRStoredID', fhirStoredIDSchema, 'FHIRStoredID');
+    return fhirStoredID;
 };

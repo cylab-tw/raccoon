@@ -2,7 +2,7 @@ const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-co
 const mongodb = require('models/mongodb');
 const {createBundle} = require('models/FHIR/func');
 const queryBuild = require('models/FHIR/queryBuild.js');
-const FHIRFilter = {
+const fhirFilter = {
     _id: 0,
     __v: 0
 };
@@ -32,7 +32,7 @@ module.exports = async function (req, res) {
         delete queryParameter["$and"];
     }
     try {
-        let docs = await mongodb.organization.find(queryParameter ,FHIRFilter).
+        let docs = await mongodb.organization.find(queryParameter ,fhirFilter).
         limit(realLimit).
         skip(paginationSkip).
         exec();

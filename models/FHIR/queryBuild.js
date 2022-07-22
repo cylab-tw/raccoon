@@ -274,7 +274,7 @@ function referenceQuery (query , field) {
     if (isUrl) {
         _.set(queryBuilder , field , isUrl[3]);
         queryBuilder[field] = isUrl[3];
-        return result;
+        return queryBuilder;
     } else if (typeAndId.length == 2) {
         queryBuilder[field] = `${typeAndId[0]}/${typeAndId[1]}`;
     } else {
@@ -311,13 +311,6 @@ let numberQueryBuilder = {
     "ne" : (queryBuilder,  field , num) => {
         let result = {
             "$ne" : Number(num)
-        };
-        queryBuilder[field] = result;
-        return queryBuilder;
-    } ,
-    "ne" : (queryBuilder,  field , num) => {
-        let result = {
-            "$eq" : Number(num)
         };
         queryBuilder[field] = result;
         return queryBuilder;

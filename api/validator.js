@@ -1,16 +1,16 @@
-const Joi = require('joi');
+const joi = require('joi');
 const lodash = require('lodash');
 const {handleError} = require('../models/FHIR/httpMessage');
 
 /** 
  * @param {Object} paramSchema the valid scheama
  * @param {string} item body , query , param
- * @param {Object} options Joi option
+ * @param {Object} options joi option
  * @param {Boolean} options.allowUnknown
 */
 const validateParams = function (paramSchema , item , options) {
     return async (req, res, next) => {
-        const schema = Joi.object().keys(paramSchema);
+        const schema = joi.object().keys(paramSchema);
         const paramSchemaKeys = Object.keys(req[item]);
         let requestParamObj = {};
         for (let key of paramSchemaKeys){
@@ -31,9 +31,9 @@ const validateParams = function (paramSchema , item , options) {
     };
 };
 
-const FHIRValidateParams = function (paramSchema , item , options) {
+const fhirValidateParams = function (paramSchema , item , options) {
     return async (req, res, next) => {
-        const schema = Joi.object().keys(paramSchema);
+        const schema = joi.object().keys(paramSchema);
         const paramSchemaKeys = Object.keys(req[item]);
         let requestParamObj = {};
         for (let key of paramSchemaKeys){
@@ -51,5 +51,5 @@ const FHIRValidateParams = function (paramSchema , item , options) {
 };
 module.exports = {
     validateParams: validateParams ,
-    FHIRValidateParams : FHIRValidateParams
+    fhirValidateParams : fhirValidateParams
 };

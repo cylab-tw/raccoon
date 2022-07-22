@@ -1,5 +1,5 @@
 const mongodb = require("../../../models/mongodb");
-const { MultipartWriter } = require('../../../utils/multipartWriter');
+const { MultipartWriter } = require('../../../utils/multipartWriter'); // eslint-disable-line @typescript-eslint/naming-convention
 
 /**
  * 

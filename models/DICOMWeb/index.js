@@ -99,6 +99,7 @@ async function writeImageMultipart (res , imagesPath , type) {
     Promise.resolve(true);
 }
 async function writeframesMultipart (req , res , imagesPath ,type , frameList) {
+    let execCmd = "";
     const BOUNDORY = `${uuid.v4()}-${uuid.v4()}`;
     res.set('content-type', `multipart/related; type=${type};boundary=${BOUNDORY}`);
     let images = `${process.env.DICOM_STORE_ROOTPATH}${imagesPath[0]}`;

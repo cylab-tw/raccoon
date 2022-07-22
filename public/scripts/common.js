@@ -7,25 +7,25 @@ function addJWTinHeader(options) {
     }
 }
 
-function check_Date(i_Date) {
-    var flag = moment(i_Date, 'YYYYMMDD').isValid();
-    if (i_Date.length > 8) {
+function check_Date(iDate) {
+    var flag = moment(iDate, 'YYYYMMDD').isValid();
+    if (iDate.length > 8) {
         flag = false;
     }
     return flag;
 }
 
-function get_StudyUID(i_Item) {
-    if (i_Item.identifier.value.includes('urn:oid:')) {
-        return i_Item.identifier.value.substring(8);
+function get_StudyUID(iItem) {
+    if (iItem.identifier.value.includes('urn:oid:')) {
+        return iItem.identifier.value.substring(8);
     }
-    return i_Item.identifier.value;
+    return iItem.identifier.value;
 }
 
-function get_Series(i_Item) {
+function get_Series(iItem) {
     let result = [];
-    for (let i = 0; i < i_Item.series.length; i++) {
-        result.push(i_Item.series[i]);
+    for (let i = 0; i < iItem.series.length; i++) {
+        result.push(iItem.series[i]);
     }
     return result;
 }
@@ -43,12 +43,12 @@ function get_Date_Query(from_Date, end_Date) {
     }
 }
 
-function getQIDOViewerUri(i_Item) {
-    let StudyDate = moment(i_Item.started).format('YYYYMMDD').toString() + '-';
-    console.log(moment(i_Item.started).format('YYYYMMDD'));
-    let PatientName = i_Item.patient[0].name[0].text;
-    let PatientID = i_Item.subject.identifier.value;
-    let StudyInstanceUID = get_StudyUID(i_Item);
+function getQIDOViewerUri(iItem) {
+    let StudyDate = moment(iItem.started).format('YYYYMMDD').toString() + '-';
+    console.log(moment(iItem.started).format('YYYYMMDD'));
+    let PatientName = iItem.patient[0].name[0].text;
+    let PatientID = iItem.subject.identifier.value;
+    let StudyInstanceUID = get_StudyUID(iItem);
     let qido_uri = `${envConfig.QIDO.http}://${envConfig.QIDO.hostName}/cornerstonetest309/html/start.html?StudyDate=${StudyDate}&PatientName=${PatientName}&PatientID=${PatientID}&StudyInstanceUID=${StudyInstanceUID}`;
     return qido_uri;
 }

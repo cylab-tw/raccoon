@@ -1,10 +1,13 @@
 const mongodb = require('../../models/mongodb');
 const moment = require('moment');
-
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
+const {
+    toRegex
+} = require("../../api/Api_function");
 module.exports = {
-    find: async function (collectionName, i_Query, limit = 0, skip = 0) {
+    find: async function (collectionName, iQuery, limit = 0, skip = 0) {
         return new Promise((resolve, reject) => {
-            mongodb[collectionName].find(i_Query)
+            mongodb[collectionName].find(iQuery)
                 .skip(skip)
                 .limit(limit)
                 .exec(function (err, docs) {
@@ -18,15 +21,15 @@ module.exports = {
     /**
      * 
      * @param {*} collectionName  
-     * @param {*} i_Query 
+     * @param {*} iQuery 
      * @param {*} iFields //return fields
      * @param {*} limit  
      * @param {*} skip 
      * 
      */
-    findFilterFields: async function (collectionName, i_Query, iFields, limit = 0, skip = 0) {
+    findFilterFields: async function (collectionName, iQuery, iFields, limit = 0, skip = 0) {
         return new Promise((resolve, reject) => {
-            mongodb[collectionName].find(i_Query, iFields)
+            mongodb[collectionName].find(iQuery, iFields)
                 .skip(skip)
                 .limit(limit)
                 .exec(function (err, docs) {
@@ -47,10 +50,10 @@ module.exports = {
             });
         });
     },
-    aggregate_Func: async function (collectionName, i_Query) {
+    aggregate_Func: async function (collectionName, iQuery) {
         return new Promise(async (resolve, reject) => {
             try {
-                let agg = await mongodb[collectionName].aggregate(i_Query);
+                let agg = await mongodb[collectionName].aggregate(iQuery);
                 return resolve(agg);
             } catch (e) {
                 return reject(new Error(e));
@@ -176,7 +179,6 @@ module.exports = {
             return resolve(iQuery);
         });
     }  ,
-    getMongoOrQs : getMongoOrQs ,
     commaValue : commaValue 
 };
 
@@ -196,80 +198,80 @@ function getDateStr(iDate) {
     return iDate.match(/\d+/g);
 }
 
-function gt_Date(i_Date , format ='YYYYMMDD') {
+function gtDate(iDate , format ='YYYYMMDD') {
     let query =
     {
-        $gt: moment(i_Date[0], format).toDate()
+        $gt: moment(iDate[0], format).toDate()
     };
     return query;
 }
-function lt_Date(i_Date , format ='YYYYMMDD') {
+function ltDate(iDate , format ='YYYYMMDD') {
     let query =
     {
-        $lt: moment(i_Date[0], format).toDate()
+        $lt: moment(iDate[0], format).toDate()
     };
     return query;
 }
-function gte_Date(i_Date , format ='YYYYMMDD') {
+function gteDate(iDate , format ='YYYYMMDD') {
     let query =
     {
-        $gte: moment(i_Date[0], format).toDate()
+        $gte: moment(iDate[0], format).toDate()
     };
     return query;
 }
-function lte_Date(i_Date , format ='YYYYMMDD') {
+function lteDate(iDate , format ='YYYYMMDD') {
     let query =
     {
-        $lte: moment(i_Date[0], format).toDate()
+        $lte: moment(iDate[0], format).toDate()
     };
     return query;
 }
-function between_Date(i_Date , format ='YYYYMMDD') {
+function betweenDate(iDate , format ='YYYYMMDD') {
     let query =
     {
-        $gte: moment(i_Date[0], format).toDate(),
-        $lte: moment(i_Date[1], format).toDate()
+        $gte: moment(iDate[0], format).toDate(),
+        $lte: moment(iDate[1], format).toDate()
     };
     return query;
 }
-function ne_Date(i_Date , format ='YYYYMMDD') {
+function neDate(iDate , format ='YYYYMMDD') {
     let query =
     {
-        $ne: moment(i_Date[0], format).toDate()
+        $ne: moment(iDate[0], format).toDate()
     };
     return query;
 }
-function eq_Date(i_Date  , format ='YYYYMMDD') {
-    let d = moment(i_Date[0], format);
+function eqDate(iDate  , format ='YYYYMMDD') {
+    let d = moment(iDate[0], format);
     if (format == "HHmmss") {
-        if (!i_Date[1]) {
-            i_Date[1] = "000000";
+        if (!iDate[1]) {
+            iDate[1] = "000000";
         }
         let query =
         {
-            $gte : moment(i_Date[0], format).toDate() ,
-            $lte:  moment(i_Date[0], format).toDate()
+            $gte : moment(iDate[0], format).toDate() ,
+            $lte:  moment(iDate[0], format).toDate()
         };
         return query;
     }
-    else if (i_Date[0].length <= 4) {
-        let end = moment(i_Date[0], format).endOf('year');
-        return between_Date([d, end] , format);
+    else if (iDate[0].length <= 4) {
+        let end = moment(iDate[0], format).endOf('year');
+        return betweenDate([d, end] , format);
     }
-    else if (i_Date[0].length >= 5 && i_Date[0].length <= 6) {
-        let end = moment(i_Date[0], format).endOf('month');
-        return between_Date([d, end] , format);
+    else if (iDate[0].length >= 5 && iDate[0].length <= 6) {
+        let end = moment(iDate[0], format).endOf('month');
+        return betweenDate([d, end] , format);
     }
     else {
-        let end = moment(i_Date[0], format).endOf('day');
-        return between_Date([d, end] , format);
+        let end = moment(iDate[0], format).endOf('day');
+        return betweenDate([d, end] , format);
     }
 
 }
 
 //#region mongodb 日期
 const dateCallBack = {
-    '>': gt_Date, '<': lt_Date, '<=': lte_Date, '>=': gte_Date, '<>': ne_Date, '-': between_Date, '=': eq_Date
+    '>': gtDate, '<': ltDate, '<=': lteDate, '>=': gteDate, '<>': neDate, '-': betweenDate, '=': eqDate
 };
 
 async function commaValue (ikey , iValue) {
@@ -290,44 +292,4 @@ function checkIsOr (value , keyName)  {
         return true;
     }
     return false;
-}
-
-async function getMongoOrQs (iQuery) {
-    return new Promise(async (resolve)=> {
-        let queryKey=  Object.keys(iQuery);
-        let mongoQs = {
-            "$match" : {
-                "$and" : []
-            }
-        };
-        for (let i = 0 ; i < queryKey.length ; i++) {
-            let mongoOrs = {
-                "$or" :[]
-            };
-            let nowKey = queryKey[i];
-            let value = await commaValue(nowKey, iQuery[nowKey]);
-            for (let x= 0 ; x < value.length ; x++) {
-                let nowValue = value[x][nowKey];
-                let wildCardFunc = {};
-                wildCardFunc[nowValue.indexOf('*')] = wildCard;
-                wildCardFunc['0'] = wildCardFirst;
-                wildCardFunc['-1'] = (value)=>{return value;};
-                value[x][nowKey] = await wildCardFunc[nowValue.indexOf('*')](nowValue);
-                try {
-                    await DICOMJsonKeyFunc[nowKey](value[x]);
-                } catch (e) {
-
-                }
-                console.log(value[x]);
-                
-                if (checkIsOr(value[x] , nowKey)) {
-                    mongoOrs.$or.push(...(_.get(value[x][nowKey] , "$or")));
-                } else {
-                    mongoOrs.$or.push(value[x]);
-                }
-            }
-            mongoQs.$match.$and.push(mongoOrs);
-        }
-        return resolve(mongoQs.$match.$and.length == 0 ? {$match:{}} : mongoQs);
-    });
 }

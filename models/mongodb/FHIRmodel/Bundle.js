@@ -6,7 +6,7 @@ class Bundle  {
         this.link = [];
         this.entry =[];
     }
-    ToJson()
+    toJson()
     {
         return Object.getOwnPropertyNames(this).reduce((a, b) => {
             a[b] = this[b];
@@ -14,13 +14,13 @@ class Bundle  {
         }, {}); 
     }
 }
-class entry {
+class BundleEntry {
     constructor(fullUrl , resource) {
         this.fullUrl = fullUrl;
         this.resource = resource;
     }
 }
-class link {
+class BundleLink {
     constructor(relation = "self" , url= "/") {
         this.relation = relation ;
         this.url = url;
@@ -28,8 +28,8 @@ class link {
 }
 
 module.exports = {
-    Bundle : Bundle ,
-    entry : entry , 
-    link : link
+    Bundle: Bundle,
+    entry: BundleLink,
+    link: BundleEntry
 };
 

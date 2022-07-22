@@ -1,4 +1,4 @@
-const api_func = require('../../Api_function.js');
+const apiFunc = require('../../Api_function.js');
 const mongodb = require('models/mongodb');
 const fs = require('fs');
 const path = require('path');
@@ -6,54 +6,54 @@ const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-co
 const { getFrameImage, dcmtkSupportTransferSyntax } = require('../../../models/dcmtk/index');
 let { getJpeg } = require('../../../models/python/index');
 const sharp = require('sharp');
-let DICOMWebHandleError = require('../../../models/DICOMWeb/httpMessage.js');
-const Magick = require('../../../models/magick/index.js');
+let dicomWebHandleError = require('../../../models/DICOMWeb/httpMessage.js');
+const Magick = require('../../../models/magick/index.js'); // eslint-disable-line @typescript-eslint/naming-convention
 
 module.exports = async(req, res) => 
 {
     try {
         let param = req.query;
-        param = await api_func.Refresh_Param(param);
+        param = await apiFunc.refreshParam(param);
         if (!param.contentType) {
             param.contentType = 'image/jpeg';
         }
         if (param.requestType != "WADO") {
-            return DICOMWebHandleError.sendBadRequestMessage(res , "Parameter error : requestType only allow WADO");
+            return dicomWebHandleError.sendBadRequestMessage(res , "Parameter error : requestType only allow WADO");
         } else if (param.contentType!= "image/jpeg" && param.contentType != "application/dicom") {
-            return DICOMWebHandleError.sendBadRequestMessage(res , "Parameter error : contentType only allow image/jpeg or application/dicom");
+            return dicomWebHandleError.sendBadRequestMessage(res , "Parameter error : contentType only allow image/jpeg or application/dicom");
         }
         res.setHeader('Content-Type' , param.contentType);
         let disk = process.env.DICOM_STORE_ROOTPATH;
-        let ori_Path = await get_Instance_StorePath(param);
-        if (!ori_Path) {
-            return DICOMWebHandleError.sendNotFoundMessage(req , res);
+        let oriPath = await getInstanceStorePath(param);
+        if (!oriPath) {
+            return dicomWebHandleError.sendNotFoundMessage(req , res);
         }
-        let store_Path = `${disk}${ori_Path}`;
-        if (!fs.existsSync(store_Path)) {
-            return DICOMWebHandleError.sendNotFoundMessage(req , res);
+        let storePath = `${disk}${oriPath}`;
+        if (!fs.existsSync(storePath)) {
+            return dicomWebHandleError.sendNotFoundMessage(req , res);
         }
 
         if (param.contentType == 'image/jpeg') {
             if (param.frameNumber) {
-                return await handleFrameNumber(param , res , store_Path);
+                return await handleFrameNumber(param , res , storePath);
             }
             //when user get DICOM without frame number, default return first frame image
             param.frameNumber = 1;
-            return await handleFrameNumber(param , res , store_Path);
+            return await handleFrameNumber(param , res , storePath);
         } else {
             res.writeHead(200 , 
             {
                 'Content-Type' : param.contentType ,
-                'Content-Disposition' :'attachment; filename=' + path.basename(store_Path)
+                'Content-Disposition' :'attachment; filename=' + path.basename(storePath)
             });
-            return fs.createReadStream(store_Path).pipe(res);
+            return fs.createReadStream(storePath).pipe(res);
         }
     } catch (e) {
         console.error(e);
         if (e.message) {
-            return DICOMWebHandleError.sendServerWrongMessage(res , e.message);    
+            return dicomWebHandleError.sendServerWrongMessage(res , e.message);    
         }
-        return DICOMWebHandleError.sendServerWrongMessage(res , e);
+        return dicomWebHandleError.sendServerWrongMessage(res , e);
     }
 };
 /**
@@ -154,10 +154,10 @@ async function handleImageICCProfile(param, magick, instanceID) {
 async function handleFrameNumber (param , res , dicomFile) {
     try {
         if (!_.isNumber(param.frameNumber)) {
-            return DICOMWebHandleError.sendBadRequestMessage(res, "Parameter error : frameNumber must be Number");
+            return dicomWebHandleError.sendBadRequestMessage(res, "Parameter error : frameNumber must be Number");
         } 
         if (param.contentType != "image/jpeg") {
-            return DICOMWebHandleError.sendBadRequestMessage(res, "Parameter error : contentType only support image/jpeg with frameNumber");
+            return dicomWebHandleError.sendBadRequestMessage(res, "Parameter error : contentType only support image/jpeg with frameNumber");
         }
         let imageRelativePath = dicomFile.replace(process.env.DICOM_STORE_ROOTPATH,"");
         let images = `${process.env.DICOM_STORE_ROOTPATH}${imageRelativePath}`;
@@ -174,14 +174,14 @@ async function handleFrameNumber (param , res , dicomFile) {
                     return fs.createReadStream(jpegFile).pipe(res);
                 }
                 res.set('content-type' , 'application/json');
-                return DICOMWebHandleError.sendServerWrongMessage(res , `can't not convert dicom to jpeg with transfer syntax: ${transferSyntax}`); 
+                return dicomWebHandleError.sendServerWrongMessage(res , `can't not convert dicom to jpeg with transfer syntax: ${transferSyntax}`); 
             }
             let frame = await getFrameImage(imageRelativePath, param.frameNumber);
             if (frame.status) {
                 finalJpegFile = frame.imagePath;
             } else {
                 res.set('content-type' , 'application/json');
-                return DICOMWebHandleError.sendServerWrongMessage(res , `dcmtk Convert frame error ${frame.imageStream}`);
+                return dicomWebHandleError.sendServerWrongMessage(res , `dcmtk Convert frame error ${frame.imageStream}`);
             }
         }
         let imageSharp = sharp(finalJpegFile);
@@ -196,17 +196,17 @@ async function handleFrameNumber (param , res , dicomFile) {
     } catch(e) {
         console.error(e);
         res.set('content-type' , 'application/json');
-        return DICOMWebHandleError.sendServerWrongMessage(res , `${e.toString()}`);
+        return dicomWebHandleError.sendServerWrongMessage(res , `${e.toString()}`);
     }
 }
 
-async function get_Instance_StorePath(i_Param)
+async function getInstanceStorePath(iParam)
 {
-    let aggregate_Query = 
+    let aggregateQuery = 
     [
         {
             $match : {
-                'dicomJson.0020000D.Value' : i_Param.studyUID 
+                'dicomJson.0020000D.Value' : iParam.studyUID 
             }
         } ,
         {
@@ -215,13 +215,13 @@ async function get_Instance_StorePath(i_Param)
 		{
 			$match :
 			{
-                'series.dicomJson.0020000E.Value' :i_Param.seriesUID 
+                'series.dicomJson.0020000E.Value' :iParam.seriesUID 
 			}
         },
         {
             $match :
 			{
-                'series.instance.dicomJson.00080018.Value' :i_Param.objectUID
+                'series.instance.dicomJson.00080018.Value' :iParam.objectUID
 			}
         } ,
 		{
@@ -233,19 +233,19 @@ async function get_Instance_StorePath(i_Param)
 					{
 						input : '$series.instance' , 
 						as : 'instance' , 
-						cond : {$eq:[ '$$instance.uid' , i_Param.objectUID]}
+						cond : {$eq:[ '$$instance.uid' , iParam.objectUID]}
 					}
 				}
 			}
 		}
 	];
-    let instance = await find_Aggregate_Func('ImagingStudy' ,aggregate_Query);
+    let instance = await findAggregateFunc('ImagingStudy' ,aggregateQuery);
     if (instance.length <=0) return false;
     try {
         return (instance[0].instance[0].store_path);
     } catch (e) {
-        console.log("getInstancePath error\r\n"+ JSON.stringify(aggregate_Query , null ,4));
-        //console.log(aggregate_Query);
+        console.log("getInstancePath error\r\n"+ JSON.stringify(aggregateQuery , null ,4));
+        //console.log(aggregateQuery);
         return false;
     }
     
@@ -273,12 +273,12 @@ async function getDICOMJson(param) {
     return false;
 }
 
-async function find_Aggregate_Func (collection_Name , i_Query)
+async function findAggregateFunc (collectionName , iQuery)
 {
     return new Promise(async (resolve , reject)=>
     {
-        let agg =await mongodb[collection_Name].aggregate(
-            i_Query);
+        let agg =await mongodb[collectionName].aggregate(
+            iQuery);
         return resolve(agg);
     });
 }

@@ -8,7 +8,7 @@ var http = require('https');
 const url = require('url');
 var querystring = require('querystring');
 
-module.exports.Refresh_Param = async function (queryParameter) {
+module.exports.refreshParam = async function (queryParameter) {
     return new Promise((resolve) => {
         let keys = Object.keys(queryParameter);
         for (let i = 0; i < keys.length; i++) {
@@ -25,20 +25,18 @@ module.exports.strToRegex = function (str) {
     str = str.replace(/[\*]/g, '\\.$&');
     return new RegExp(str, 'gi');
 };
-module.exports.ToRegex = async function (i_Item) {
-    return new Promise(async (resolve) => {
-        let keys = Object.keys(i_Item);
-        for (let i = 0; i < keys.length; i++) {
-            if (typeof (i_Item[keys[i]]) == "string") {
-                i_Item[keys[i]] = i_Item[keys[i]].replace(/[\\(\\)\\-\\_\\+\\=\\\/\\.\\^]/g, '\\$&');
-                i_Item[keys[i]] = i_Item[keys[i]].replace(/[\*]/g, '\\.$&');
-                i_Item[keys[i]] = new RegExp(i_Item[keys[i]], 'gi');
-            } else if (_.isObject(i_Item[keys[i]])) {
-                await exports.ToRegex(i_Item[keys[i]]);
-            }
+module.exports.toRegex = async function (iItem) {
+    let keys = Object.keys(iItem);
+    for (let i = 0; i < keys.length; i++) {
+        if (typeof (iItem[keys[i]]) == "string") {
+            iItem[keys[i]] = iItem[keys[i]].replace(/[\\(\\)\\-\\_\\+\\=\\\/\\.\\^]/g, '\\$&');
+            iItem[keys[i]] = iItem[keys[i]].replace(/[\*]/g, '\\.$&');
+            iItem[keys[i]] = new RegExp(iItem[keys[i]], 'gi');
+        } else if (_.isObject(iItem[keys[i]])) {
+            await exports.toRegex(iItem[keys[i]]);
         }
-        return resolve(i_Item);
-    });
+    }
+    return iItem;
 };
 
 module.exports.textSpaceToOrCond = async function (str) {
@@ -73,7 +71,7 @@ module.exports.momentDateFunc = {
 //#endregion
 //#region mongodb 日期
 const dateCallBack = {
-    '>': gt_Date, '<': lt_Date, '<=': lte_Date, '>=': gte_Date, '<>': ne_Date, '-': between_Date, '=': eq_Date
+    '>': gtDate, '<': ltDate, '<=': lteDate, '>=': gteDate, '<>': neDate, '-': betweenDate, '=': eqDate
 };
 
 module.exports.cleanDoc = async function (data) {
@@ -137,64 +135,64 @@ function getDateStr(iDate) {
     return iDate.match(/\d+/g);
 }
 
-function gt_Date(i_Date) {
+function gtDate(iDate) {
     let query =
     {
-        $gt: moment(i_Date[0], 'YYYYMMDD').toDate()
+        $gt: moment(iDate[0], 'YYYYMMDD').toDate()
     };
     return query;
 }
-function lt_Date(i_Date) {
+function ltDate(iDate) {
     let query =
     {
-        $lt: moment(i_Date[0], 'YYYYMMDD').toDate()
+        $lt: moment(iDate[0], 'YYYYMMDD').toDate()
     };
     return query;
 }
-function gte_Date(i_Date) {
+function gteDate(iDate) {
     let query =
     {
-        $gte: moment(i_Date[0], 'YYYYMMDD').toDate()
+        $gte: moment(iDate[0], 'YYYYMMDD').toDate()
     };
     return query;
 }
-function lte_Date(i_Date) {
+function lteDate(iDate) {
     let query =
     {
-        $lte: moment(i_Date[0], 'YYYYMMDD').toDate()
+        $lte: moment(iDate[0], 'YYYYMMDD').toDate()
     };
     return query;
 }
-function between_Date(i_Date) {
+function betweenDate(iDate) {
     let query =
     {
-        $gte: moment(i_Date[0], 'YYYYMMDD').toDate(),
-        $lte: moment(i_Date[1], 'YYYYMMDD').toDate()
+        $gte: moment(iDate[0], 'YYYYMMDD').toDate(),
+        $lte: moment(iDate[1], 'YYYYMMDD').toDate()
     };
     return query;
 }
-function ne_Date(i_Date) {
+function neDate(iDate) {
     let query =
     {
-        $ne: moment(i_Date[0], 'YYYYMMDD').toDate()
+        $ne: moment(iDate[0], 'YYYYMMDD').toDate()
     };
     return query;
 }
-function eq_Date(i_Date) {
-    let d = moment(i_Date[0], 'YYYYMMDD');
+function eqDate(iDate) {
+    let d = moment(iDate[0], 'YYYYMMDD');
 
-    if (i_Date[0].length <= 4) {
-        let end = moment(i_Date[0], 'YYYYMMDD').endOf('year');
+    if (iDate[0].length <= 4) {
+        let end = moment(iDate[0], 'YYYYMMDD').endOf('year');
 
-        return between_Date([d, end]);
+        return betweenDate([d, end]);
     }
-    else if (i_Date[0].length >= 5 && i_Date[0].length <= 6) {
-        let end = moment(i_Date[0], 'YYYYMMDD').endOf('month');
-        return between_Date([d, end]);
+    else if (iDate[0].length >= 5 && iDate[0].length <= 6) {
+        let end = moment(iDate[0], 'YYYYMMDD').endOf('month');
+        return betweenDate([d, end]);
     }
     else {
-        let end = moment(i_Date[0], 'YYYYMMDD').endOf('day');
-        return between_Date([d, end]);
+        let end = moment(iDate[0], 'YYYYMMDD').endOf('day');
+        return betweenDate([d, end]);
     }
 }
 //#endregion
@@ -533,55 +531,55 @@ module.exports.esFunc = {
     dateFunc: {
         getDateCondition: getDateCondition,
         getDateStr: getDateStr,
-        eq_Date: (iDate) => {
+        eqDate: (iDate) => {
 
         },
-        ">": (i_Date, field) => { //gt
+        ">": (iDate, field) => { //gt
             let query = {
                 range: {
                     [field]: {
-                        gt: moment(i_Date[0], 'YYYYMMDD').toDate()
+                        gt: moment(iDate[0], 'YYYYMMDD').toDate()
                     }
                 }
             };
             return query;
         },
-        "<": (i_Date, field) => { //lt
+        "<": (iDate, field) => { //lt
             let query = {
                 range: {
                     [field]: {
-                        lt: moment(i_Date[0], 'YYYYMMDD').toDate()
+                        lt: moment(iDate[0], 'YYYYMMDD').toDate()
                     }
                 }
             };
             return query;
         },
-        ">=": (i_Date, field) => { //gte
+        ">=": (iDate, field) => { //gte
             let query = {
                 range: {
                     [field]: {
-                        gte: moment(i_Date[0], 'YYYYMMDD').toDate()
+                        gte: moment(iDate[0], 'YYYYMMDD').toDate()
                     }
                 }
             };
             return query;
         },
-        "<=": (i_Date, field) => { //lte
+        "<=": (iDate, field) => { //lte
             let query = {
                 range: {
                     [field]: {
-                        lte: moment(i_Date[0], 'YYYYMMDD').toDate()
+                        lte: moment(iDate[0], 'YYYYMMDD').toDate()
                     }
                 }
             };
             return query;
         },
-        "-": (i_Date, field) => { //between
+        "-": (iDate, field) => { //between
             let query = {
                 range: {
                     [field]: {
-                        gte: moment(i_Date[0], 'YYYYMMDD').toDate(),
-                        lte: moment(i_Date[1], 'YYYYMMDD').toDate()
+                        gte: moment(iDate[0], 'YYYYMMDD').toDate(),
+                        lte: moment(iDate[1], 'YYYYMMDD').toDate()
                     }
                 }
             };

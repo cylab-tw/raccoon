@@ -1,11 +1,11 @@
 const mongodb = require('models/mongodb');
 const moment = require('moment');
 const path = require('path');
-const _ = require('lodash');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const jwt = require('jsonwebtoken');
 var https = require('https');
 var http = require('https');
-const url = require('url')
+const url = require('url');
 var querystring = require('querystring');
 
 module.exports.Refresh_Param = async function (queryParameter) {
@@ -13,18 +13,18 @@ module.exports.Refresh_Param = async function (queryParameter) {
         let keys = Object.keys(queryParameter);
         for (let i = 0; i < keys.length; i++) {
             if (!queryParameter[keys[i]] || queryParameter[keys[i]] == "" || queryParameter[keys[i]] == undefined) {
-                delete queryParameter[keys[i]]
+                delete queryParameter[keys[i]];
             }
         }
         return resolve(queryParameter);
     });
-}
+};
 
 module.exports.strToRegex = function (str) {
     str = str.replace(/[\\(\\)\\-\\_\\+\\=\\\/\\.\\^]/g, '\\$&');
     str = str.replace(/[\*]/g, '\\.$&');
     return new RegExp(str, 'gi');
-}
+};
 module.exports.ToRegex = async function (i_Item) {
     return new Promise(async (resolve) => {
         let keys = Object.keys(i_Item);
@@ -39,7 +39,7 @@ module.exports.ToRegex = async function (i_Item) {
         }
         return resolve(i_Item);
     });
-}
+};
 
 module.exports.textSpaceToOrCond = async function (str) {
     return new Promise((resolve) => {
@@ -49,7 +49,7 @@ module.exports.textSpaceToOrCond = async function (str) {
         }
         return resolve(undefined);
     });
-}
+};
 //#endregion
 
 //#region  moment compare function 
@@ -69,7 +69,7 @@ module.exports.momentDateFunc = {
     "-": (value, date1, date2) => {
         return moment(value).isBetween(date1, date2);
     }
-}
+};
 //#endregion
 //#region mongodb 日期
 const dateCallBack = {
@@ -92,7 +92,7 @@ module.exports.cleanDoc = async function (data) {
         let result = clean(data);
         return resolve(result);
     });
-}
+};
 function getDeepKeys(obj) {
     let keys = [];
     for (let key in obj) {
@@ -119,7 +119,7 @@ module.exports.getObjectBelong = async function (iArr, uid, element) {
         const mergedArray = Object.values(arrayHashmap);
         return resolve(mergedArray);
     });
-}
+};
 
 function getDateCondition(iDate) {
     if (iDate.indexOf('-') == 0) { //只有結束日期
@@ -178,7 +178,7 @@ function ne_Date(i_Date) {
     {
         $ne: moment(i_Date[0], 'YYYYMMDD').toDate()
     };
-    return query
+    return query;
 }
 function eq_Date(i_Date) {
     let d = moment(i_Date[0], 'YYYYMMDD');
@@ -269,7 +269,7 @@ module.exports.esFunc = {
                     ]
                 }
             }
-        }
+        };
         return template;
     },
     searchMust: (query) => {
@@ -283,13 +283,13 @@ module.exports.esFunc = {
                                 "analyzer": "standard",
                                 "type": "phrase_prefix",
                                 "boost": 3,
-                                "fields": ["*"],
+                                "fields": ["*"]
                             }
                         }
                     ]
                 }
             }
-        }
+        };
         return template;
     },
     searchAllFields: (query, include, exclude, highlight) => {
@@ -333,7 +333,7 @@ module.exports.esFunc = {
                     ]
                 }
             }
-        }
+        };
         if (include) {
             _.set(template, "_source.include", include);
         }
@@ -356,7 +356,7 @@ module.exports.esFunc = {
                         "no_match_size": 20
                     }
                 }
-            })
+            });
         }
         return template;
     },
@@ -369,7 +369,7 @@ module.exports.esFunc = {
                     }
                 }
             }
-        }
+        };
         return template;
     },
     searchWildCard: (field, query) => {
@@ -381,7 +381,7 @@ module.exports.esFunc = {
                     }
                 }
             }
-        }
+        };
         return template;
     },
     aggs: (aggName, method, value) => {
@@ -391,7 +391,7 @@ module.exports.esFunc = {
                     [method]: value
                 }
             }
-        }
+        };
     },
     aggsTerms: (name, termsField, size, missing) => {
         let template = {
@@ -403,7 +403,7 @@ module.exports.esFunc = {
                     }
                 }
             }
-        }
+        };
         _.setWith(template, `aggs.${name}.terms.missing`, missing, Object);
         return template;
     },
@@ -424,7 +424,7 @@ module.exports.esFunc = {
                     }
                 }
             }
-        }
+        };
         return template;
     },
     aggsFilter: (aggName, field, value) => {
@@ -438,7 +438,7 @@ module.exports.esFunc = {
                     }
                 }
             }
-        }
+        };
         return template;
     },
     aggDate: (name, field, dateInterval, format) => {
@@ -453,7 +453,7 @@ module.exports.esFunc = {
                     }
                 }
             }
-        }
+        };
         return template;
     },
     boolFilterTerm: (field, value) => {
@@ -463,9 +463,9 @@ module.exports.esFunc = {
                     "term": {
                         [field]: value
                     }
-                },
+                }
             ]
-        }
+        };
         return template;
     },
     boolFilterTerms: (field, value) => {
@@ -475,9 +475,9 @@ module.exports.esFunc = {
                     "terms": {
                         [field]: value
                     }
-                },
+                }
             ]
-        }
+        };
         return template;
     },
     boolFilterRange: (field, value) => {
@@ -487,9 +487,9 @@ module.exports.esFunc = {
                     "term": {
                         [field]: value
                     }
-                },
+                }
             ]
-        }
+        };
     },
     boolFilterMissing: (field) => {
         const template = {
@@ -504,7 +504,7 @@ module.exports.esFunc = {
                     }
                 }
             ]
-        }
+        };
         return template;
     },
     boolFilterNested: (nestedField, queryField, searchMethod, value) => {
@@ -527,7 +527,7 @@ module.exports.esFunc = {
                     }
                 }
             ]
-        }
+        };
         return template;
     },
     dateFunc: {
@@ -586,7 +586,7 @@ module.exports.esFunc = {
                 }
             };
             return query;
-        },
+        }
     }
 
-}
+};

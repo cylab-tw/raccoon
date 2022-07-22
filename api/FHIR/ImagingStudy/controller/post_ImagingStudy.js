@@ -17,11 +17,11 @@ module.exports = async (req, res) => {
             }
             return res.status(500).send(handleError.exception(errorMessage.message));
         }
-    }
+    };
     let Insert_Data = req.body;
     let [status , doc]  = await InsertImagingStudy(Insert_Data);
     return resFunc[status](doc);
-}
+};
 
 
 async function InsertImagingStudy(Insert_Data) {

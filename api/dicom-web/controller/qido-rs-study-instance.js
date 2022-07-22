@@ -51,7 +51,7 @@ module.exports = async function (req , res) {
     res.setHeader('Content-Type' , 'application/dicom+json');
     setRetrieveURL(docs , 2);
     return res.status(200).json(docs);
-}
+};
 //#region get root instances
 async function getStudiesInstanceDicomJson(iQuery , iParam , limit , skip) {
     let unwindField = [ 

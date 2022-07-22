@@ -1,6 +1,6 @@
 'use strict';
 const mongodb = require('models/mongodb');
-const _ = require('lodash');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const {createBundle} = require('models/FHIR/func');
 const {handleError} = require('../../../../models/FHIR/httpMessage');
 const queryBuild = require('../../../../models/FHIR/queryBuild');
@@ -21,7 +21,7 @@ const FHIRFilter = {
     'series.instance.metadata' : 0 ,
     report : 0 , 
     patient : 0
-}
+};
 module.exports = async function (req, res) {
     let queryParameter = _.cloneDeep(req.query);
     let paginationSkip = queryParameter['_offset'] == undefined ? 0 : queryParameter['_offset'];
@@ -43,7 +43,7 @@ module.exports = async function (req, res) {
         } catch (e) {
             if (key != "$and") {
                 console.log(e);
-                return res.status(400).send(handleError.processing(`Unknown search parameter ${key}`))
+                return res.status(400).send(handleError.processing(`Unknown search parameter ${key}`));
             }
         }
     }
@@ -53,7 +53,7 @@ module.exports = async function (req, res) {
     const sendRes = {
         "true": (data) => res.status(200).json(data),
         "false": () => res.status(500).json({ "message": "error" })
-    }
+    };
     let [status, result] = await defaultSearch(queryParameter , paginationSkip , realLimit);
     let _include = _.get(req.query , "_include");
     if (_include) {
@@ -109,7 +109,7 @@ const includeSearch = {
         }
         result.push(...endpoints);
     }
-}
+};
 
 const paramsSearch = {
     "_id" : (query) => {
@@ -118,7 +118,7 @@ const paramsSearch = {
         });
         delete query["_id"];
     }
-}
+};
 paramsSearch["identifier"] = (query) => {
     let buildResult = queryBuild.tokenQuery(query["identifier"], "value", "identifier", "");
     for (let i in buildResult) {
@@ -127,4 +127,4 @@ paramsSearch["identifier"] = (query) => {
         });
     }
     delete query['identifier'];
-}
+};

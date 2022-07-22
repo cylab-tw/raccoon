@@ -1,7 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 const request = require("request");
-const _ = require("lodash");
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const { performance } = require("perf_hooks");
 
 const FHIR_Imagingstudy_model = require("../../../../models/FHIR/DICOM2FHIRImagingStudy");

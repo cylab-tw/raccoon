@@ -1,18 +1,18 @@
 'use strict';
 const mongodb = require('models/mongodb');
 const bcrypt = require('bcrypt');
-const _ = require("lodash");
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 
 const errorHandler = (err) => {
   let error = {
     message: 'Server has something error'
-  }
-  console.log(err.message)
+  };
+  console.log(err.message);
   if (err.message.indexOf('ObjectId failed') > 0) {
-    error.message = "Update failure, your item cannot found !"
+    error.message = "Update failure, your item cannot found !";
   }
   return error;
-}
+};
 module.exports = async(req, res) => {
   const requestBody = req.body;
   const queryParameter = Object.keys(requestBody)

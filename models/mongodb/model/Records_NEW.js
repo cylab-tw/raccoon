@@ -14,7 +14,7 @@ module.exports = function (mongodb) {
         {
             "pID" : 1
         }
-    )
+    );
     let Records = mongodb.model('Records_NEW', recordsSchema , 'Records_NEW');
     return Records;
-}
+};

@@ -8,7 +8,7 @@ const compress = require('compression');
 //login
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
-const flash = require('connect-flash')
+const flash = require('connect-flash');
 const mongodb = require('./models/mongodb');
 const mongoose = require('mongoose');
 const MongoStore = require('connect-mongo')({ session: session });
@@ -127,7 +127,7 @@ let condaEnvName = process.env.CONDA_GDCM_ENV_NAME;
         }, function (err, stdout, stderr) {
           if (err) {
             console.error(err);
-            process.exit(1)
+            process.exit(1);
           } else if (stderr) {
             console.error(stderr);
           }
@@ -146,7 +146,7 @@ let condaEnvName = process.env.CONDA_GDCM_ENV_NAME;
         process.exit(1);
       }
       try {
-        let res = await fetch(`http://${process.env.DCM2JPEG_PYTHONAPI_HOST}:${process.env.DCM2JPEG_PYTHONAPI_PORT}/`)
+        let res = await fetch(`http://${process.env.DCM2JPEG_PYTHONAPI_HOST}:${process.env.DCM2JPEG_PYTHONAPI_PORT}/`);
         console.log('the dcm2jpeg python flask api ready');
         clearInterval(checkAPIInterval);
       } catch (e) {

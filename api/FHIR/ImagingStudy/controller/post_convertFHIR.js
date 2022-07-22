@@ -1,4 +1,4 @@
-const _ = require("lodash");
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const mongodb = require('models/mongodb');
 const mongoFunc = require('models/mongodb/func');
 const mongoose = require('mongoose');
@@ -8,12 +8,12 @@ module.exports = async function (req, res) {
     let sendData =
     {
         "true": (data) => {
-            res.status(201).json(data)
+            res.status(201).json(data);
         },
         "false": (error) => {
-            res.status(500).json(error)
+            res.status(500).json(error);
         }
-    }
+    };
     let [insertStatus, doc] = await InsertImagingStudy(reqData, req.params.id);
     return sendData[insertStatus.toString()](doc);
 };
@@ -21,7 +21,7 @@ module.exports = async function (req, res) {
 module.exports.storeImagingStudy = async function (id , data) {
     let [insertStatus, doc] = await InsertImagingStudy(data, id);
     return doc;
-}
+};
 
 //獲取特定Series的Study
 async function getImagingStudySeries(series) {
@@ -70,7 +70,7 @@ async function getSeriesInstance(seriesUid, instance) {
                         }
                     }
                 }
-            ]
+            ];
         let agg = await mongoFunc.aggregate_Func('ImagingStudy', query);
         if (agg) {
             return resolve(agg);

@@ -5,7 +5,7 @@ const { ToRegex } = require('../../Api_function');
 const {mongoDateQuery} = require('../../../models/mongodb/func');
 const { Refresh_Param } = require('../../Api_function');
 const { textSpaceToOrCond } = require('../../Api_function');
-const _ = require('lodash');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const moment = require('moment');
 const { setRetrieveURL } = require('../../../models/DICOMWeb');
 const mongodb = require('../../../models/mongodb');
@@ -69,7 +69,7 @@ module.exports = async function (req , res) {
     res.setHeader('Content-Type' , 'application/dicom+json');
     setRetrieveURL(QIDOResult.data , keys.length);
     return res.status(200).json(QIDOResult.data);
-}
+};
 
 //#region 獲取各階層的DICOMJSON
 async function getStudyDicomJson(iQuery , iParam = "" , limit , skip) {
@@ -77,7 +77,7 @@ async function getStudyDicomJson(iQuery , iParam = "" , limit , skip) {
     let result = {
         data : '' ,
         status: false
-    }
+    };
     try {
         let retStudyLevel = {};
 
@@ -106,16 +106,16 @@ async function getSeriesDicomJson(iQuery , iParam , limit , skip) {
     let result = {
         data: '',
         status: false
-    }
+    };
     try {
         let qs = {
             "identifier.value": `urn:oid:${iParam.studyID}`
-        }
+        };
         iQuery = Object.assign(iQuery, qs);
         let unwindField = [{
             $unwind: '$series'
         }];
-        let level = ['study', 'series']
+        let level = ['study', 'series'];
         let mongoAgg = await getMongoAgg(iQuery, unwindField, level, limit, skip);
         logger.info(`[QIDO-RS] [Query for MongoDB: ${JSON.stringify(mongoAgg)}]`);
         let docs = await mongoFunc.aggregate_Func('ImagingStudy', mongoAgg);
@@ -135,12 +135,12 @@ async function getInstanceDicomJson(iQuery , iParam , limit , skip) {
     let result = {
         data: '',
         status: false
-    }
+    };
     try {
         let qs = {
             "identifier.value": `urn:oid:${iParam.studyID}`,
             "series.uid": iParam.seriesID
-        }
+        };
         iQuery = Object.assign(iQuery, qs);
         let unwindField = [{
             $unwind: '$series'
@@ -223,18 +223,18 @@ const DICOMJsonKeyFunc = {
                 "dicomJson.00100010.Value.familyName" : queryValue[nowKey]
             },
             {
-                "dicomJson.00100010.Value.givenName" : queryValue[nowKey] ,
+                "dicomJson.00100010.Value.givenName" : queryValue[nowKey] 
             } ,
             {
-                "dicomJson.00100010.Value.middleName" :queryValue[nowKey] ,
+                "dicomJson.00100010.Value.middleName" :queryValue[nowKey] 
             } ,
             {
-                "dicomJson.00100010.Value.prefix" : queryValue[nowKey] ,
+                "dicomJson.00100010.Value.prefix" : queryValue[nowKey] 
             },
             {
                 "dicomJson.00100010.Value.suffix" : queryValue[nowKey]
             }
-        ]}
+        ]};
         value[nowKey] = query;
     } ,
     "series.dicomJson.00100010.Value" : async (value) => {
@@ -249,18 +249,18 @@ const DICOMJsonKeyFunc = {
                 "dicomJson.00100010.Value.familyName" : queryValue[nowKey]
             },
             {
-                "dicomJson.00100010.Value.givenName" : queryValue[nowKey] ,
+                "dicomJson.00100010.Value.givenName" : queryValue[nowKey] 
             } ,
             {
-                "dicomJson.00100010.Value.middleName" :queryValue[nowKey] ,
+                "dicomJson.00100010.Value.middleName" :queryValue[nowKey] 
             } ,
             {
-                "dicomJson.00100010.Value.prefix" : queryValue[nowKey] ,
+                "dicomJson.00100010.Value.prefix" : queryValue[nowKey] 
             },
             {
                 "dicomJson.00100010.Value.suffix" : queryValue[nowKey]
             }
-        ]}
+        ]};
         value[nowKey] = query;
     } ,
     "timeFormat" : () => {
@@ -273,7 +273,7 @@ const DICOMJsonKeyFunc = {
             value[nowKey][i] = new Date(value[nowKey][i]).toISOString();
         }
     }
-}
+};
 function checkIsOr (value , keyName)  {
     if (_.isObject(value) && _.get(value[keyName] , "$or")) {
         return true;
@@ -291,7 +291,7 @@ async function getMongoOrQs (iQuery) {
         for (let i = 0 ; i < queryKey.length ; i++) {
             let mongoOrs = {
                 "$or" :[]
-            }
+            };
             let nowKey = queryKey[i];
             let value = await commaValue(nowKey, iQuery[nowKey]);
             for (let x= 0 ; x < value.length ; x++) {
@@ -299,7 +299,7 @@ async function getMongoOrQs (iQuery) {
                 let wildCardFunc = {};
                 wildCardFunc[nowValue.indexOf('*')] = wildCard;
                 wildCardFunc['0'] = wildCardFirst;
-                wildCardFunc['-1'] = (value)=>{return value;}
+                wildCardFunc['-1'] = (value)=>{return value;};
                 value[x][nowKey] = await wildCardFunc[nowValue.indexOf('*')](nowValue);
                 try {
                     await DICOMJsonKeyFunc[nowKey](value[x]);
@@ -315,7 +315,7 @@ async function getMongoOrQs (iQuery) {
             }
             mongoQs.$match.$and.push(mongoOrs);
         }
-        return resolve(mongoQs.$match.$and.length == 0 ? {$match:{}} : mongoQs)
+        return resolve(mongoQs.$match.$and.length == 0 ? {$match:{}} : mongoQs);
     });
 }
 //#endregion
@@ -326,7 +326,7 @@ async function getMongoAgg (iQuery , aggUnwind , DICOMLevel , limit , skip) {
     skip = parseInt(skip);
     return new Promise (async (resolve) => {
         let mongoQs = await getMongoOrQs(iQuery);
-        let mongoAgg = aggUnwind
+        let mongoAgg = aggUnwind;
         let retProject = {
             "$project" : await getLevelDicomJson(iQuery , DICOMLevel)
         };
@@ -335,7 +335,7 @@ async function getMongoAgg (iQuery , aggUnwind , DICOMLevel , limit , skip) {
         };
         let limitAgg = {
             $limit : limit+skip
-        }
+        };
         mongoAgg.push(mongoQs);
         mongoAgg.push(limitAgg);
         mongoAgg.push(skipAgg);
@@ -355,8 +355,8 @@ async function getLevelDicomJson (iQuery , retLevel , isAgg = true) {
             "study" : "dicomJson"  , 
             "series" : "series.dicomJson" , 
             "instance" : "series.instance.dicomJson"
-        }
-        let retLevelObj  = {}
+        };
+        let retLevelObj  = {};
         let retLevelTag = {};
         for (let i = 0 ; i < retLevel.length ; i++) {
             let nowLevel = retLevel[i];
@@ -402,12 +402,12 @@ async function qsDICOMTag(iParam) {
             let instanceTags = Object.keys(QIDORetAtt.instance);
             for (let seriesTag of seriesTags) {
                 if (newKeyNames.find(v => v == seriesTag) && !studyTags.includes(seriesTag)) {
-                    newKeyNames = [ "series", ...newKeyNames]
+                    newKeyNames = [ "series", ...newKeyNames];
                 }
             }
             for (let instanceTag of instanceTags) {
                 if (newKeyNames.find(v => v == instanceTag) && !studyTags.includes(instanceTag) && !seriesTags.includes(instanceTag)) {
-                    newKeyNames = [ "series", "instance", ...newKeyNames]
+                    newKeyNames = [ "series", "instance", ...newKeyNames];
                 }
             }
             newKeyNames.push('Value');
@@ -421,7 +421,7 @@ async function qsDICOMTag(iParam) {
 
 async function sortObject (obj , keys , method) {
     return new Promise ((resolve)=> {
-        obj = _.orderBy(obj , keys , method)
+        obj = _.orderBy(obj , keys , method);
         return resolve(obj);
     });
 }
@@ -442,4 +442,4 @@ module.exports.qidorsFunc = {
     getMongoAgg : getMongoAgg  ,
     qsDICOMTag : qsDICOMTag ,
     sortField : sortField
-}
+};

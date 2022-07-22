@@ -23,12 +23,12 @@ const validateParams = function (paramSchema , item , options) {
             let message = {
                 "Details" : err.details[0].message, 
                 "HttpStatus" : 400,
-                "Message" : "Bad request",
-            }
+                "Message" : "Bad request"
+            };
             return res.status(400).send(message);
         }
         next();
-    }
+    };
 };
 
 const FHIRValidateParams = function (paramSchema , item , options) {
@@ -47,7 +47,7 @@ const FHIRValidateParams = function (paramSchema , item , options) {
             return res.status(400).send(sendErrorMessage);
         }
         next();
-    }
+    };
 };
 module.exports = {
     validateParams: validateParams ,

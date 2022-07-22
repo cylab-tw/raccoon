@@ -11,7 +11,7 @@ module.exports = async function (req, res)
     password : 0 , 
     __v : 0 ,
     token : 0
-  }
+  };
   let _offset = parseInt(queryParameter["_offset"]) || 0;
   let _count = parseInt(queryParameter["_count"]) || 10 ;
   delete queryParameter["_count"];
@@ -22,7 +22,7 @@ module.exports = async function (req, res)
     usertype: {
       $ne: "admin"
     }
-  }
+  };
   mongodb.users.find(queryParameter , filter)
   .skip(_offset)
   .limit(_count)
@@ -36,8 +36,8 @@ module.exports = async function (req, res)
       const retValue = {
         result : result , 
         count : queryResultCount
-      }
+      };
       return res.status(200).json(retValue);
     }
   });
-}
+};

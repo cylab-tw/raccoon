@@ -13,7 +13,7 @@ module.exports = async function (req , res) {
     let deleteDataStatu = await deleteFunc[keysLen-1](params);
     //檢查刪除mognodb資料
     if (deleteDataStatu) {
-        let success = {deleteDataStatu : "Delete data successfully"}
+        let success = {deleteDataStatu : "Delete data successfully"};
         //檢查刪除檔案
         if (deleteFileStatu) {
             success["deleteFileStatu"] = "delete file success";
@@ -24,7 +24,7 @@ module.exports = async function (req , res) {
     } else {
         return res.status(500).end();
     }
-}
+};
 
 async function deleteStudyImage (iParams) {
     return new Promise(async (resolve)=> {
@@ -101,7 +101,7 @@ async function deleteSeries (iParams) {
                     "uid": `${iParams.seriesID}`
                 }
             }
-        }
+        };
         mongodb.ImagingStudy.updateOne(query , deleteSeriesCmd , function (err ,res){
             if (err) {
                 errorMessage = err;
@@ -124,7 +124,7 @@ async function deleteInstance (iParams) {
                     "uid": `${iParams.instanceID}`
                 }
             }
-        }
+        };
         mongodb.ImagingStudy.updateOne(query , deleteInstanceCmd  , function (err ,res){
             if (err) {
                 errorMessage = err;

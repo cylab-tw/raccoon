@@ -56,11 +56,11 @@ const getJpeg = {
                         return resolve(true);
                     });
                 }
-            })
+            });
         }
     }
-}
+};
 
 module.exports = {
     getJpeg : getJpeg
-}
+};

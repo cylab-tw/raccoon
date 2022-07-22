@@ -2,7 +2,7 @@ const api_func = require('../../Api_function.js');
 const mongodb = require('models/mongodb');
 const fs = require('fs');
 const path = require('path');
-const _ = require('lodash');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const { getFrameImage, dcmtkSupportTransferSyntax } = require('../../../models/dcmtk/index');
 let { getJpeg } = require('../../../models/python/index');
 const sharp = require('sharp');
@@ -55,7 +55,7 @@ module.exports = async(req, res) =>
         }
         return DICOMWebHandleError.sendServerWrongMessage(res , e);
     }
-}
+};
 /**
  * 
  * @param {*} param 
@@ -127,7 +127,7 @@ async function handleImageICCProfile(param, magick, instanceID) {
             if (!iccProfileBinaryFile) throw new Error("The Image dose not have icc profile tag");
             let iccProfileSrc = path.join(process.env.DICOM_STORE_ROOTPATH, iccProfileBinaryFile.filename);
             let dest = path.join(process.env.DICOM_STORE_ROOTPATH, iccProfileBinaryFile.filename + `.icc`);
-            if (!fs.existsSync(dest)) fs.copyFileSync(iccProfileSrc, dest)
+            if (!fs.existsSync(dest)) fs.copyFileSync(iccProfileSrc, dest);
             await magick.iccProfile(dest);
         },
         "srgb": async () => {
@@ -138,8 +138,8 @@ async function handleImageICCProfile(param, magick, instanceID) {
         },
         "rommrgb": async () => {
             await magick.iccProfile(path.join(process.cwd(), "models/DICOMWeb/iccprofiles/rommRGB.icc"));
-        },
-    }
+        }
+    };
     try {
         if (param.iccprofile) {
             await iccProfileAction[param.iccprofile]();
@@ -206,7 +206,7 @@ async function get_Instance_StorePath(i_Param)
     [
         {
             $match : {
-                'dicomJson.0020000D.Value' : i_Param.studyUID, 
+                'dicomJson.0020000D.Value' : i_Param.studyUID 
             }
         } ,
         {
@@ -215,7 +215,7 @@ async function get_Instance_StorePath(i_Param)
 		{
 			$match :
 			{
-                'series.dicomJson.0020000E.Value' :i_Param.seriesUID ,
+                'series.dicomJson.0020000E.Value' :i_Param.seriesUID 
 			}
         },
         {
@@ -238,7 +238,7 @@ async function get_Instance_StorePath(i_Param)
 				}
 			}
 		}
-	]
+	];
     let instance = await find_Aggregate_Func('ImagingStudy' ,aggregate_Query);
     if (instance.length <=0) return false;
     try {

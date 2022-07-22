@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path= require('path');
 const uuid = require('uuid');
-const _ = require('lodash');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const DICOMWebHandleError = require('../../../models/DICOMWeb/httpMessage');
 const { writeImageMultipart } = require('../../../models/DICOMWeb');
 const { MultipartWriter } = require('../../../utils/multipartWriter');
@@ -57,7 +57,7 @@ module.exports = async function (req , res) {
             let acceptObj = {
                 type : finalType , 
                 transferSyntax : transferSyntax
-            }
+            };
             acceptTypes.push(acceptObj);
         }
         console.log(acceptTypes);
@@ -88,11 +88,11 @@ module.exports = async function (req , res) {
         return DICOMWebHandleError.sendNotFoundMessage(req , res);
     }
     return sendNotSupportMessage(req , res);
-}
+};
 
 function sendNotSupportMessage(req ,res) {
     let accept = _.get(req , "headers.accept");
-    if (!accept) accept = "Unknown"
+    if (!accept) accept = "Unknown";
     let message = {
         "Details" : `This WADO-RS server cannot generate the following content type with Accept Header: ${accept} 
         Can use the Accept Header below : 
@@ -102,8 +102,8 @@ function sendNotSupportMessage(req ,res) {
         `, 
         "HttpStatus" : 400,
         "Message" : "Bad request",
-        "Method" : "GET",
-    }
+        "Method" : "GET"
+    };
     res.status(400).send(message);
     res.end();  
 }
@@ -128,25 +128,25 @@ let multipartFunc = {
             let multipartWriter = new MultipartWriter(imagesPath, res);
             return multipartWriter.writeDICOMFiles(type);
         }
-    } ,
-}
+    } 
+};
 multipartFunc["application/octet-stream"] = {
     getStudyDicom : multipartFunc["application/dicom"].getStudyDicom ,
     getSeriesDicom : multipartFunc["application/dicom"].getSeriesDicom , 
     getInstance : multipartFunc["application/dicom"].getInstance
-}
+};
 multipartFunc["image/jpeg"] = {
     getInstance:  async function (iParam , res , type) {
         return new Promise (async (resolve)=> {
             let imagesPath = await mongoFunc.getInstanceImagePath(iParam);
             if (imagesPath) {
-                await writeImageMultipart(res , imagesPath , type)
+                await writeImageMultipart(res , imagesPath , type);
                 return resolve(true);    
             }
             return resolve(false);
         });
     }
-}
+};
 
 function nl2br (str) {
     return str.replace(/\\r|\\n|\\r\\n/gi , "<br/>");
@@ -211,7 +211,7 @@ class WADOZip {
             resolve({
                 status: false,
                 data: "Gone"
-            })
+            });
         });
     }
 

@@ -29,4 +29,4 @@ module.exports = function (mongodb) {
     });
     let dicomBulkData = mongodb.model('dicomBulkData', dicomBulkDataSchema, 'dicomBulkData');
     return dicomBulkData;
-}
+};

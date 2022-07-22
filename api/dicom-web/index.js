@@ -3,7 +3,7 @@ const express = require('express');
 const Joi = require('joi');
 const router = express.Router();
 const { validateParams } = require('../validator');
-const _ = require('lodash');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 
 
 //#region wado-rs
@@ -53,7 +53,7 @@ router.get('/studies/:studyID/series/:seriesID/instances/:instanceID/frames/:fra
             }
         } 
         return helper.message("invalid viewport parameter, viewport=vw,vh or viewport=vw,vh,sx,sy,sw,sh");
-    }),
+    })
 }, "query", { allowUnknown: false }), require('./controller/wado-rs-framenumber-rendered'));
 //#endregion
 

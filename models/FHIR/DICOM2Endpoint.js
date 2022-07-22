@@ -31,7 +31,7 @@ async function DCM2Endpoint(filename)
                 "application/dicom"
             ],
             "address": `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}`
-        }
+        };
         return resolve(endpoint);
     });
 }
@@ -59,7 +59,7 @@ function DCM2Endpoint_readFile(filename)
             "application/dicom"
         ],
         "address": `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}`
-    }
+    };
     return endpoint;
 }
 function DCM2Endpoint_imagingStudy(imagingStudy)
@@ -83,7 +83,7 @@ function DCM2Endpoint_imagingStudy(imagingStudy)
             "application/dicom"
         ],
         "address": `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}`
-    }
+    };
     return endpoint;
 }
 
@@ -102,6 +102,6 @@ module.exports = {
     DCM2Endpoint : DCM2Endpoint , 
     DCM2Endpoint_readFile : DCM2Endpoint_readFile ,
     DCM2Endpoint_imagingStudy : DCM2Endpoint_imagingStudy
-}
+};
 
 

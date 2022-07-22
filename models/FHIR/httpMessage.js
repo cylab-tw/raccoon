@@ -41,10 +41,10 @@ const handleError = {
         let operation = new OperationOutcome([errorMessage]);
         return operation;
     }
-}
+};
 
 
 module.exports = {
     getDeleteMessage : getDeleteMessage , 
     handleError : handleError
-}
+};

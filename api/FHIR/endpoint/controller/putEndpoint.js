@@ -1,14 +1,14 @@
 const mongodb = require('models/mongodb');
-const _ = require("lodash");
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const mongoose = require("mongoose");
 const base_version  ="4_0_0";
-const {cleanDoc}  =require("api/Api_function")
+const {cleanDoc}  =require("api/Api_function");
 
 
 
 const errorMessage = {
     message : ""
-}
+};
 
 module.exports = async function (req , res) {
     let resFunc = {
@@ -18,7 +18,7 @@ module.exports = async function (req , res) {
         "false" : (error) => {
             return res.status(500).send(errorMessage);
         }
-    }
+    };
     let dataExist = await isDocExist(req.params.id);
     let dataFuncAfterCheckExist = {
         0 : () => {
@@ -26,10 +26,10 @@ module.exports = async function (req , res) {
         } ,
         1 : doUpdateData , 
         2 : doInsertData
-    }
+    };
     let [ status , result] = await dataFuncAfterCheckExist[dataExist](req);
     return resFunc[status](result);
-}
+};
 function isDocExist (id) {
     return new Promise (async (resolve , reject) => {
         mongodb["endpoint"].findOne ({id : id} , async function (err ,doc) {

@@ -1,6 +1,6 @@
 class Bundle  {
     constructor() {
-        this.resourceType = "Bundle"
+        this.resourceType = "Bundle";
         this.type = "" ;
         this.total = 0 ;
         this.link = [];
@@ -31,5 +31,5 @@ module.exports = {
     Bundle : Bundle ,
     entry : entry , 
     link : link
-}
+};
 

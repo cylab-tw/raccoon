@@ -116,7 +116,7 @@ CONDA_GDCM_ENV_NAME="gdcm"
 USE_DCM2JPEG_PYTHONAPI=true
 DCM2JPEG_PYTHONAPI_PORT=5000
 
-`
+`;
                         return resolve(true);
                     }
                     return resolve(false);
@@ -142,7 +142,7 @@ DCM2JPEG_PYTHONAPI_PORT=5000
             });
         }
     }
-}
+};
 
 async function genDCMTK (osType) {
     let haveDCMTK = await osFunc[osType].checkHaveDCMTK();

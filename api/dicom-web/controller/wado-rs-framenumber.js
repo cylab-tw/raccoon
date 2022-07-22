@@ -1,6 +1,6 @@
 const mongodb = require("../../../models/mongodb");
 const mongoFunc = require("../../../models/mongodb/func");
-const _ = require("lodash");
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const DICOMWebHandleError = require("../../../models/DICOMWeb/httpMessage");
 const { MultipartWriter } = require("../../../utils/multipartWriter");
 

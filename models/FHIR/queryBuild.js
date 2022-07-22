@@ -1,5 +1,5 @@
 const { isNumber } = require('lodash');
-const _ = require('lodash');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const moment = require('moment');
 const prefix = ["eq" , "ne" , "lt" , "gt" , "ge" , "le" , "sa" , "eb" , "ap"];
 function stringQuery(str, key) {
@@ -7,7 +7,7 @@ function stringQuery(str, key) {
     const buildContainsOrExact = {
         "contains": stringContains,
         "exact": stringExact
-    }
+    };
     let buildFunc = {
         '1': () => {
             return stringContainStart(str);
@@ -16,7 +16,7 @@ function stringQuery(str, key) {
             let modifier = keySplit[1];
             return buildContainsOrExact[modifier](str);
         }
-    }
+    };
     return buildFunc[keySplit.length]();
 }
 
@@ -64,12 +64,12 @@ function tokenQuery(item, type, field, required) {
         for(let i in queryBuilder) {
             ors.$or.push({
                 [i] : queryBuilder[i]
-            })
+            });
         }
         return ors;
     }
     return queryBuilder;
-};
+}
 
 function quantityQuery(item, field) {
     let queryBuilder = {};
@@ -95,12 +95,12 @@ function quantityQuery(item, field) {
         for(let i in queryBuilder) {
             ors.$or.push({
                 [i] : queryBuilder[i]
-            })
+            });
         }
         return ors;
     }
     return queryBuilder;
-};
+}
 
 
 function addressQuery(target , key) {
@@ -119,7 +119,7 @@ function addressQuery(target , key) {
         );
     }
     return ors;
-};
+}
 
 function nameQuery(target , key) {
     let totalSplit = target.split(/[\s.,]+/);
@@ -136,7 +136,7 @@ function nameQuery(target , key) {
         );
     }
     return ors;
-};
+}
 let dateQueryBuilder = {
     "eq" : (queryBuilder,  field , date , format) => {
         let gte = moment(date).startOf(format);
@@ -144,7 +144,7 @@ let dateQueryBuilder = {
         let result = {
             "$gte" : gte.toDate() ,
             "$lte" : lte.toDate()
-        }
+        };
         queryBuilder[field] = result;
         return queryBuilder;
     } ,
@@ -155,7 +155,7 @@ let dateQueryBuilder = {
             $or : [
                 {
                     [field] : {
-                        "$gte" : moment(gd).toDate() ,
+                        "$gte" : moment(gd).toDate() 
                     }
                 } ,
                 {
@@ -164,39 +164,39 @@ let dateQueryBuilder = {
                     }
                 }
             ]
-        }
+        };
         queryBuilder = result;
         return queryBuilder;
     } , 
     "lt" : (queryBuilder,  field , date , format) => {
         let result = {
             "$lt" : moment(date).toDate() 
-        }
+        };
         queryBuilder[field] = result;
         return queryBuilder;
     } ,
     "gt" : (queryBuilder,  field , date , format) => {
         let result = {
             "$gt" : moment(date).toDate() 
-        }
+        };
         queryBuilder[field] = result;
         return queryBuilder;
     } ,
     "ge" : (queryBuilder,  field , date , format) => {
         let result = {
             "$gte" : moment(date).toDate() 
-        }
+        };
         queryBuilder[field] = result;
         return queryBuilder;
     } ,
     "le" : (queryBuilder,  field , date , format) => {
         let result = {
             "$lte" : moment(date).toDate() 
-        }
+        };
         queryBuilder[field] = result;
         return queryBuilder;
     } 
-}
+};
 function dateQuery (value, field) {
     let queryBuilder = {};
     let date = value.substring(2);
@@ -276,9 +276,9 @@ function referenceQuery (query , field) {
         queryBuilder[field] = isUrl[3];
         return result;
     } else if (typeAndId.length == 2) {
-        queryBuilder[field] = `${typeAndId[0]}/${typeAndId[1]}`
+        queryBuilder[field] = `${typeAndId[0]}/${typeAndId[1]}`;
     } else {
-        queryBuilder[field] = {$regex : new RegExp(query)}
+        queryBuilder[field] = {$regex : new RegExp(query)};
     }
     return queryBuilder;
 }
@@ -304,49 +304,49 @@ let numberQueryBuilder = {
     "eq" : (queryBuilder,  field , num) => {
         let result = {
             "$eq" : Number(num)
-        }
+        };
         queryBuilder[field] = result;
         return queryBuilder;
     } ,
     "ne" : (queryBuilder,  field , num) => {
         let result = {
             "$ne" : Number(num)
-        }
+        };
         queryBuilder[field] = result;
         return queryBuilder;
     } ,
     "ne" : (queryBuilder,  field , num) => {
         let result = {
             "$eq" : Number(num)
-        }
+        };
         queryBuilder[field] = result;
         return queryBuilder;
     } ,
     "gt" : (queryBuilder,  field , num) => {
         let result = {
             "$gt" : Number(num)
-        }
+        };
         queryBuilder[field] = result;
         return queryBuilder;
     } ,
     "lt" : (queryBuilder,  field , num) => {
         let result = {
             "$lt" : Number(num)
-        }
+        };
         queryBuilder[field] = result;
         return queryBuilder;
     } ,
     "ge" : (queryBuilder,  field , num) => {
         let result = {
             "$gte" : Number(num)
-        }
+        };
         queryBuilder[field] = result;
         return queryBuilder;
     } ,
     "le" : (queryBuilder,  field , num) => {
         let result = {
             "$lte" : Number(num)
-        }
+        };
         queryBuilder[field] = result;
         return queryBuilder;
     } ,
@@ -358,9 +358,9 @@ let numberQueryBuilder = {
     } ,
     "ap" : (queryBuilder,  field , num) => {
         return new Error("not support prefix");
-    } ,
+    } 
     
-}
+};
 function numberQuery (value, field) {
     try {
         let queryBuilder = {};
@@ -388,4 +388,4 @@ module.exports = exports = {
     quantityQuery : quantityQuery , 
     referenceQuery : referenceQuery , 
     arrayStringBuild : arrayStringBuild
-}
+};

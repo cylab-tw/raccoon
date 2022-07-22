@@ -3,8 +3,8 @@ function sendServerWrongMessage (res , value) {
         "Details" : value, 
         "HttpStatus" : 500,
         "Message" : "Server Wrong",
-        "Method" : "GET",
-    }
+        "Method" : "GET"
+    };
     res.status(500).json(message);
     res.end();
 }
@@ -14,8 +14,8 @@ function sendBadRequestMessage (res , value) {
         "Details" : value, 
         "HttpStatus" : 400,
         "Message" : "Bad request",
-        "Method" : "GET",
-    }
+        "Method" : "GET"
+    };
     res.status(400).json(message);
     res.end();
 }
@@ -25,9 +25,9 @@ function sendNotFoundMessage (req , res){
         "Details" : "Accessing an inexistent Item\r\n", 
         "HttpStatus" : 404,
         "Message" : "Not Found",
-        "Method" : "GET",
-    }
-    let notFoundStr = []
+        "Method" : "GET"
+    };
+    let notFoundStr = [];
     for (let i in req.query) {
         notFoundStr.push(`${i}:${req.query[i]}`);
     }
@@ -40,5 +40,5 @@ module.exports =  {
     sendBadRequestMessage : sendBadRequestMessage , 
     sendNotFoundMessage : sendNotFoundMessage ,
     sendServerWrongMessage : sendServerWrongMessage
-}
+};
 

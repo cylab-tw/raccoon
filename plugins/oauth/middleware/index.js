@@ -1,6 +1,6 @@
 
 const path = require("path");
-const _ = require("lodash");
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const https = require("https");
 const http = require("http");
 const url = require("url");

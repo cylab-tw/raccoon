@@ -74,10 +74,10 @@ module.exports = function (mongodb) {
         delete result._id;
         delete result.__v;
         return result;
-    }
+    };
     //fs.writeFileSync("./data/endpoint.json" ,JSON.stringify (endpointSchema.jsonSchema() , null ,4) , {flag: "w+"});
     let endpoint = mongodb.model('endpoint', endpointSchema , 'endpoint');
     return endpoint;
-}
+};
 
 

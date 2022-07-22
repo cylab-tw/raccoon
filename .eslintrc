@@ -1,0 +1,38 @@
+{
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["@typescript-eslint"],
+    "parserOptions": {
+        "ecmaVersion": 2018
+    },
+    "env": {
+        "browser": false,
+        "node": true,
+        "es6": true
+    },
+    "extends": ["eslint:recommended"],
+    "rules": {
+        "semi": ["error", "always"],
+        "comma-dangle": ["error", "never"], 
+        "no-unused-vars": "off",
+        "no-console": 0 ,
+        "no-useless-escape": "off",
+        "no-useless-catch": "off",
+        /* from https://github.com/typescript-eslint/typescript-eslint/pull/1318 */
+        "@typescript-eslint/naming-convention": ["error",
+        { "selector": "variableLike", "format": ["camelCase"] },
+        { "selector": "variable", "format": ["camelCase", "UPPER_CASE"] },
+        { "selector": "parameter", "format": ["camelCase"], "leadingUnderscore": "allow" },
+      
+        { "selector": "memberLike", "format": ["camelCase"] },
+        { "selector": "memberLike", "modifiers": ["private"], "format": ["camelCase"], "leadingUnderscore": "require"  },
+      
+        { "selector": "typeLike", "format": ["PascalCase"] },
+        { "selector": "typeParameter", "format": ["PascalCase"], "prefix": ["T"] },
+      
+        { "selector": "interface", "format": ["PascalCase"], "custom": { "regex": "^I[A-Z]", "match": false } },
+        { "selector": "objectLiteralProperty", "format": null },
+        { "selector": "objectLiteralMethod", "format": null }
+      ]
+    },
+    "ignorePatterns": ["public/**", "temp/**", "docs/**", "models/formidable/**"]
+}

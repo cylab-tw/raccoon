@@ -1,8 +1,8 @@
 const child_process = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const _ = require('lodash');
-const iconv = require('iconv-lite')
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
+const iconv = require('iconv-lite');
 
 
 const dcmtkSupportTransferSyntax = [
@@ -91,12 +91,12 @@ const dcm2jsonV8 = {
                     data = data.replace(/\\u0000/g, '');
                     let obj = JSON.parse(data);
                     return resolve(obj);
-                })
+                });
             } catch (e) {
                 console.error(e);
                 return resolve(false);
             }
-        })
+        });
     } , 
     dcmString : function (json , tag) {
         let data = _.get(json, tag);
@@ -105,7 +105,7 @@ const dcm2jsonV8 = {
         //console.log(value);
         return value;
     }
-}
+};
 
 async function dcm2jpeg (dicomFile) {
     return new Promise((resolve , reject)=> {
@@ -131,7 +131,7 @@ async function dcm2jpeg (dicomFile) {
             console.error(stderr);
             reject(new Error(stderr));
         });
-    }) 
+    }); 
 }
 
 async function dcm2jpegCustomCmd (execCmd) {
@@ -148,13 +148,13 @@ async function dcm2jpegCustomCmd (execCmd) {
         });
         dcm2jpegSpawn.on("close", function() {
             resolve(true);
-        })
+        });
         dcm2jpegSpawn.stderr.on("data", function (stderr) {
             stderr = iconv.decode(stderr, 'cp950');
             console.error(stderr);
             reject(new Error(stderr));
         });
-    }) 
+    }); 
 }
 
 async function jpeg2dcmFromDataset (filename , dcmFilename , outputFilename) {
@@ -179,7 +179,7 @@ async function jpeg2dcmFromDataset (filename , dcmFilename , outputFilename) {
             }
             return resolve(true);
         });
-    })
+    });
 }
 
 async function xml2dcm (filename , outputFilename) {
@@ -195,7 +195,7 @@ async function xml2dcm (filename , outputFilename) {
         child_process.execFile(dcmtk , cmd ,{encoding : 'buffer'} , function (error, stdout, stderr) {
             stderr = iconv.decode(stderr , 'cp950');
             if (stderr) {
-                console.error("stderr: " , );
+                console.error("stderr: "  );
                 return reject(new Error(stderr));
             } else if (error) {
                 console.error("error:" , error );
@@ -203,7 +203,7 @@ async function xml2dcm (filename , outputFilename) {
             }
             return resolve(true);
         });
-    })
+    });
 }
 
 
@@ -260,4 +260,4 @@ module.exports = {
     xml2dcm : xml2dcm , 
     getFrameImage : getFrameImage,
     dcmtkSupportTransferSyntax: dcmtkSupportTransferSyntax
-}
+};

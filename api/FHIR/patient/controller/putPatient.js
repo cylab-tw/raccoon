@@ -3,7 +3,7 @@ const { handleError } = require('../../../../models/FHIR/httpMessage');
 
 const errorMessage = {
     message : ""
-}
+};
 
 module.exports = async function (req ,res) {
     let resFunc = {
@@ -13,7 +13,7 @@ module.exports = async function (req ,res) {
         "false" : (error) => {
             return res.status(500).send(handleError.exception(errorMessage.message));
         }
-    }
+    };
     //let [updateStatus , doc]  = await updatePatient(req);
     let dataExist = await isDocExist(req.params.id);
     if (dataExist == 0) {
@@ -25,10 +25,10 @@ module.exports = async function (req ,res) {
         } ,
         1 : doUpdateData , 
         2 : doInsertData
-    }
+    };
     let [status , result] = await dataFuncAfterCheckExist[dataExist](req);
     return resFunc[status](result);
-}
+};
 
 function isDocExist (id) {
     return new Promise (async (resolve , reject) => {

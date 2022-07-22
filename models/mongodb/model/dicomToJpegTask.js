@@ -34,4 +34,4 @@ module.exports = function (mongodb) {
     });
     let dicomToJpegTask = mongodb.model('dicomToJpegTask', dicomToJpegTaskSchema , 'dicomToJpegTask');
     return dicomToJpegTask;
-}
+};

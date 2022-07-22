@@ -3,7 +3,7 @@ const {
 } = require('../utils/log');
 const uuid = require('uuid');
 const fs = require('fs');
-const _ = require('lodash');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const dicomParser = require('dicom-parser');
 const {
     streamToBuffer

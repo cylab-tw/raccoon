@@ -92,7 +92,7 @@ module.exports = {
             let query = [
                 {
                     $match: {
-                        'identifier.value': `urn:oid:${iParams.studyID}`,
+                        'identifier.value': `urn:oid:${iParams.studyID}`
                     }
                 },
                 {
@@ -127,7 +127,7 @@ module.exports = {
             let query = [
                 {
                     $match: {
-                        'identifier.value': `urn:oid:${iParams.studyID}`,
+                        'identifier.value': `urn:oid:${iParams.studyID}`
                     }
                 },
                 {
@@ -178,7 +178,7 @@ module.exports = {
     }  ,
     getMongoOrQs : getMongoOrQs ,
     commaValue : commaValue 
-}
+};
 
 function getDateCondition(iDate , format ='YYYYMMDD') {
     if (iDate.indexOf('-') == 0) { //只有結束日期
@@ -237,13 +237,13 @@ function ne_Date(i_Date , format ='YYYYMMDD') {
     {
         $ne: moment(i_Date[0], format).toDate()
     };
-    return query
+    return query;
 }
 function eq_Date(i_Date  , format ='YYYYMMDD') {
     let d = moment(i_Date[0], format);
     if (format == "HHmmss") {
         if (!i_Date[1]) {
-            i_Date[1] = "000000"
+            i_Date[1] = "000000";
         }
         let query =
         {
@@ -303,7 +303,7 @@ async function getMongoOrQs (iQuery) {
         for (let i = 0 ; i < queryKey.length ; i++) {
             let mongoOrs = {
                 "$or" :[]
-            }
+            };
             let nowKey = queryKey[i];
             let value = await commaValue(nowKey, iQuery[nowKey]);
             for (let x= 0 ; x < value.length ; x++) {
@@ -311,7 +311,7 @@ async function getMongoOrQs (iQuery) {
                 let wildCardFunc = {};
                 wildCardFunc[nowValue.indexOf('*')] = wildCard;
                 wildCardFunc['0'] = wildCardFirst;
-                wildCardFunc['-1'] = (value)=>{return value;}
+                wildCardFunc['-1'] = (value)=>{return value;};
                 value[x][nowKey] = await wildCardFunc[nowValue.indexOf('*')](nowValue);
                 try {
                     await DICOMJsonKeyFunc[nowKey](value[x]);
@@ -328,6 +328,6 @@ async function getMongoOrQs (iQuery) {
             }
             mongoQs.$match.$and.push(mongoOrs);
         }
-        return resolve(mongoQs.$match.$and.length == 0 ? {$match:{}} : mongoQs)
+        return resolve(mongoQs.$match.$and.length == 0 ? {$match:{}} : mongoQs);
     });
 }

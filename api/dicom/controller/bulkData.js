@@ -26,4 +26,4 @@ module.exports = async function (req, res) {
     await multipartWriter.writeBulkData(bulkData);
     await multipartWriter.writeFinalBoundary();
     return res.end();
-}
+};

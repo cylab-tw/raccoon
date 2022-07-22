@@ -18,11 +18,11 @@ module.exports = async function (req, res) {
             }
             return res.status(500).send(handleError.exception(errorMessage.message));
         }
-    }
+    };
     let Insert_Data = req.body;
     let [status , doc]  = await insertEndpoint(Insert_Data);
     return resFunc[status](doc);
-}
+};
 
 async function insertEndpoint(req) {
     return new Promise(async (resolve, reject) => {

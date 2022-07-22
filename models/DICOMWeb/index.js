@@ -3,7 +3,7 @@ const {dcm2jpeg, dcm2jpegCustomCmd} = require('../dcmtk');
 const uuid = require('uuid');
 const fs = require('fs');
 const dicomParser = require('dicom-parser');
-const _ = require('lodash');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 function getBasicURL () {
     let port = `:${process.env.DICOMWEB_PORT}`;
     if (port == ":443" || port == ":80") port = "";
@@ -68,7 +68,7 @@ function setInstancesRetrieveURL (instance) {
 function writeDICOMMultipart (res , imagesPath , type) {
     const BOUNDORY = `${uuid.v4()}-${uuid.v4()}`;
     for (let i= 0 ; i < imagesPath.length ; i++) {
-        let image = `${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`
+        let image = `${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`;
         let fileBuffer = fs.readFileSync(image);
         res.write(`${i==0? "":"\r\n\r\n"}--${BOUNDORY}\r\n`);
         res.write(`Content-Type: ${type}\r\n`);
@@ -140,4 +140,4 @@ module.exports = {
     writeDICOMMultipart : writeDICOMMultipart ,
     writeImageMultipart : writeImageMultipart ,
     writeframesMultipart : writeframesMultipart 
-}
+};

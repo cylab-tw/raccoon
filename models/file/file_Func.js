@@ -9,7 +9,7 @@ module.exports.checkExist = async function (filename) {
         })*/
         return resolve(fs.existsSync(filename));
     });
-}
+};
 module.exports.mkdir_Not_Exist =async function (filename)
 {
     return new Promise(async (resolve)=>
@@ -28,4 +28,4 @@ module.exports.mkdir_Not_Exist =async function (filename)
             return resolve(true);
         }
     });
-}
+};

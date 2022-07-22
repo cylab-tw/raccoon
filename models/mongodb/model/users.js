@@ -37,7 +37,7 @@ module.exports = function(mongodb) {
   usersSchema.index({
     "account": 1
   }, {
-    unique: true,
+    unique: true
   });
 
   const users = mongodb.model('users', usersSchema);

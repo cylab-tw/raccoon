@@ -4,7 +4,7 @@ const {getDeleteMessage , handleError} = require('../../../../models/FHIR/httpMe
 const errorMessage = {
     "message" : "" , 
     "code" : ""
-}
+};
 
 module.exports  = async function(req ,res) {
     let resFunc = {
@@ -18,10 +18,10 @@ module.exports  = async function(req ,res) {
         "false" : (doc) => {
             return res.status(errorMessage.code).send(errorMessage);
         }
-    }
+    };
     let [status , doc] = await deletePatient(req);
     return resFunc[status.toString()](doc);
-}
+};
 
 async function deletePatient (req) {
     return new Promise((resolve)=> {
@@ -34,6 +34,6 @@ async function deletePatient (req) {
                 return resolve([false , err]);
             } 
             return resolve([true, doc]);
-        })
+        });
     });
 }

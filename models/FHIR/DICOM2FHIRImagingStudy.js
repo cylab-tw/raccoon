@@ -3,7 +3,7 @@ const dicomParser = require('dicom-parser');
 const Moment = require('moment');
 const path = require('path');
 const Fhir = require('fhir').Fhir;
-const _ = require('lodash');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const fileFunc = require('../file/file_Func');
 
 
@@ -114,7 +114,7 @@ module.exports.getObjectBelong = async function (iArr, uid, element) {
         const mergedArray = Object.values(arrayHashmap);
         return resolve(mergedArray);
     });
-}
+};
 async function Func_DicomParser(filename) {
     return new Promise(async (resolve) => {
         try {
@@ -130,12 +130,12 @@ async function Func_DicomParser(filename) {
             if (patientId) {
                 studyobj.subject.reference = "Patient/" + dataset.string('x00100020');
                 studyobj.subject.type = "Patient";
-                studyobj.subject.identifier.use = "usual"
+                studyobj.subject.identifier.use = "usual";
                 studyobj.subject.identifier.value = dataset.string('x00100020');
             } else {
-                studyobj.subject.reference = "Patient/unknown"
+                studyobj.subject.reference = "Patient/unknown";
                 studyobj.subject.type = "Patient";
-                studyobj.subject.identifier.use = "anonymous"
+                studyobj.subject.identifier.use = "anonymous";
                 studyobj.subject.identifier.value = "unknown";
             }
 
@@ -158,7 +158,7 @@ async function Func_DicomParser(filename) {
             study_series_obj.performer = dataset.string('x00081050') || dataset.string('x00081052') || dataset.string('x00081070') || dataset.string('x00081072');
             let study_series_insatance_obj = new ImagingStudy_Series_Instance();
             study_series_insatance_obj.uid = dataset.string('x00080018');
-            study_series_insatance_obj.sopClass.system = "urn:ietf:rfc:3986"
+            study_series_insatance_obj.sopClass.system = "urn:ietf:rfc:3986";
             study_series_insatance_obj.sopClass.code = "urn:oid:" + dataset.string('x00080016');
             study_series_insatance_obj.number = dataset.intString('x00200013');
             study_series_insatance_obj.title = dataset.string('x00080008') || dataset.string('x00070080') || ((dataset.string('x0040a043') != undefined) ? dataset.string('x0040a043') + dataset.string('x00080104') : undefined) || dataset.string('x00420010');
@@ -214,12 +214,12 @@ async function getFHIRUseJson(json) {
             if (patientId) {
                 studyobj.subject.reference = "Patient/" + DCMstring(json, '00100020');
                 studyobj.subject.type = "Patient";
-                studyobj.subject.identifier.use = "usual"
+                studyobj.subject.identifier.use = "usual";
                 studyobj.subject.identifier.value = DCMstring(json, '00100020');
             } else {
-                studyobj.subject.reference = "Patient/unknown"
+                studyobj.subject.reference = "Patient/unknown";
                 studyobj.subject.type = "Patient";
-                studyobj.subject.identifier.use = "anonymous"
+                studyobj.subject.identifier.use = "anonymous";
                 studyobj.subject.identifier.value = "unknown";
             }
 
@@ -242,7 +242,7 @@ async function getFHIRUseJson(json) {
             study_series_obj.performer = DCMstring(json, '00081050') || DCMstring(json, '00081052') || DCMstring(json, '00081070') || DCMstring(json, '00081072');
             let study_series_insatance_obj = new ImagingStudy_Series_Instance();
             study_series_insatance_obj.uid = DCMstring(json, '00080018');
-            study_series_insatance_obj.sopClass.system = "urn:ietf:rfc:3986"
+            study_series_insatance_obj.sopClass.system = "urn:ietf:rfc:3986";
             study_series_insatance_obj.sopClass.code = "urn:oid:" + DCMstring(json, '00080016');
             study_series_insatance_obj.number = DCMstring(json, '00200013');
             study_series_insatance_obj.title = DCMstring(json, '00080008') || DCMstring(json, '00070080') || ((DCMstring(json, '0040a043') != undefined) ? DCMstring(json, '0040a043') + DCMstring(json, '00080104') : undefined) || DCMstring(json, '00420010');
@@ -309,7 +309,7 @@ function IsEmptyObj(obj) {
     if (typeof (obj) != "object") {
         return false;
     }
-    return Object.keys(obj).length === 0 && typeof (obj) == "object"
+    return Object.keys(obj).length === 0 && typeof (obj) == "object";
 }
 
 function DeleteEmptyObj(obj) {
@@ -403,7 +403,7 @@ module.exports.DCM2FHIR = async function main(dirname) {
             return resolve("This not valid fhir");
         }
     });
-}
+};
 
 module.exports.DCMJson2FHIR = async function (iData) {
     return new Promise(async (resolve) => {
@@ -425,7 +425,7 @@ module.exports.DCMJson2FHIR = async function (iData) {
             return resolve("This not valid fhir");
         }
     });
-}
+};
 async function ImagingStudy_ToDate(List) {
     return new Promise((resolve) => {
         for (let i = 0; i < List.length; i++) {
@@ -450,11 +450,11 @@ async function seriesBelongImagingStudy(imagingStudies) {
     return imagingStudies;
 }
 
-module.exports.instanceBelongSeries = instanceBelongSeries
+module.exports.instanceBelongSeries = instanceBelongSeries;
 
 async function instanceBelongSeries(imagingStudies) {
     for (let i = 0; i < imagingStudies.length; i++) {
-        imagingStudies[i].series = await exports.getObjectBelong(imagingStudies[i].series, "uid", "instance")
+        imagingStudies[i].series = await exports.getObjectBelong(imagingStudies[i].series, "uid", "instance");
     }
     for (let i = 0; i < imagingStudies.length; i++) {
         for (let j = 0; j < imagingStudies.series.length; j++) {

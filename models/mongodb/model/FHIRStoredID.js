@@ -27,4 +27,4 @@ module.exports = function (mongodb) {
     });
     let FHIRStoredID = mongodb.model('FHIRStoredID', FHIRStoredIDSchema, 'FHIRStoredID');
     return FHIRStoredID;
-}
+};

@@ -102,12 +102,12 @@ async function auth(username, password) {
             return { //User inactivated
                 code: 4,
                 user: undefined
-            }
+            };
         } else { //Invalid password
             return {
                 code: 2,
                 user: undefined
-            }
+            };
         }
     } catch(e) {
         console.error(e);

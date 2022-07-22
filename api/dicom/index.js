@@ -43,6 +43,6 @@ router.get('/instance/:instanceUID/bulkdata/:objKey' , require('./controller/bul
 router.get('/dicomToJpegTask', validateParams({
     limit: Joi.number().integer(),
     offset: Joi.number().integer()
-}, "query", { allowUnknown: true }) , require('./controller/dicomToJpegTask'))
+}, "query", { allowUnknown: true }) , require('./controller/dicomToJpegTask'));
 
 module.exports = router;

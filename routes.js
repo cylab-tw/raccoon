@@ -7,7 +7,7 @@ const mongodb = require('./models/mongodb');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { pluginsConfig } = require("./plugins/config");
-const _ = require("lodash");
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 module.exports = function (app) {
 
   for (let pluginName in pluginsConfig) {
@@ -33,7 +33,7 @@ module.exports = function (app) {
       "2" : "invalid username or password" ,
       "3" : "invalid username or password" ,
       "4" : "the user is not active"
-    }
+    };
     function authFailure() {
       return res.json({
         "code" : authStatu ,
@@ -60,14 +60,14 @@ module.exports = function (app) {
       "2" : authFailure ,
       "3" : authFailure ,
       "4" : authFailure
-    }
+    };
     return statusFunc[authStatu]();
   });
 
   app.get('/checkIsLogin' , async function(req ,res) {
     let islogin = await require('./api/Api_function').isTokenLogin(req ,res);
     res.send(islogin);
-  })
+  });
   app.get('/logout', async function (req, res) {
     let user = _.get("req", "user.user");
     await mongodb.users

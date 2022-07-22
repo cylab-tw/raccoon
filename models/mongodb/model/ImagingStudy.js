@@ -209,35 +209,35 @@ module.exports = function (mongodb) {
     );
     ImagingStudySchema.index(
         {
-            "dicomJson.00100010.Value.Alphabetic" : 1 ,
+            "dicomJson.00100010.Value.Alphabetic" : 1 
         }
     );
     ImagingStudySchema.index(
         {
-            "dicomJson.00100010.Value.familyName" : 1 ,
+            "dicomJson.00100010.Value.familyName" : 1 
         }
     );
     ImagingStudySchema.index(
         {
-            "dicomJson.00100010.Value.givenName" : 1 ,
+            "dicomJson.00100010.Value.givenName" : 1 
             
         }
     );
     ImagingStudySchema.index(
         {
-            "dicomJson.00100010.Value.middleName" : 1 ,
+            "dicomJson.00100010.Value.middleName" : 1 
             
         }
     );
     ImagingStudySchema.index(
         {
-            "dicomJson.00100010.Value.prefix" : 1 ,
+            "dicomJson.00100010.Value.prefix" : 1 
             
         }
     );
     ImagingStudySchema.index(
         {
-            "dicomJson.00100010.Value.suffix" : 1 ,
+            "dicomJson.00100010.Value.suffix" : 1 
             
         }
     );
@@ -256,12 +256,12 @@ module.exports = function (mongodb) {
         delete result["report"];
         delete result["patient"];
         return result;
-    }
+    };
     ImagingStudySchema.pre('save' , function (next) {
         let dicomStudyDate  = _.get(this , "dicomJson.00080020.Value");
         if (dicomStudyDate) {
             for (let i in dicomStudyDate) {
-                dicomStudyDate[i] =  moment(dicomStudyDate[i] , "YYYYMMDD").toDate()
+                dicomStudyDate[i] =  moment(dicomStudyDate[i] , "YYYYMMDD").toDate();
             }
         }
         next();
@@ -269,5 +269,5 @@ module.exports = function (mongodb) {
    // fs.writeFileSync("./data/imagingstudySchema.json" ,JSON.stringify (ImagingStudySchema.jsonSchema() , null ,4) , {flag: "w+"});
     const ImagingStudy = mongodb.model('ImagingStudy', ImagingStudySchema);
     return ImagingStudy;
-}
+};
 

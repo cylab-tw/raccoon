@@ -1,5 +1,5 @@
-const mongoose = require('mongoose')
-const periodSchema = require('./Period')
+const mongoose = require('mongoose');
+const periodSchema = require('./Period');
 
 module.exports = new mongoose.Schema({
     system: {
@@ -18,4 +18,4 @@ module.exports = new mongoose.Schema({
         type : periodSchema , 
         default : void 0
     }
-}, {_id : false })
+}, {_id : false });

@@ -2,7 +2,7 @@ const api_func = require("../../Api_function.js");
 const {mongoDateQuery} = require("../../../models/mongodb/func");
 const mongoFunc = require("../../../models/mongodb/func");
 const {ToRegex} = require("../../Api_function");
-const _ = require('lodash');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const mongodb = require("../../../models/mongodb/index.js");
 
 
@@ -16,13 +16,13 @@ function addPatientNameQuery (query, imageQuery) {
                 "dicomJson.00100010.Value.familyName": query.PatientName
             },
             {
-                "dicomJson.00100010.Value.givenName": query.PatientName,
+                "dicomJson.00100010.Value.givenName": query.PatientName
             },
             {
-                "dicomJson.00100010.Value.middleName": query.PatientName,
+                "dicomJson.00100010.Value.middleName": query.PatientName
             },
             {
-                "dicomJson.00100010.Value.prefix": query.PatientName,
+                "dicomJson.00100010.Value.prefix": query.PatientName
             },
             {
                 "dicomJson.00100010.Value.suffix": query.PatientName
@@ -87,7 +87,7 @@ module.exports = async function (req ,res)
         let searchModeFunc = {
             "Image" : useImageSearch , 
             "undefined" : useImageSearch
-        }
+        };
         let limit = req.query.limit || 10;
         let skip = req.query.offset || 0;
         let count = await getCount(andQuery);
@@ -97,7 +97,7 @@ module.exports = async function (req ,res)
         console.error(e);
         return res.status(500).send({message: "server wrong"});
     }
-}
+};
 
 async function useImageSearch (image_Query , limit , skip) {
     return new Promise (async (resolve) => {

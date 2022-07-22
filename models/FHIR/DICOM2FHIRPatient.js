@@ -33,12 +33,12 @@ async function DCM2Patient(filename)
         "F": "female",
         "O": "other",
         "UNKNOWN": "unknown"
-    }
+    };
     pGender = FHIRGender[pGender.toUpperCase()];
     let pBD = dataset.string('x00100030');
     let patientName = new HumanName();
     if (pName == undefined) {
-        pName = "UNKNOWN"
+        pName = "UNKNOWN";
     } else {
         patientName.use = "usual";
     }
@@ -84,7 +84,7 @@ async function DCM2Patient(filename)
                 pJson.prefix.push(DICOMpName.middleName);
             }
         }
-    }
+    };
     for (let key in DICOMpName) {
         FHIRpName[key](pJson);
     }
@@ -97,7 +97,7 @@ async function DCM2Patient(filename)
         name: [
             pJson
         ]
-    }
+    };
     if (pBD) {
         Patient.birthDate = moment.utc(pBD).format("YYYY-MM-DD");
     }
@@ -112,7 +112,7 @@ function DCMJson2Patient(dcmJson)
         "F" : "female" , 
         "O" : "other" , 
         "UNKNOWN" : "unknown"
-    }
+    };
     pGender = FHIRGender[pGender.toUpperCase()];
     let pBD = dcmString(dcmJson , '00100030');
     let patientName = new HumanName();
@@ -164,7 +164,7 @@ function DCMJson2Patient(dcmJson)
                 pJson.prefix.push(DICOMpName.middleName);
             }
         }
-    }
+    };
     for (let key in DICOMpName) {
         FHIRpName[key](pJson);
     }
@@ -177,7 +177,7 @@ function DCMJson2Patient(dcmJson)
         name :[
             pJson
         ]
-    }
+    };
     Patient.id = Patient.id.replace(/[\s\u0000]/gim , '');
     if (pBD) {
         Patient.birthDate = moment.utc(pBD).format("YYYY-MM-DD");
@@ -205,7 +205,7 @@ async function getFile (filename) {
 module.exports = {
     DCM2Patient : DCM2Patient ,
     DCMJson2Patient : DCMJson2Patient
-}
+};
 
 
 

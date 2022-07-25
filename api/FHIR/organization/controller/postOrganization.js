@@ -17,16 +17,16 @@ module.exports = async function (req, res) {
             }
             return res.status(500).send(handleError.exception(errorMessage.message));
         }
-    }
-    let Insert_Data = req.body;
-    let [status , doc]  = await insertOrganization(Insert_Data);
+    };
+    let insertData = req.body;
+    let [status , doc]  = await insertOrganization(insertData);
     return resFunc[status](doc);
-}
+};
 
-async function insertOrganization(Insert_Data) {
+async function insertOrganization(insertData) {
     return new Promise(async (resolve, reject) => {
-        Insert_Data.id = hash(Insert_Data);
-        let newOrganization = new mongodb.organization(Insert_Data);
+        insertData.id = hash(insertData);
+        let newOrganization = new mongodb.organization(insertData);
         newOrganization.save(function (err, doc) {
             if (err) {
                 errorMessage.code  = 500;

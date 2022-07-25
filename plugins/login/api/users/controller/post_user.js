@@ -9,7 +9,7 @@ const errorHandler = (err)=>
     };
     console.log(err.message);
     return error;
-}
+};
 
 module.exports  = async (req, res) =>
 {    
@@ -32,7 +32,7 @@ module.exports  = async (req, res) =>
             }
             else if (acc)
             {
-                return res.status(500).json({message:'The user exist.'})
+                return res.status(500).json({message:'The user exist.'});
             }
             else
             {
@@ -66,4 +66,4 @@ module.exports  = async (req, res) =>
         return res.status(500).json(message);
     }
     
-}
+};

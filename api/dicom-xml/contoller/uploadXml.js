@@ -1,8 +1,8 @@
-const Busboy = require('busboy');
+const Busboy = require('busboy'); // eslint-disable-line @typescript-eslint/naming-convention
 const path = require('path');
 const fs = require('fs');
 const { xml2dcm } = require('../../../models/dcmtk');
-const ReadableStreamClone = require("readable-stream-clone");
+const ReadableStreamClone = require("readable-stream-clone"); // eslint-disable-line @typescript-eslint/naming-convention
 
 
 const uploadFile = (req) => {
@@ -47,7 +47,7 @@ const uploadFile = (req) => {
             return reject(new Error(e));
         }
     });
-}
+};
 
 async function storeFile (filestream , writestream , storeFileName) {
     return new Promise((resolve) => {
@@ -64,8 +64,8 @@ async function storeFile (filestream , writestream , storeFileName) {
         writestream.on("error" , function (err) {
             console.error(err);
             return resolve(false);
-        })
-    })
+        });
+    });
 }
 module.exports = async function (req , res) {
     let files = await uploadFile(req);
@@ -85,6 +85,6 @@ module.exports = async function (req , res) {
         console.error(e);
         return res.status(500).send("server error");
     }
-}
+};
 
 

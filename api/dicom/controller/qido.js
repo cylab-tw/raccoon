@@ -1,8 +1,8 @@
-const api_func = require("../../Api_function.js");
+const apiFunc = require("../../Api_function.js");
 const {mongoDateQuery} = require("../../../models/mongodb/func");
 const mongoFunc = require("../../../models/mongodb/func");
-const {ToRegex} = require("../../Api_function");
-const _ = require('lodash');
+const {toRegex} = require("../../Api_function");
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const mongodb = require("../../../models/mongodb/index.js");
 
 
@@ -16,13 +16,13 @@ function addPatientNameQuery (query, imageQuery) {
                 "dicomJson.00100010.Value.familyName": query.PatientName
             },
             {
-                "dicomJson.00100010.Value.givenName": query.PatientName,
+                "dicomJson.00100010.Value.givenName": query.PatientName
             },
             {
-                "dicomJson.00100010.Value.middleName": query.PatientName,
+                "dicomJson.00100010.Value.middleName": query.PatientName
             },
             {
-                "dicomJson.00100010.Value.prefix": query.PatientName,
+                "dicomJson.00100010.Value.prefix": query.PatientName
             },
             {
                 "dicomJson.00100010.Value.suffix": query.PatientName
@@ -59,35 +59,35 @@ function addIdentifierQuery(query, imageQuery) {
 module.exports = async function (req ,res)
 {
     try {
-        req.query = await api_func.Refresh_Param(req.query);
-        let image_Query = {};
-        addPatientNameQuery(req.query, image_Query);
-        addPatientIdQuery(req.query, image_Query);
-        addModalityQuery(req.query, image_Query);
-        await addStaredQuery(req.query, image_Query);
-        addIdentifierQuery(req.query, image_Query);
-        //image_Query = await api_func.Refresh_Param(image_Query);
-        //image_Query = await api_func.cleanDoc(image_Query);
-        await ToRegex(image_Query);
+        req.query = await apiFunc.refreshParam(req.query);
+        let imageQuery = {};
+        addPatientNameQuery(req.query, imageQuery);
+        addPatientIdQuery(req.query, imageQuery);
+        addModalityQuery(req.query, imageQuery);
+        await addStaredQuery(req.query, imageQuery);
+        addIdentifierQuery(req.query, imageQuery);
+        //imageQuery = await apiFunc.refreshParam(imageQuery);
+        //imageQuery = await apiFunc.cleanDoc(imageQuery);
+        await toRegex(imageQuery);
         let andQuery = {
             $and : []
         };
        
         
-        for (let i in image_Query) {
+        for (let i in imageQuery) {
             let q = {
-                [i] : image_Query[i]
+                [i] : imageQuery[i]
             };
             andQuery.$and.push(q);
         }
-        //andQuery = await api_func.cleanDoc(andQuery);
+        //andQuery = await apiFunc.cleanDoc(andQuery);
         if (andQuery.$and.length <= 0) andQuery = {};
-        await ToRegex(andQuery);
+        await toRegex(andQuery);
         let viewAndSearchMode = req.query.viewAndSearchMode;
         let searchModeFunc = {
             "Image" : useImageSearch , 
             "undefined" : useImageSearch
-        }
+        };
         let limit = req.query.limit || 10;
         let skip = req.query.offset || 0;
         let count = await getCount(andQuery);
@@ -97,13 +97,13 @@ module.exports = async function (req ,res)
         console.error(e);
         return res.status(500).send({message: "server wrong"});
     }
-}
+};
 
-async function useImageSearch (image_Query , limit , skip) {
+async function useImageSearch (imageQuery , limit , skip) {
     return new Promise (async (resolve) => {
-        /*let aggregate_Query = [
+        /*let aggregateQuery = [
             {
-                $match : image_Query
+                $match : imageQuery
             } ,
             {
                 $lookup :
@@ -122,7 +122,7 @@ async function useImageSearch (image_Query , limit , skip) {
             }
         ];*/
         let imagingStudies = await mongodb.ImagingStudy
-                                   .find(image_Query)
+                                   .find(imageQuery)
                                    .sort({'_id' : 1})
                                    .skip(skip)
                                    .limit(limit)
@@ -134,14 +134,14 @@ async function useImageSearch (image_Query , limit , skip) {
             });
             imagingStudies[i].patient = hitPatient;
         }
-        //let imagingStudies = await mongoFunc.aggregate_Func("ImagingStudy" , aggregate_Query);
+        //let imagingStudies = await mongoFunc.aggregate_Func("ImagingStudy" , aggregateQuery);
         return resolve(imagingStudies);
     });
 }
 
-async function getCount (image_Query) {
+async function getCount (imageQuery) {
     return new Promise (async (resolve) => {
-        let count = await mongodb.ImagingStudy.countDocuments(image_Query);
+        let count = await mongodb.ImagingStudy.countDocuments(imageQuery);
         return resolve(count);
     });
 }

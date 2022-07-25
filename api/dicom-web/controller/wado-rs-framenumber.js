@@ -1,8 +1,8 @@
 const mongodb = require("../../../models/mongodb");
 const mongoFunc = require("../../../models/mongodb/func");
-const _ = require("lodash");
-const DICOMWebHandleError = require("../../../models/DICOMWeb/httpMessage");
-const { MultipartWriter } = require("../../../utils/multipartWriter");
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
+const dicomWebHandleError = require("../../../models/DICOMWeb/httpMessage");
+const { MultipartWriter } = require("../../../utils/multipartWriter"); // eslint-disable-line @typescript-eslint/naming-convention
 
 let multipartFunc = {};
 multipartFunc["image/jpeg"] = {
@@ -13,7 +13,7 @@ multipartFunc["image/jpeg"] = {
                 let maxFrameNumber = _.max(frameList);
                 let minFrameNumber = _.min(frameList);
                 if (minFrameNumber <= 0) {
-                    DICOMWebHandleError.sendBadRequestMessage(
+                    dicomWebHandleError.sendBadRequestMessage(
                         res,
                         `Invalid frame number ,The number must be positive and greater than zero , The number must >=0 , But request ${minFrameNumber}`
                     );
@@ -50,7 +50,7 @@ multipartFunc["image/jpeg"] = {
                     _.get(hitInstance, "00280008.Value.0") || 1;
                 dicomNumberOfFrames = parseInt(dicomNumberOfFrames);
                 if (maxFrameNumber > dicomNumberOfFrames) {
-                    DICOMWebHandleError.sendBadRequestMessage(
+                    dicomWebHandleError.sendBadRequestMessage(
                         res,
                         `Bad frame number , This instance NumberOfFrames is : ${dicomNumberOfFrames} , But request ${maxFrameNumber}`
                     );
@@ -60,7 +60,7 @@ multipartFunc["image/jpeg"] = {
                 await multipartWriter.writeFrames(type, frameList);
                 return resolve(true);
             }
-            DICOMWebHandleError.sendNotFoundMessage(req, res);
+            dicomWebHandleError.sendNotFoundMessage(req, res);
             return resolve(false);
         });
     }
@@ -74,7 +74,7 @@ module.exports = async function (req, res) {
             .substring(5)
             .replace(/"/g, "");
     } catch (e) {
-        return DICOMWebHandleError.sendBadRequestMessage(
+        return dicomWebHandleError.sendBadRequestMessage(
             res,
             `Bad headers : accept
         Can use the Accept Header below : 
@@ -87,7 +87,7 @@ module.exports = async function (req, res) {
             .split(",")
             .map((v) => parseInt(v));
         if (!checkIsAllNumber(frameNumbers)) {
-            return DICOMWebHandleError.sendBadRequestMessage(
+            return dicomWebHandleError.sendBadRequestMessage(
                 res,
                 `${frameNumbers} MUST be number`
             );
@@ -107,7 +107,7 @@ module.exports = async function (req, res) {
                 return;
             }
         } catch (e) {
-            return DICOMWebHandleError.sendBadRequestMessage(
+            return dicomWebHandleError.sendBadRequestMessage(
                 res,
                 `This WADO-RS with frame cannot generate the following content type with Accept Header: ${_.get(
                     req,
@@ -118,7 +118,7 @@ module.exports = async function (req, res) {
             );
         }
     }
-    return DICOMWebHandleError.sendBadRequestMessage(
+    return dicomWebHandleError.sendBadRequestMessage(
         res,
         `This WADO-RS with frame cannot generate the following content type with Accept Header: ${_.get(
             req,

@@ -1,11 +1,11 @@
-const _ = require('lodash');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const mongodb = require('models/mongodb');
 const {createBundle} = require('models/FHIR/func');
 const queryBuild = require('models/FHIR/queryBuild.js');
-const FHIRFilter = {
+const fhirFilter = {
     _id: 0,
     __v: 0
-}
+};
 module.exports = async function (req, res) {
     let queryParameter =  _.cloneDeep(req.query);
     let paginationSkip = queryParameter['_offset'] == undefined ? 0 : queryParameter['_offset'];
@@ -32,7 +32,7 @@ module.exports = async function (req, res) {
         delete queryParameter["$and"];
     }
     try {
-        let docs = await mongodb.organization.find(queryParameter ,FHIRFilter).
+        let docs = await mongodb.organization.find(queryParameter ,fhirFilter).
         limit(realLimit).
         skip(paginationSkip).
         exec();
@@ -40,7 +40,7 @@ module.exports = async function (req, res) {
         let bundle = createBundle(req , docs , count , paginationSkip , paginationLimit , "Organization");
         return res.status(200).json(bundle);
     } catch (e) {
-        console.log('api api/fhir/organization/ has error, ', e)
+        console.log('api api/fhir/organization/ has error, ', e);
         return res.status(500).json({
             message: 'server has something error'
         });
@@ -62,5 +62,5 @@ const paramsSearch = {
             });
         }
         delete query['identifier'];
-    } ,
-}
+    } 
+};

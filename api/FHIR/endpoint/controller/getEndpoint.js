@@ -1,5 +1,5 @@
 const mongoFunc = require('models/mongodb/func');
-const _ = require('lodash');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const { createBundle } = require('models/FHIR/func');
 const mongodb = require('models/mongodb');
 module.exports = async function (req, res) {
@@ -17,17 +17,17 @@ module.exports = async function (req, res) {
         }
     });
 
-    const FHIRFilter = {
+    const fhirFilter = {
         _id: 0 ,
         __v: 0 ,
         "connectionType._id": 0 ,
         "payloadType._id": 0
-    }
+    };
     if (req.params.id) {
         queryParameter['id'] = req.params.id;
     }
     try {
-        let docs = await mongodb.endpoint.find(queryParameter, FHIRFilter).
+        let docs = await mongodb.endpoint.find(queryParameter, fhirFilter).
             limit(realLimit).
             skip(paginationSkip).
             exec();
@@ -35,7 +35,7 @@ module.exports = async function (req, res) {
         let bundle = createBundle(req, docs, count, paginationSkip, paginationLimit, "Endpoint");
         return res.status(200).json(bundle);
     } catch (e) {
-        console.log('api /api/fhir/Endpointhas error, ', e)
+        console.log('api /api/fhir/Endpointhas error, ', e);
         return res.status(500).json({
             message: 'server has something error'
         });

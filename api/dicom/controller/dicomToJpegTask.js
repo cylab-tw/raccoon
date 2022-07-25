@@ -1,5 +1,5 @@
 const mongodb = require("../../../models/mongodb");
-const _ = require('lodash');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const uuid = require('uuid');
 const fs = require('fs');
 const moment = require('moment');
@@ -50,4 +50,4 @@ module.exports = async (req, res) => {
         console.error(e);
         return res.send(e);
     }
-}
+};

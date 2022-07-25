@@ -1,5 +1,5 @@
 const mongodb = require('models/mongodb');
-const _ = require("lodash");
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 
 module.exports = async function (req, res)
 {
@@ -25,4 +25,4 @@ module.exports = async function (req, res)
     console.error(e);
     return res.status(500).json(e.message);
   }
-}
+};

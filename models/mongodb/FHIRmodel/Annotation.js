@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Reference = require('./Reference');
+const Reference = require('./Reference'); // eslint-disable-line @typescript-eslint/naming-convention
 module.exports = new mongoose.Schema({
     authorReference : {
         type : Reference ,

@@ -4,7 +4,7 @@ require("dotenv").config();
 const fs = require('fs');
 const glob = require('glob');
 const path = require('path');
-const { STOWWithoutRoute } = require('./api/dicom-web/stow/controller/postSTOW');
+const { stowWithoutRoute } = require('./api/dicom-web/stow/controller/postSTOW');
 const os = require('os');
 
 let osPlatform = os.platform().toLocaleLowerCase();
@@ -21,8 +21,8 @@ function main () {
     console.log(filePath);
     let successFiles = [];
     glob("**/*.dcm" , {cwd : filePath} , async function (err,  matches) {
-        for(file of matches) {
-            let status = await STOWWithoutRoute(path.join(filePath ,file));
+        for(let file of matches) {
+            let status = await stowWithoutRoute(path.join(filePath ,file));
             if (status) {
               successFiles.push(filePath);
             }

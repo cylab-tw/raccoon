@@ -2,10 +2,10 @@ const { sendBadRequestMessage, sendNotFoundMessage } = require('../../../models/
 const { getFrameImage } = require('../../../models/dcmtk');
 const mongoFunc = require('../../../models/mongodb/func');
 const mongodb = require('../../../models/mongodb');
-const _ = require("lodash");
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const sharp = require('sharp');
 const path = require('path');
-const Magick = require('../../../models/magick');
+const Magick = require('../../../models/magick'); // eslint-disable-line @typescript-eslint/naming-convention
 const fs = require('fs');
 const { exec } = require('child_process');
 const iconv = require('iconv-lite');
@@ -60,7 +60,7 @@ async function handleImageICCProfile(param, magick, instanceID) {
             if(!iccProfileBinaryFile) throw new Error("The Image dose not have icc profile tag");
             let iccProfileSrc = path.join(process.env.DICOM_STORE_ROOTPATH, iccProfileBinaryFile.filename);
             let dest = path.join(process.env.DICOM_STORE_ROOTPATH, iccProfileBinaryFile.filename + `.icc`);
-            if (!fs.existsSync(dest)) fs.copyFileSync(iccProfileSrc, dest)
+            if (!fs.existsSync(dest)) fs.copyFileSync(iccProfileSrc, dest);
             magick.iccProfile(dest);
         },
         "srgb": async ()=> {
@@ -71,8 +71,8 @@ async function handleImageICCProfile(param, magick, instanceID) {
         },
         "rommrgb": async ()=> {
             magick.iccProfile(path.join(process.cwd(), "models/DICOMWeb/iccprofiles/rommRGB.icc"));
-        },
-    }
+        }
+    };
     try {
         if (param.iccprofile) {
             await iccProfileAction[param.iccprofile]();
@@ -184,4 +184,4 @@ module.exports = async function (req , res) {
     } catch(e) {
         console.error(e);
     }
-}
+};

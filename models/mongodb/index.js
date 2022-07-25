@@ -5,5 +5,5 @@ if (!process.env.MONGODB_HOSTS) {
     path: `${appDir}/.env`
   });
 }
-const dicom_dataDB = require('../mongodb/connector')(process.env);
-module.exports = exports = dicom_dataDB;
+const dicomDataDB = require('../mongodb/connector')(process.env);
+module.exports = exports = dicomDataDB;

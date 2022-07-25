@@ -8,4 +8,4 @@ module.exports=  function (app) {
     app.use("/", require("./route"));
     app.use("/api/users", require("./api/users"));
     require("../../models/user/passport")(passport);
-}
+};

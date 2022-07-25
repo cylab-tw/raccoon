@@ -1,9 +1,9 @@
-const LocalStrategy = require("passport-local").Strategy;
+const LocalStrategy = require("passport-local").Strategy; // eslint-disable-line @typescript-eslint/naming-convention
 const mongodb = require("models/mongodb");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
-const JwtStrategy = require("passport-jwt").Strategy;
-const ExtractJwt = require("passport-jwt").ExtractJwt;
+const JwtStrategy = require("passport-jwt").Strategy; // eslint-disable-line @typescript-eslint/naming-convention
+const ExtractJwt = require("passport-jwt").ExtractJwt; // eslint-disable-line @typescript-eslint/naming-convention
 
 const { pluginsConfig } = require("../../plugins/config");
 const loginPlugin = pluginsConfig.login;
@@ -76,7 +76,7 @@ module.exports = function (passport) {
             return done(null, false);
         } catch(e) {
             console.error(e);
-            return done(err, false);
+            return done(e, false);
         }
     }));
 };
@@ -102,12 +102,12 @@ async function auth(username, password) {
             return { //User inactivated
                 code: 4,
                 user: undefined
-            }
+            };
         } else { //Invalid password
             return {
                 code: 2,
                 user: undefined
-            }
+            };
         }
     } catch(e) {
         console.error(e);

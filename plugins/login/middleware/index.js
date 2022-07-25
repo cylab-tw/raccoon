@@ -1,5 +1,5 @@
 const path = require("path");
-const _ = require("lodash");
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const { pluginsConfig } = require("../../config");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");

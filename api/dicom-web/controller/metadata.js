@@ -1,5 +1,5 @@
 const mongodb = require('models/mongodb');
-const _ = require('lodash');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const mongoFunc = require('../../../models/mongodb/func');
 const fs = require('fs');
 const path = require('path');
@@ -21,11 +21,11 @@ module.exports = async function (req, res) {
         let getMetaFunc = [getStudyInstanceStorePath, getSeriesInstanceStorePath, getInstanceStorePath];
         let errorMessage = {
             message: "cannot found"
-        }
+        };
         let keys = Object.keys(req.params);
         let item = await getMetaFunc[keys.length - 1](req.params);
         for (let i of keys) {
-            errorMessage.message = `${errorMessage.message} ${keys}:${req.params[i]}`
+            errorMessage.message = `${errorMessage.message} ${keys}:${req.params[i]}`;
         }
         if (item.length <= 0) return res.status(404).json(errorMessage);
         if (item) {
@@ -54,7 +54,7 @@ module.exports = async function (req, res) {
         console.error(e);
         return sendServerWrongMessage(res, e);
     }
-}
+};
 function replaceBinaryData(data) {
     try {
         let binaryKeys = [];
@@ -105,8 +105,8 @@ async function getStudyMetadata(params) {
                 }
             }
         }
-    ]
-    let agg = await mongoFunc.aggregate_Func("dicomMetadata", metadataQuery)
+    ];
+    let agg = await mongoFunc.aggregate_Func("dicomMetadata", metadataQuery);
     return agg;
 }
 async function getSeriesMetadata(params) {
@@ -134,8 +134,8 @@ async function getSeriesMetadata(params) {
                 }
             }
         }
-    ]
-    let agg = await mongoFunc.aggregate_Func("dicomMetadata", metadataQuery)
+    ];
+    let agg = await mongoFunc.aggregate_Func("dicomMetadata", metadataQuery);
     return agg;
 }
 async function getInstanceMetadata(params) {
@@ -166,19 +166,19 @@ async function getInstanceMetadata(params) {
                 }
             }
         }
-    ]
-    let agg = await mongoFunc.aggregate_Func("dicomMetadata", metadataQuery)
+    ];
+    let agg = await mongoFunc.aggregate_Func("dicomMetadata", metadataQuery);
     return agg;
 }
 
 
 
 async function getStudyInstanceStorePath(params) {
-    let aggregate_Query =
+    let aggregateQuery =
         [
             {
                 $match: {
-                    'dicomJson.0020000D.Value': params.studyID,
+                    'dicomJson.0020000D.Value': params.studyID
                 }
             },
             {
@@ -201,25 +201,25 @@ async function getStudyInstanceStorePath(params) {
                     }
                 }
             }
-        ]
-    let instances = await find_Aggregate_Func('ImagingStudy', aggregate_Query);
+        ];
+    let instances = await findAggregateFunc('ImagingStudy', aggregateQuery);
     if (instances[0].instanceStorePathList.length <= 0) return false;
     try {
         return (instances[0].instanceStorePathList);
     } catch (e) {
-        console.log("getInstancePath error\r\n" + JSON.stringify(aggregate_Query, null, 4));
-        //console.log(aggregate_Query);
+        console.log("getInstancePath error\r\n" + JSON.stringify(aggregateQuery, null, 4));
+        //console.log(aggregateQuery);
         return false;
     }
 
 }
 
 async function getSeriesInstanceStorePath(params) {
-    let aggregate_Query =
+    let aggregateQuery =
         [
             {
                 $match: {
-                    'dicomJson.0020000D.Value': params.studyID,
+                    'dicomJson.0020000D.Value': params.studyID
                 }
             },
             {
@@ -228,7 +228,7 @@ async function getSeriesInstanceStorePath(params) {
             {
                 $match:
                 {
-                    'series.dicomJson.0020000E.Value': params.seriesID,
+                    'series.dicomJson.0020000E.Value': params.seriesID
                 }
             },
             {
@@ -248,24 +248,24 @@ async function getSeriesInstanceStorePath(params) {
                     }
                 }
             }
-        ]
-    let instances = await find_Aggregate_Func('ImagingStudy', aggregate_Query);
+        ];
+    let instances = await findAggregateFunc('ImagingStudy', aggregateQuery);
     if (instances[0].instanceStorePathList.length <= 0) return false;
     try {
         return (instances[0].instanceStorePathList);
     } catch (e) {
-        console.log("getInstancePath error\r\n" + JSON.stringify(aggregate_Query, null, 4));
-        //console.log(aggregate_Query);
+        console.log("getInstancePath error\r\n" + JSON.stringify(aggregateQuery, null, 4));
+        //console.log(aggregateQuery);
         return false;
     }
 }
 
 async function getInstanceStorePath(params) {
-    let aggregate_Query =
+    let aggregateQuery =
         [
             {
                 $match: {
-                    'dicomJson.0020000D.Value': params.studyID,
+                    'dicomJson.0020000D.Value': params.studyID
                 }
             },
             {
@@ -274,7 +274,7 @@ async function getInstanceStorePath(params) {
             {
                 $match:
                 {
-                    'series.dicomJson.0020000E.Value': params.seriesID,
+                    'series.dicomJson.0020000E.Value': params.seriesID
                 }
             },
             {
@@ -300,22 +300,22 @@ async function getInstanceStorePath(params) {
                     }
                 }
             }
-        ]
-    let instances = await find_Aggregate_Func('ImagingStudy', aggregate_Query);
+        ];
+    let instances = await findAggregateFunc('ImagingStudy', aggregateQuery);
     if (instances[0].instanceStorePathList.length <= 0) return false;
     try {
         return (instances[0].instanceStorePathList);
     } catch (e) {
-        console.log("getInstancePath error\r\n" + JSON.stringify(aggregate_Query, null, 4));
-        //console.log(aggregate_Query);
+        console.log("getInstancePath error\r\n" + JSON.stringify(aggregateQuery, null, 4));
+        //console.log(aggregateQuery);
         return false;
     }
 }
 
-async function find_Aggregate_Func(collection_Name, i_Query) {
+async function findAggregateFunc(collectionName, iQuery) {
     return new Promise(async (resolve, reject) => {
-        let agg = await mongodb[collection_Name].aggregate(
-            i_Query);
+        let agg = await mongodb[collectionName].aggregate(
+            iQuery);
         return resolve(agg);
     });
 }

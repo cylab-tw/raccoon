@@ -3,7 +3,7 @@ const identifierSchema = require('../FHIRmodel/Identifier');
 const contactPointSchema = require('../FHIRmodel/ContactPoint');
 const addressSchema = require('../FHIRmodel/Address');
 const fs = require('fs');
-const _ = require('lodash');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 module.exports = function (mongodb) {
     require('mongoose-schema-jsonschema')(mongodb);
     const organizationSchema = mongodb.Schema({
@@ -50,7 +50,7 @@ module.exports = function (mongodb) {
         }
         delete result.__v;
         return result;
-    }
+    };
     organizationSchema.post('findOneAndUpdate', async function (result) {
         if (result.value) {
             result.value.__v++;
@@ -60,7 +60,7 @@ module.exports = function (mongodb) {
             await result.save();
         }
         return result;
-    })
+    });
     //fs.writeFileSync("./data/organization.json", JSON.stringify(organizationSchema.jsonSchema(), null, 4), { flag: "w+" });
     const organization = mongodb.model('organization', organizationSchema, 'organization');
     return organization;

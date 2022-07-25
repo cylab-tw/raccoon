@@ -49,7 +49,7 @@ function getPreviousUrl(params , http ="http" , resource) {
 }
 
 function getEntryFullUrl(item , http="http" ,resource) {
-    let url = `${http}://${process.env.FHIRSERVER_HOST}:${process.env.FHIRSERVER_PORT}/${process.env.FHIRSERVER_APIPATH}/${resource}/${item.id}`
+    let url = `${http}://${process.env.FHIRSERVER_HOST}:${process.env.FHIRSERVER_PORT}/${process.env.FHIRSERVER_APIPATH}/${resource}/${item.id}`;
     return url;
 }
 
@@ -97,4 +97,4 @@ function createBundle (req ,  docs , count , skip , limit , resource) {
 module.exports = {
     createBundle : createBundle , 
     getEntryFullUrl : getEntryFullUrl
-}
+};

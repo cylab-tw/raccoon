@@ -7,7 +7,7 @@ dicom-stow-rs
 dicon-wado-uri
 direct-project
 */
-async function DCM2Endpoint(filename)
+async function dcm2Endpoint(filename)
 {
     return new Promise(async (resolve)=> {
         let port = process.env.DICOMWEB_PORT || "";
@@ -31,12 +31,12 @@ async function DCM2Endpoint(filename)
                 "application/dicom"
             ],
             "address": `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}`
-        }
+        };
         return resolve(endpoint);
     });
 }
 
-function DCM2Endpoint_readFile(filename)
+function dcm2EndpointReadFile(filename)
 {
     let port = process.env.DICOMWEB_PORT || "";
     port = (port) ? `:${port}` : "";
@@ -59,10 +59,10 @@ function DCM2Endpoint_readFile(filename)
             "application/dicom"
         ],
         "address": `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}`
-    }
+    };
     return endpoint;
 }
-function DCM2Endpoint_imagingStudy(imagingStudy)
+function dcm2EndpointFromImagingStudy(imagingStudy)
 {
     let port = process.env.DICOMWEB_PORT || "";
     port = (port) ? `:${port}` : "";
@@ -83,7 +83,7 @@ function DCM2Endpoint_imagingStudy(imagingStudy)
             "application/dicom"
         ],
         "address": `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}`
-    }
+    };
     return endpoint;
 }
 
@@ -99,9 +99,9 @@ async function getFile (filename) {
 }
 
 module.exports = {
-    DCM2Endpoint : DCM2Endpoint , 
-    DCM2Endpoint_readFile : DCM2Endpoint_readFile ,
-    DCM2Endpoint_imagingStudy : DCM2Endpoint_imagingStudy
-}
+    dcm2Endpoint : dcm2Endpoint , 
+    dcm2EndpointReadFile : dcm2EndpointReadFile ,
+    dcm2EndpointFromImagingStudy : dcm2EndpointFromImagingStudy
+};
 
 

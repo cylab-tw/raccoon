@@ -1,5 +1,5 @@
 const queryBuild = require('models/FHIR/queryBuild.js');
-const _ = require('lodash');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const mongodb = require('models/mongodb');
 const {createBundle} = require('models/FHIR/func');
 const {handleError} = require('../../../../models/FHIR/httpMessage');
@@ -26,24 +26,24 @@ module.exports = async function (req, res) {
         } catch (e) {
             if (key != "$and") {
                 console.log(e);
-                return res.status(400).send(handleError.processing(`Unknown search parameter ${key}`))
+                return res.status(400).send(handleError.processing(`Unknown search parameter ${key}`));
             }
         }
     }
     if (errorMessage) {
         return res.status(400).json(errorMessage);
     }
-    const FHIRFilter = {
+    const fhirFilter = {
         _id: 0,
         __v: 0,
         'name._id': 0
-    }
+    };
     if (queryParameter.$and.length == 0) {
         delete queryParameter["$and"];
     }
     try {
-        //let docs = await mongoFunc.findFilterFields('patients', queryParameter, FHIRFilter, paginationLimit, paginationSkip);
-        let docs = await mongodb.patients.find(queryParameter ,FHIRFilter).
+        //let docs = await mongoFunc.findFilterFields('patients', queryParameter, fhirFilter, paginationLimit, paginationSkip);
+        let docs = await mongodb.patients.find(queryParameter ,fhirFilter).
         limit(realLimit).
         skip(paginationSkip).
         exec();
@@ -141,7 +141,7 @@ const buildFunc = {
     } ,
     "name" : (query) => {
         if (!_.isArray(query["name"])) {
-            query["name"] = [query["name"]]
+            query["name"] = [query["name"]];
         }
         for (let item of query["name"]) {
             let buildResult = queryBuild.nameQuery(item , "name");
@@ -244,13 +244,13 @@ const buildFunc = {
     } ,
     "birthdate" : (query) => {
         if (!_.isArray(query["birthdate"])) {
-            query["birthdate"] = [query["birthdate"]]
+            query["birthdate"] = [query["birthdate"]];
         }
         for (let i in query["birthdate"]) {
             let buildResult = queryBuild.dateQuery(query["birthdate"][i] , "birthdate");
             query.$and.push(buildResult);
             if (!buildResult) {
-                errorMessage = handleError.processing(`invalid date:${query["birthdate"]}`)
+                errorMessage = handleError.processing(`invalid date:${query["birthdate"]}`);
             }
         }
         delete query["birthdate"];
@@ -264,7 +264,7 @@ const buildFunc = {
         }
         delete query['organization'];
     }
-}
+};
 
 function stringBuild (query , field , queryField ,deleteFields=['']) {
     let buildResult = queryBuild.stringQuery(query[field] , field);
@@ -298,5 +298,5 @@ const includeSearch = {
             }
         }
         result.push(...organizationArr);
-    } ,
-}
+    } 
+};

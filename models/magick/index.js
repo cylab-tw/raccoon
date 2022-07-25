@@ -1,6 +1,6 @@
 const uuid = require('uuid');
 const fs = require('fs');
-const _ = require('lodash');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const { execSync, execFileSync } = require('child_process');
 const imagemagickCli = require('imagemagick-cli');
 class Magick {
@@ -57,7 +57,7 @@ class Magick {
         top = (top < 0) ? `-${top}` : `+${top}`;
         this.magickCommand.push("-crop");
         
-        this.magickCommand.push(`${width}x${height}${left}${top}`)
+        this.magickCommand.push(`${width}x${height}${left}${top}`);
     }
 
     resize(width, height) {

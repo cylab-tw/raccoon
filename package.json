@@ -8,7 +8,8 @@
     "start": "pm2 start ecosystem.config.js",
     "windev": "set NODE_ENV=development && set PORT=8089 && nodemon server.js",
     "build": "node build_raccoon/index",
-    "release": "standard-version"
+    "release": "standard-version",
+    "lint": "eslint --ignore-path .gitignore ."
   },
   "standard-version": {
     "skip": {
@@ -111,6 +112,8 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.30.7",
+    "@typescript-eslint/parser": "^5.30.7",
     "nodemon": "^2.0.12"
   }
 }

@@ -74,7 +74,7 @@ module.exports = function(mongodb) {
       result.birthDate = moment(result.birthDate).format('YYYY-MM-DD');
     }
     return result;
-  }
+  };
   patientsSchema.post('findOneAndUpdate' , async function (result) {
     if (result.value) {
       result.value.__v++;
@@ -84,7 +84,7 @@ module.exports = function(mongodb) {
       await result.save();
     }
     return result;
-  })
+  });
   //fs.writeFileSync("./data/patient.json" ,JSON.stringify (patientsSchema.jsonSchema() , null ,4) , {flag: "w+"});
   const patients = mongodb.model('patients', patientsSchema);
   return patients;

@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const glob = require("glob");
 const fetch = require('node-fetch');
-const AdmZip = require('adm-zip');
+const AdmZip = require('adm-zip'); //eslint-disable-line @typescript-eslint/naming-convention
 const mkdirp = require('mkdirp');
 let envText = `
 MONGODB_NAME="dbName"
@@ -37,7 +37,7 @@ DCM2JPEG_PYTHONAPI_PORT=5000
 `;
 async function main() {
     if (!fs.existsSync('./temp')) {
-        mkdirp.sync('./temp' , 0775);
+        mkdirp.sync('./temp' , 0o775);
     }
     let userOS = OS.type().toLowerCase();
     if (userOS.includes("windows")) {
@@ -116,7 +116,7 @@ CONDA_GDCM_ENV_NAME="gdcm"
 USE_DCM2JPEG_PYTHONAPI=true
 DCM2JPEG_PYTHONAPI_PORT=5000
 
-`
+`;
                         return resolve(true);
                     }
                     return resolve(false);
@@ -126,14 +126,14 @@ DCM2JPEG_PYTHONAPI_PORT=5000
         genDCMTK : async ()=> {
             console.log("Doloading DCMTK");
             let fetchRes = await fetch("https://dicom.offis.de/download/dcmtk/dcmtk365/bin/dcmtk-3.6.5-win64-dynamic.zip");
-            const DCMTKFilestream = fs.createWriteStream("./build_raccoon/dcmtk.zip");
-            fetchRes.body.pipe(DCMTKFilestream);
+            const dcmtkFileStream = fs.createWriteStream("./build_raccoon/dcmtk.zip");
+            fetchRes.body.pipe(dcmtkFileStream);
             fetchRes.body.on("error" , function (err) {
                 console.error("download DCMTK failure");
                 console.error(err);
                 process.exit(1);
             });
-            DCMTKFilestream.on("finish" , function () {
+            dcmtkFileStream.on("finish" , function () {
                 console.log("Finished Donload DCMTK");
                 let dcmtkZip = new AdmZip("./build_raccoon/dcmtk.zip");
                 dcmtkZip.extractAllToAsync("./models/dcmtk/" , true);
@@ -142,7 +142,7 @@ DCM2JPEG_PYTHONAPI_PORT=5000
             });
         }
     }
-}
+};
 
 async function genDCMTK (osType) {
     let haveDCMTK = await osFunc[osType].checkHaveDCMTK();

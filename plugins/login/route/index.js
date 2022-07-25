@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const { isLogin } = require("../middleware/index");
 const { pluginsConfig } = require("../../config");
-const _ = require("lodash");
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");

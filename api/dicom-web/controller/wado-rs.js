@@ -6,10 +6,10 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path= require('path');
 const uuid = require('uuid');
-const _ = require('lodash');
-const DICOMWebHandleError = require('../../../models/DICOMWeb/httpMessage');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
+const dicomWebHandleError = require('../../../models/DICOMWeb/httpMessage');
 const { writeImageMultipart } = require('../../../models/DICOMWeb');
-const { MultipartWriter } = require('../../../utils/multipartWriter');
+const { MultipartWriter } = require('../../../utils/multipartWriter'); // eslint-disable-line @typescript-eslint/naming-convention
 const { streamToBuffer } = require('@jorgeferrero/stream-to-buffer');
 module.exports = async function (req , res) {
     let keys = Object.keys(req.params);
@@ -18,7 +18,7 @@ module.exports = async function (req , res) {
     for (let i = 0 ; i < keys.length ; i++) {
         paramsStr += keys[i]; 
     }
-    let WADOFunc = {"studyID" : "", "studyIDseriesID": "" , "studyIDseriesIDinstanceID": ""};
+    let wadoFunc = {"studyID" : "", "studyIDseriesID": "" , "studyIDseriesIDinstanceID": ""};
     if (req.headers.accept.toLowerCase() == "application/zip") {
         let wadoZip = new WADOZip(req.params, res);
         let zipProcess = await wadoZip[`method-${paramsStr}`]();
@@ -26,7 +26,7 @@ module.exports = async function (req , res) {
             res.end();
             return;
         }
-        return DICOMWebHandleError.sendNotFoundMessage(req , res);
+        return dicomWebHandleError.sendNotFoundMessage(req , res);
     } else if (req.headers.accept.includes("multipart/related")) {
         let typeSplit = req.headers.accept.split(',');
         let acceptTypes=  [];
@@ -57,13 +57,13 @@ module.exports = async function (req , res) {
             let acceptObj = {
                 type : finalType , 
                 transferSyntax : transferSyntax
-            }
+            };
             acceptTypes.push(acceptObj);
         }
         console.log(acceptTypes);
         let type = req.headers.accept.match(/type=(.*)/gi)[0].split(/[,;]/)[0].substring(5).replace(/"/g  ,"");
-        WADOFunc = {"studyID" :"getStudyDicom", "studyIDseriesID": "getSeriesDicom" , "studyIDseriesIDinstanceID": "getInstance"};
-        let getFunc = WADOFunc[paramsStr];
+        wadoFunc = {"studyID" :"getStudyDicom", "studyIDseriesID": "getSeriesDicom" , "studyIDseriesIDinstanceID": "getInstance"};
+        let getFunc = wadoFunc[paramsStr];
         if (!multipartFunc[type]) {
             return  sendNotSupportMessage(req ,res);
         }
@@ -76,23 +76,23 @@ module.exports = async function (req , res) {
         } catch (e) {
             return sendNotSupportMessage(req ,res);
         }
-        return DICOMWebHandleError.sendNotFoundMessage(req , res);
+        return dicomWebHandleError.sendNotFoundMessage(req , res);
     } else if (req.headers.accept.includes("*/*")) {
-        WADOFunc = {"studyID" :"getStudyDicom", "studyIDseriesID": "getSeriesDicom" , "studyIDseriesIDinstanceID": "getInstance"};
-        let getFunc = WADOFunc[paramsStr];
+        wadoFunc = {"studyID" :"getStudyDicom", "studyIDseriesID": "getSeriesDicom" , "studyIDseriesIDinstanceID": "getInstance"};
+        let getFunc = wadoFunc[paramsStr];
         let resWriteStatus =  await multipartFunc["application/dicom"][getFunc](req.params , res , "application/dicom");
         if (resWriteStatus) {
             res.end();
             return;
         }
-        return DICOMWebHandleError.sendNotFoundMessage(req , res);
+        return dicomWebHandleError.sendNotFoundMessage(req , res);
     }
     return sendNotSupportMessage(req , res);
-}
+};
 
 function sendNotSupportMessage(req ,res) {
     let accept = _.get(req , "headers.accept");
-    if (!accept) accept = "Unknown"
+    if (!accept) accept = "Unknown";
     let message = {
         "Details" : `This WADO-RS server cannot generate the following content type with Accept Header: ${accept} 
         Can use the Accept Header below : 
@@ -102,8 +102,8 @@ function sendNotSupportMessage(req ,res) {
         `, 
         "HttpStatus" : 400,
         "Message" : "Bad request",
-        "Method" : "GET",
-    }
+        "Method" : "GET"
+    };
     res.status(400).send(message);
     res.end();  
 }
@@ -128,25 +128,25 @@ let multipartFunc = {
             let multipartWriter = new MultipartWriter(imagesPath, res);
             return multipartWriter.writeDICOMFiles(type);
         }
-    } ,
-}
+    } 
+};
 multipartFunc["application/octet-stream"] = {
     getStudyDicom : multipartFunc["application/dicom"].getStudyDicom ,
     getSeriesDicom : multipartFunc["application/dicom"].getSeriesDicom , 
     getInstance : multipartFunc["application/dicom"].getInstance
-}
+};
 multipartFunc["image/jpeg"] = {
     getInstance:  async function (iParam , res , type) {
         return new Promise (async (resolve)=> {
             let imagesPath = await mongoFunc.getInstanceImagePath(iParam);
             if (imagesPath) {
-                await writeImageMultipart(res , imagesPath , type)
+                await writeImageMultipart(res , imagesPath , type);
                 return resolve(true);    
             }
             return resolve(false);
         });
     }
-}
+};
 
 function nl2br (str) {
     return str.replace(/\\r|\\n|\\r\\n/gi , "<br/>");
@@ -211,7 +211,7 @@ class WADOZip {
             resolve({
                 status: false,
                 data: "Gone"
-            })
+            });
         });
     }
 

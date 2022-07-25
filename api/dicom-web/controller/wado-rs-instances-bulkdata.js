@@ -1,5 +1,5 @@
 const mongodb = require("../../../models/mongodb");
-const _ = require('lodash');
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const uuid = require('uuid');
 const fs = require('fs');
 
@@ -40,4 +40,4 @@ module.exports = async function (req , res) {
     res.write(bulkData);
     res.write(`\r\n--${BOUNDARY}--`);
     return res.end();
-}
+};

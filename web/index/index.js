@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const _ = require("lodash");
+const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const { pluginsConfig } = require("../../plugins/config");
 
 let loginPlugin = pluginsConfig.login;

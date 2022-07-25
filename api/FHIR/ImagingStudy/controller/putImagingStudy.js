@@ -3,7 +3,7 @@ const mongodb = require('models/mongodb');
 const mongoFunc = require('models/mongodb/func');
 const mongoose = require('mongoose');
 
-const FHIRFilter = {
+const fhirFilter = {
     _id: 0,
     __v: 0,
     'identifier._id': 0,
@@ -20,23 +20,23 @@ const FHIRFilter = {
     'series.instance.metadata': 0,
     report: 0,
     patient: 0
-}
+};
 module.exports = async function (req, res) {
     let reqData = req.body;
     let sendData =
     {
         "true": (data) => {
-            res.status(201).json(data)
+            res.status(201).json(data);
         },
         "false": (error) => {
-            res.status(500).json(error)
+            res.status(500).json(error);
         }
-    }
+    };
     delete reqData["_id"];
     let [updateStatus, doc] = await mongoUpdate({ id: req.params.id }, reqData);
     let updatedDoc = await mongodb.ImagingStudy.findOne({
         _id : doc.value._doc._id
-    }, FHIRFilter);
+    }, fhirFilter);
     return sendData[updateStatus.toString()](updatedDoc);
 };
 module.exports.putFHIRImagingStudyWithoutReq = async function (id , data) {
@@ -46,7 +46,7 @@ module.exports.putFHIRImagingStudyWithoutReq = async function (id , data) {
         return doc.value.id;
     }
     return false;
-} 
+}; 
 async function mongoUpdate(query, data) {
     return new Promise((resolve , reject) => {
         mongodb.ImagingStudy.findOneAndUpdate(query, { $set: data } , {new:true  ,upsert: true , rawResult : true}, function (err, doc) {

@@ -1,9 +1,6 @@
 
-const path = require("path");
-const _ = require("lodash");
 const https = require("https");
 const md5 = require("md5");
-const querystring = require("querystring");
 const { pluginsConfig } = require("../../config");
 const ckanPlugin = pluginsConfig.ckan;
 
@@ -17,14 +14,16 @@ const ckanPlugin = pluginsConfig.ckan;
 module.exports.ckanCollaboratorCheck = async function (req, res, next) {
     // if enable ckan plugin
     if (ckanPlugin.enable) {
-        if(req.headers["ckan_token"] != undefined && req.headers["package_id"] != undefined && req.headers["email"] != undefined){
+        if(req.headers["package_id"] != undefined && req.headers["email"] != undefined) {
 
+            let ckanToken = ckanPlugin.ckanToken;
             let ckanUserlist = await getCkanUserList();
+            let pkgID = req.headers["package_id"];
 
             // get input email in md5
             let inputEmailHash = md5(req.headers["email"]);
             console.log(`inputEmailHash=${inputEmailHash}`);
-            console.log(`ckan_token=${req.headers["ckan_token"]}`);
+            console.log(`ckan_token=${ckanToken}`);
 
             // find out if input email is in ckan user list.
             for(let i = 0 ; i < ckanUserlist.length; i++) {
@@ -32,11 +31,11 @@ module.exports.ckanCollaboratorCheck = async function (req, res, next) {
                 if(ckanUserlist[i].email === inputEmailHash) {
                     console.log(ckanUserlist[i]);
                     // find out if user's package collaborator list has input package id
-                    let userPackages = await getCkanUserPackageList(req.headers["ckan_token"], ckanUserlist[i].name);
-                    console.log(`userPackages=${userPackages}`);
-                    for(let j = 0 ; j < userPackages.length; j++){
-                        console.log(`user [${ckanUserlist[i].name}] is in package [${req.headers["package_id"]}]`);
-                        if(userPackages[j].package_id == req.headers["package_id"]) {
+                    let packageCollaborators =  await getCkanPackageCollaborators(ckanToken, pkgID);
+                    console.log(`packageCollaborators=${packageCollaborators}`);
+                    for(let j = 0 ; j < packageCollaborators.length; j++){
+                        if(packageCollaborators[j].user_id == ckanUserlist[i].id) {
+                            console.log(`user [${ckanUserlist[i].name}] is in package [${pkgID}]`);
                             return next();
                         }
                     }
@@ -50,7 +49,7 @@ module.exports.ckanCollaboratorCheck = async function (req, res, next) {
                 }
             }
             // if user is not in ckan user list
-            console.log(`user [${ckanUserlist[i].name}] not in ckan user list`);
+            console.log(`user is not in ckan user list`);
             return res
             .status(401)
             .render(
@@ -113,17 +112,17 @@ async function getCkanUserList() {
     });
 }
 
-async function getCkanUserPackageList(i_ckantoken, i_username) {
+async function getCkanPackageCollaborators(ckanToken, packageID) {
     let outputList = [];
-    console.log(`username=${i_username}`);
+    console.log(`packageID=${packageID}`);
 
     const options = {
         hostname: ckanPlugin.host,
-        path: ckanPlugin.collaboratorPath + `?id=${i_username}`,
+        path: ckanPlugin.collaboratorPath + `?id=${packageID}`,
         port: ckanPlugin.port,
         method: 'GET',
         headers: {
-            Authorization:i_ckantoken,
+            Authorization:ckanToken
         }
     };
     return new Promise((resolve) => {

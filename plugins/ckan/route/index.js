@@ -1,7 +1,6 @@
 const router = require("express").Router();
 const { ckanCollaboratorCheck } = require("../middleware");
 const { pluginsConfig } = require("../../config");
-const _ = require("lodash");
 
 const ckanPlugin = pluginsConfig.ckan;
 for (let i = 0; i < ckanPlugin.routers.length; i++) {

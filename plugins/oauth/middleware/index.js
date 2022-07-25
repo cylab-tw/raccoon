@@ -1,9 +1,5 @@
 
-const path = require("path");
-const _ = require("lodash");
 const https = require("https");
-const http = require("http");
-const url = require("url");
 const querystring = require("querystring");
 const { pluginsConfig } = require("../../config");
 const oauthPlugin = pluginsConfig.oauth;
@@ -125,7 +121,7 @@ async function requestOAuthToken(req, res) {
         "code"
     );
 
-    let post_data = querystring.stringify({
+    let postData = querystring.stringify({
         client_id: oauthPlugin.clientId,
         grant_type: "authorization_code",
         method: "POST",
@@ -134,7 +130,7 @@ async function requestOAuthToken(req, res) {
         redirect_uri: `${oauthPlugin.http}://${process.env.SERVER_HOST}${theUrl}`
     });
 
-    const token_options = {
+    const tokenOptions = {
         hostname: oauthPlugin.host,
         path:
             oauthPlugin.tokenPath +
@@ -143,11 +139,11 @@ async function requestOAuthToken(req, res) {
         method: "POST",
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
-            "Content-Length": Buffer.byteLength(post_data)
+            "Content-Length": Buffer.byteLength(postData)
         }
     };
     await new Promise((resolve) => {
-        let postReq = https.request(token_options, (response) => {
+        let postReq = https.request(tokenOptions, (response) => {
             let result = "";
 
             // 資料傳輸中
@@ -177,23 +173,23 @@ async function requestOAuthToken(req, res) {
         });
 
         // post the data
-        postReq.write(post_data);
+        postReq.write(postData);
         postReq.end();
     });
 }
 
 async function redirectToOAuthLoginPage(req, res) {
     // 可能keycloak有點bug，會遺失掉放在網址的參數，我們這邊從先把query的Parameters存在session...。
-    let _theUrl = req.originalUrl.split("?")[0];
+    let theUrl = req.originalUrl.split("?")[0];
     console.log(
         "OAuth2轉址位址:" +
-            `${oauthPlugin.http}://${process.env.SERVER_HOST}${_theUrl}`
+            `${oauthPlugin.http}://${process.env.SERVER_HOST}${theUrl}`
     );
     req.session.oriQuery = req.query;
 
     // 導向至登入畫面...
     res.redirect(
-        `${oauthPlugin.http}://${oauthPlugin.host}/${oauthPlugin.authPath}?client_id=${oauthPlugin.client_id}&grant_type=authorization_code&response_type=code&redirect_uri=${oauthPlugin.http}://${process.env.SERVER_HOST}${_theUrl}`
+        `${oauthPlugin.http}://${oauthPlugin.host}/${oauthPlugin.authPath}?client_id=${oauthPlugin.client_id}&grant_type=authorization_code&response_type=code&redirect_uri=${oauthPlugin.http}://${process.env.SERVER_HOST}${theUrl}`
     );
 }
 

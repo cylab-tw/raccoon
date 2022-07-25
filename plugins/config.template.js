@@ -52,9 +52,10 @@ module.exports.pluginsConfig = {
             }
         ],
         http: "https", // http | https
-        host: "data.dmc.nycu.edu.tw", //The ckan server hostname
+        host: "ckan.dicom.tw", //The ckan server hostname
         userListPath:"/api/3/action/user_list", // ckan api url for getting user list , usually "/api/3/action/user_list"
-        collaboratorPath:"/api/3/action/package_collaborator_list_for_user", // ckan api url for getting user's package collaborator list usually "/api/3/action/package_collaborator_list_for_user"
+        collaboratorPath:"/api/3/action/package_collaborator_list", // ckan api url for getting user's package collaborator list usually "/api/3/action/package_collaborator_list_for_user"
+        ckanToken:"", // ckan token for getting user list and package collaborator list.
         port: ""
     }
 };

@@ -112,7 +112,7 @@ async function getUIDInCkan(uidData,pkgID) {
             theSQL += `"StudyInstanceUID"`;
         }
         if(uidData.series != "") {
-            theSQL += `,"SeriesInatanceUID"`;
+            theSQL += `,"SeriesInstanceUID"`;
         }
         if(uidData.instance != "") {
             theSQL += `,"SOPInstanceUID"`;
@@ -122,7 +122,7 @@ async function getUIDInCkan(uidData,pkgID) {
             theSQL += `"StudyInstanceUID" = '${uidData.study}'`;
         }
         if(uidData.series != "") {
-            theSQL += ` AND "SeriesInatanceUID" = '${uidData.series}'`;
+            theSQL += ` AND "SeriesInstanceUID" = '${uidData.series}'`;
         }
         if(uidData.instance != "") {
             theSQL += ` AND "SOPInstanceUID" = '${uidData.instance}'`;

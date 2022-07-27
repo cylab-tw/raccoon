@@ -55,6 +55,8 @@ module.exports.pluginsConfig = {
         host: "ckan.dicom.tw", //The ckan server hostname
         userListPath:"/api/3/action/user_list", // ckan api url for getting user list , usually "/api/3/action/user_list"
         collaboratorPath:"/api/3/action/package_collaborator_list", // ckan api url for getting user's package collaborator list usually "/api/3/action/package_collaborator_list_for_user"
+        searchPath:"/api/3/action/datastore_search_sql", // ckan api url for search data using sql (need datastore plugin enabled in ckan)
+        packageShowPath:"/api/3/action/package_show", // ckan api url for getting a package's informations
         ckanToken:"", // ckan token for getting user list and package collaborator list.
         port: ""
     }

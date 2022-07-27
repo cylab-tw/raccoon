@@ -49,9 +49,9 @@ module.exports.ckanCollaboratorCheck = async function (req, res, next) {
                             else {
                                 console.log(`UID Data [${JSON.stringify(uidData)}] is NOT in package [${pkgID}]`);
                                 return res
-                                .status(401)
-                                .render(
-                                    "html/errors/401.html"
+                                .status(403)
+                                .json(
+                                    {isError: true, message:`UID Data [${JSON.stringify(uidData)}] is NOT in package [${pkgID}]`}
                                 );
                             }
                         }
@@ -59,9 +59,9 @@ module.exports.ckanCollaboratorCheck = async function (req, res, next) {
                     // if package id is not in package list
                     console.log(`User [${ckanUserlist[i].name}] is not in package [${req.headers["package_id"]}]`);
                     return res
-                    .status(401)
-                    .render(
-                        "html/errors/401.html"
+                    .status(403)
+                    .json(
+                        {isError: true, message:`User [${ckanUserlist[i].name}] is not in package [${req.headers["package_id"]}]`}
                     );
                 }
             }
@@ -69,17 +69,17 @@ module.exports.ckanCollaboratorCheck = async function (req, res, next) {
             console.log(`User is not in ckan user list`);
             return res
             .status(401)
-            .render(
-                "html/errors/401.html"
+            .json(
+                {isError: true, message:`User is not in ckan user list`}
             );
         }
         else {
             // if req headers missing value
             console.log("Ckan auth request header is missing value");
             return res
-            .status(401)
-            .render(
-                "html/errors/401.html"
+            .status(400)
+            .json(
+                {isError: true, message:`Ckan auth request header is missing value`}
             );
         }
     } // if plugin is not enabled then ignore

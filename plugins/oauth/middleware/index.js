@@ -33,8 +33,8 @@ module.exports.isOAuthLogin = async function (req, res, next) {
             // 否則就回401
             return res
                 .status(401)
-                .render(
-                    "html/errors/401.html"
+                .json(
+                    {isError: true, message:`OAuth authorization is not vaild.`}
                 );
         } else if (req.query.code != undefined) {
             // 如果有Auth code 就試試看跟OAuth請求token

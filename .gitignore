@@ -42,3 +42,4 @@ tempScript
 
 #ignore config file of pluginsConfig
 /plugins/config.js
+/config/log4js.json

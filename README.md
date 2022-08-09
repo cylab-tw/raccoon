@@ -137,6 +137,13 @@ var envConfig = {
 * A simple web-based user interface is provided to manage the DICOM objects in Raccoon.
 * For DICOMWeb client, Raccoon can integrate with <a href="https://github.com/cylab-tw/bluelight/">BlueLight</a>, a lightweight Web-based DICOM Viewer.
 
+### Plugins Configuration
+Raccoon has some plugins such as OAuth, username/password login etc.
+> **Note**
+>
+> If you don't want to use plugins, just copy `plugins/config.template.js` and rename to `plugins/config.js`
+
+
 ## Deploy
 ### With Node.JS
 ```bash

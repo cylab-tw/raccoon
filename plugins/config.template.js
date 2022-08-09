@@ -1,7 +1,7 @@
 module.exports.pluginsConfig = {
     login: {
         name: "login",
-        enable: true,
+        enable: false,
         before: true,
         routers: [
             {
@@ -25,7 +25,7 @@ module.exports.pluginsConfig = {
     },
     oauth: {
         name: "oauth",
-        enable: true,
+        enable: false,
         before: true,
         routers: [],
         http: "https", // http | https

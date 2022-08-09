@@ -139,6 +139,7 @@ var envConfig = {
 
 ### Plugins Configuration
 Raccoon has some plugins such as OAuth, username/password login etc.
+- Please see [Plugins Configuration](plugins/README.md)
 > **Note**
 >
 > If you don't want to use plugins, just copy `plugins/config.template.js` and rename to `plugins/config.js`

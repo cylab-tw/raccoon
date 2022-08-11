@@ -1,26 +1,20 @@
 const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
-const mongodb = require('models/mongodb');
-const mongoFunc = require('models/mongodb/func');
-const mongoose = require('mongoose');
+const mongodb = require("models/mongodb");
+const mongoFunc = require("models/mongodb/func");
+const mongoose = require("mongoose");
 
 module.exports = async function (req, res) {
     let reqData = req.body;
-    let sendData =
-    {
-        "true": (data) => {
+    let sendData = {
+        true: (data) => {
             res.status(201).json(data);
         },
-        "false": (error) => {
+        false: (error) => {
             res.status(500).json(error);
         }
     };
-    let [insertStatus, doc] = await insertImagingStudy(reqData, req.params.id);
-    return sendData[insertStatus.toString()](doc);
-};
-
-module.exports.storeImagingStudy = async function (id , data) {
-    let [insertStatus, doc] = await insertImagingStudy(data, id);
-    return doc;
+    let { status, data } = await pushOrNewInstanceImagingStudy(reqData, req.params.id);
+    return sendData[status.toString()](data);
 };
 
 //獲取特定Series的Study
@@ -42,7 +36,7 @@ async function getImagingStudySeries(series) {
         ];
         let hitImagingStudy = await mongodb.ImagingStudy.aggregate(seriesQuery);
         return hitImagingStudy;
-    } catch(e) {
+    } catch (e) {
         console.error(e);
         return false;
     }
@@ -50,36 +44,34 @@ async function getImagingStudySeries(series) {
 
 async function getSeriesInstance(seriesUid, instance) {
     return new Promise(async (resolve) => {
-        let query =
-            [
-                {
-                    $match:
-                    {
-                        $and: [{ "series.uid": seriesUid }, { "series.instance.uid": instance.uid }]
-                    }
-                },
-                {
-                    $unwind: "$series"
-                },
-                {
-                    $addFields:
-                    {
-                        "instanceIndex":
-                        {
-                            $indexOfArray: ["$series.instance.uid", instance.uid]
-                        }
+        let query = [
+            {
+                $match: {
+                    $and: [
+                        { "series.uid": seriesUid },
+                        { "series.instance.uid": instance.uid }
+                    ]
+                }
+            },
+            {
+                $unwind: "$series"
+            },
+            {
+                $addFields: {
+                    instanceIndex: {
+                        $indexOfArray: ["$series.instance.uid", instance.uid]
                     }
                 }
-            ];
-        let agg = await mongoFunc.aggregate_Func('ImagingStudy', query);
+            }
+        ];
+        let agg = await mongoFunc.aggregate_Func("ImagingStudy", query);
         if (agg) {
             return resolve(agg);
         }
     });
-
 }
 
-async function insertImagingStudy(insertData, id) {
+async function pushOrNewInstanceImagingStudy(insertData, id) {
     try {
         let hitImagingStudy = await mongodb.ImagingStudy.findOne({
             id: id
@@ -134,12 +126,18 @@ async function insertImagingStudy(insertData, id) {
                             imagingStudy.series[
                                 seriesStudy[0].SeriesIndex
                             ].instance[instanceIndex] = instance;
-                            return [true, imagingStudy];
+                            return {
+                                status: true,
+                                data: imagingStudy
+                            };
                         } else {
                             imagingStudy.series[
                                 seriesStudy[0].SeriesIndex
                             ].instance.push(instance);
-                            return [true, imagingStudy];
+                            return {
+                                status: true,
+                                data: imagingStudy
+                            };
                         }
                     }
                 } else {
@@ -148,20 +146,28 @@ async function insertImagingStudy(insertData, id) {
                         hitImagingStudy
                     );
                     imagingStudy.series.push(series);
-                    return [true, imagingStudy];
+                    return {
+                        status: true,
+                        data: imagingStudy
+                    };
                 }
             }
         } else {
             //insert new ImagingStudy
             insertData.id = id.replace("urn:oid:", "");
-            return [true, insertData];
+            return {
+                status: true,
+                data: insertData
+            };
         }
-    } catch(e) {
+    } catch (e) {
         console.error(e);
-        return [false, e];
+        return {
+            status: false,
+            data: e
+        };
     }
 }
-
 
 async function isInstanceExist(uid) {
     try {
@@ -175,7 +181,9 @@ async function isInstanceExist(uid) {
         let hitImagingStudy = await mongodb.ImagingStudy.findOne(instanceQuery);
         if (hitImagingStudy) return hitImagingStudy;
         return false;
-    } catch(e) {
+    } catch (e) {
         throw e;
     }
 }
+
+module.exports.pushOrNewInstanceImagingStudy = pushOrNewInstanceImagingStudy;

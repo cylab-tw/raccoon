@@ -33,28 +33,28 @@ module.exports = async function (req, res) {
         }
     };
     delete reqData["_id"];
-    let [updateStatus, doc] = await mongoUpdate({ id: req.params.id }, reqData);
+    let { status, data } = await updateImagingStudy({ id: req.params.id }, reqData);
     let updatedDoc = await mongodb.ImagingStudy.findOne({
-        _id : doc.value._doc._id
+        _id : data.value._doc._id
     }, fhirFilter);
-    return sendData[updateStatus.toString()](updatedDoc);
+    return sendData[status.toString()](updatedDoc);
 };
-module.exports.putFHIRImagingStudyWithoutReq = async function (id , data) {
-    delete data["_id"];
-    let [updateStatus, doc] = await mongoUpdate({ id: id }, data);
-    if (updateStatus) {
-        return doc.value.id;
+
+
+async function updateImagingStudy(query, iData) {
+    try {
+        let doc = await mongodb.ImagingStudy.findOneAndUpdate(query, { $set: iData } , {new:true  ,upsert: true , rawResult : true});
+        return {
+            status: true,
+            data: doc
+        };
+    } catch(e) {
+        console.error(e);
+        return {
+            status: false,
+            data: e
+        };
     }
-    return false;
-}; 
-async function mongoUpdate(query, data) {
-    return new Promise((resolve , reject) => {
-        mongodb.ImagingStudy.findOneAndUpdate(query, { $set: data } , {new:true  ,upsert: true , rawResult : true}, function (err, doc) {
-            if (err) {
-                console.error(err);
-                return reject([false , err]);
-            } 
-            return resolve([true, doc]);
-        });
-    });
 }
+
+module.exports.updateImagingStudy = updateImagingStudy;

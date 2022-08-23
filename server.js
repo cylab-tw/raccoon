@@ -77,10 +77,19 @@ app.use((req, res, next) => {
 require("routes.js")(app);
 app.engine('html', require('ejs').renderFile);
 app.set("views", "public");
-//
-http.createServer(app).listen(port, function () {
-  console.log(`http server is listening on port:${port}`);
-});
+
+// If host is present, the server will accept connection on specific host, when
+// host is omitted, use IPv6 (::) or IPv4 (0.0.0.0)
+if (process.env.SERVER_HOST) {
+  http.createServer(app).listen(port, process.env.SERVER_HOST, function () {
+    console.log(`http server is listening on port:${port}`);
+  });
+} else {
+  http.createServer(app).listen(port, function () {
+    console.log(`http server is listening on port:${port}`);
+  });
+}
+
 
 let osPlatform = os.platform().toLocaleLowerCase();
 if (osPlatform.includes('linux')) {

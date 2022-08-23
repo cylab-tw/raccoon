@@ -11,6 +11,7 @@ const oauthPlugin = pluginsConfig.oauth;
 // 透過OAuth驗證
 // 參考 https://blog.yorkxin.org/posts/oauth2-6-bearer-token.html
 // Server=https://github.com/pedroetb/node-oauth2-server-example
+
 /**
  * 
  * @param {import("express").Request} req 
@@ -58,6 +59,11 @@ module.exports.isOAuthLogin = async function (req, res, next) {
     }
 };
 
+/**
+ * 
+ * @param {import("express").Request} req 
+ * @returns 
+ */
 async function verifyOAuthAccessToken(req) {
     // Token驗證是否通過
     let tokenValidation = false;
@@ -110,6 +116,11 @@ async function verifyOAuthAccessToken(req) {
     return tokenValidation;
 }
 
+/**
+ * 
+ * @param {import("express").Request} req 
+ * @param {import("express").Response} res 
+ */
 async function requestOAuthToken(req, res) {
     // 重新導回的網址
     let theUrl = req.originalUrl;
@@ -127,7 +138,7 @@ async function requestOAuthToken(req, res) {
         method: "POST",
         code: req.query.code,
         session_state: req.query.session_state,
-        redirect_uri: `${oauthPlugin.http}://${process.env.SERVER_HOST}${theUrl}`
+        redirect_uri: `${oauthPlugin.http}://${req.headers.host}${theUrl}`
     });
 
     const tokenOptions = {
@@ -178,18 +189,23 @@ async function requestOAuthToken(req, res) {
     });
 }
 
+/**
+ * 
+ * @param {import("express").Request} req 
+ * @param {*} res 
+ */
 async function redirectToOAuthLoginPage(req, res) {
     // 可能keycloak有點bug，會遺失掉放在網址的參數，我們這邊從先把query的Parameters存在session...。
     let theUrl = req.originalUrl.split("?")[0];
     console.log(
         "OAuth2轉址位址:" +
-            `${oauthPlugin.http}://${process.env.SERVER_HOST}${theUrl}`
+            `${oauthPlugin.http}://${req.headers.host}${theUrl}`
     );
     req.session.oriQuery = req.query;
 
     // 導向至登入畫面...
     res.redirect(
-        `${oauthPlugin.http}://${oauthPlugin.host}/${oauthPlugin.auth_path}?client_id=${oauthPlugin.client_id}&grant_type=authorization_code&response_type=code&redirect_uri=${oauthPlugin.http}://${process.env.SERVER_HOST}${theUrl}`
+        `${oauthPlugin.http}://${oauthPlugin.host}/${oauthPlugin.auth_path}?client_id=${oauthPlugin.client_id}&grant_type=authorization_code&response_type=code&redirect_uri=${oauthPlugin.http}://${req.headers.host}${theUrl}`
     );
 }
 

@@ -67,6 +67,10 @@ async function storeFile (filestream , writestream , storeFileName) {
         });
     });
 }
+/**
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ */
 module.exports = async function (req , res) {
     let files = await uploadFile(req);
     try {
@@ -75,9 +79,9 @@ module.exports = async function (req , res) {
             let filename = files.filename[key];
             let storeFileName = `${__dirname}/../upload_xml/${filename}`;
             let xmlWS  = fs.createWriteStream(storeFileName);
-            let storeFileStatu = await storeFile(files.files[key] , xmlWS , storeFileName);
-            if (storeFileStatu) {
-                result.push(`http://${process.env.SERVER_HOST}:${process.env.SERVER_PORT}/xml2dcm/${storeFileStatu}`);
+            let storeFileStatus = await storeFile(files.files[key] , xmlWS , storeFileName);
+            if (storeFileStatus) {
+                result.push(`${req.protocol}://${req.headers.host}/xml2dcm/${storeFileStatus}`);
             }
         }
         res.send(result);

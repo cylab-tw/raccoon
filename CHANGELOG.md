@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.0](https://github.com/cylab-tw/raccoon/compare/v1.4.0...v1.5.0) (2022-10-28)
+
+
+### Features
+
+* add tool for uploading DICOM via DICOMweb ([10f5c31](https://github.com/cylab-tw/raccoon/commit/10f5c31353ccd2c377803e08ca6416fb63a8a8f9))
+* can load custom log4js config `log4js.json` ([c05c372](https://github.com/cylab-tw/raccoon/commit/c05c372ea4d843232ad2dd9144a7ad9e72782732))
+* extract STOW-RS main process to `stow.js` ([4044c5d](https://github.com/cylab-tw/raccoon/commit/4044c5d0c28a4deb40729b9c8eaa311401a1f061))
+* use`headers.host`instead of env SERVER_HOST ([3a74081](https://github.com/cylab-tw/raccoon/commit/3a74081338df65cb293fa892075a8c1c519c4921))
+
+
+### Bug Fixes
+
+* can not find node:perf_hooks module ([b8d6cb3](https://github.com/cylab-tw/raccoon/commit/b8d6cb3c32c36ad9c48f595a1adb913b1f925f73))
+* can not return frame when header have jpeg ([c939b56](https://github.com/cylab-tw/raccoon/commit/c939b562773ad6e561312ba1f9365bff39688606))
+* can not support http oauth ([290b34d](https://github.com/cylab-tw/raccoon/commit/290b34d7dc91f5249c388595868b19914126e998))
+* cannot store DICOM file that missing date ([489631e](https://github.com/cylab-tw/raccoon/commit/489631eb61d1d120cb3e2f2fac525fe266cf31c7))
+* eslint auto fix ([10d0939](https://github.com/cylab-tw/raccoon/commit/10d0939c7fda4745fa549285d353613b79820e43))
+* eslint naming convention ([0a46a5a](https://github.com/cylab-tw/raccoon/commit/0a46a5a093ed8ad22674391afe6877766dd22400))
+* missing `ui.bootstrap` ([ca65401](https://github.com/cylab-tw/raccoon/commit/ca65401caf329305db29faa6b69dc0459369e9e8))
+* oauth drop query of request that cause error ([5a42412](https://github.com/cylab-tw/raccoon/commit/5a42412120642ba04fb5ed2fcec39ee6016571db))
+* typo ([c5c0b48](https://github.com/cylab-tw/raccoon/commit/c5c0b48fc143d6821bf9e37c16023792381fdcc8))
+* **WIP:** incorrect transferSyntax parse in header ([6c236e1](https://github.com/cylab-tw/raccoon/commit/6c236e1caabddf04978cf53b1712a37333b61961))
+* zh_TW i18n field typo ([1731024](https://github.com/cylab-tw/raccoon/commit/1731024e8cb6479e92a40023856a0b3343935a6c))
+
+
+### Build
+
+* default disable plugins of template config ([16ded66](https://github.com/cylab-tw/raccoon/commit/16ded666821db529bb7096f905a3232b403df95f))
+* update config template ([cd86755](https://github.com/cylab-tw/raccoon/commit/cd86755f659da54b24c7f9ab3a48734f6a9433da))
+
 ## [1.4.0](https://github.com/cylab-tw/raccoon/compare/v1.3.0...v1.4.0) (2022-06-15)
 
 

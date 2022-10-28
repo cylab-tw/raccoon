@@ -37,7 +37,7 @@
         "PLEASE_SELECT_FILE_FIRST": "請先選擇上傳檔案",
         "RESET": "確定要重置上傳作業？",
         "UPLOADING_RESET": "正在進行上傳作業，將會遺失進度，確定要重置？",
-        "UPLOAD_SUCCESSFUL": "上傳成功",
+        "SUCCESSFUL": "上傳成功",
         "COMPLETE": "上傳完成",
         "SUCCESSFUL_INFO_X_FILES": "上傳 {{ totalUpload }} 個檔案完成。\n{{ successUpload }}成功。{{errorUpload}}失敗",
         "PROCESSING": "處理中"

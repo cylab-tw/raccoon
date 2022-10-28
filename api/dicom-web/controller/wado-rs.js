@@ -37,22 +37,20 @@ module.exports = async function (req , res) {
             let transferSyntax = "";
             if (finalType.includes('image')) {
                 if (accept.includes("transfer")) {
-                    let matchTransferSyntax = accept.match(/transfer-syntax=(.*)\b/gim)[0];
+                    let matchTransferSyntax = accept.match(/transfer-syntax=(.*)/gim)[0];
                     let cleanTransferSyntax = matchTransferSyntax.split(/[,;]/)[0];
                     transferSyntax = cleanTransferSyntax.substring(16).replace(/"/g , "");
                 } else {
                     transferSyntax = "1.2.840.10008.1.2.4.50";
                 }
-                console.log(transferSyntax);
             } else {
                 if (accept.includes("transfer")) { 
-                    let matchTransferSyntax = accept.match(/transfer-syntax=(.*)\b/gim)[0];
+                    let matchTransferSyntax = accept.match(/transfer-syntax=(.*)/gim)[0];
                     let cleanTransferSyntax = matchTransferSyntax.split(/[,;]/)[0];
                     transferSyntax = cleanTransferSyntax.substring(16).replace(/"/g , "");
                 } else {
                     transferSyntax = "1.2.840.10008.1.2.1";
                 }
-                console.log(transferSyntax);
             }
             let acceptObj = {
                 type : finalType , 

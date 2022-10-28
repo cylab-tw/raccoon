@@ -1,12 +1,17 @@
 
 const path = require("path");
 const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
-const https = require("https");
-const http = require("http");
 const url = require("url");
 const querystring = require("querystring");
 const { pluginsConfig } = require("../../config");
 const oauthPlugin = pluginsConfig.oauth;
+
+var https = undefined;
+if (oauthPlugin.http === "https") {
+    https = require("https");
+} else {
+    https = require("http");
+}
 
 // 透過OAuth驗證
 // 參考 https://blog.yorkxin.org/posts/oauth2-6-bearer-token.html

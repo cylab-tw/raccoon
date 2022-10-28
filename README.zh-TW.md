@@ -23,7 +23,7 @@
 #### Test OS
 - Windows 10 64bits
 #### 必要軟體
-- [**MongoDB**](https://www.mongodb.com/try/download/community) > 4.0
+- [**MongoDB**](https://www.mongodb.com/try/download/community) >= 4.0
 - **Anaconda** (非必要))
 - **GDCM environment in Anaconda** (當您使用Anaconda時，請務必確認環境支援 GDCM)
 - **[imagemagick](https://imagemagick.org/script/download.php)**
@@ -42,7 +42,7 @@ pip install -r requirements.txt #安裝 Python 相依性套件
 #### Test OS
 - Ubuntu v21.10
 #### 必要軟體
-- [**MongoDB**](https://www.mongodb.com/try/download/community) > 5.0
+- [**MongoDB**](https://www.mongodb.com/try/download/community) >= 4.0
 - **GDCM**
 >```bash
 >sudo apt-get install python3-gdcm libgdcm3.0
@@ -111,8 +111,6 @@ CONDA_GDCM_ENV_NAME="gdcm"
 USE_DCM2JPEG_PYTHONAPI=true
 DCM2JPEG_PYTHONAPI_HOST="127.0.0.1"
 DCM2JPEG_PYTHONAPI_PORT=5000
-
-ENABLE_LOGIN_ACCESS=false
 ```
 
 ### 前端 web 設定
@@ -137,6 +135,13 @@ var envConfig = {
         port : '9090' , 
         api : 'api/fhir' , 
         http : "http"
+    },
+    login: {
+        enable: false, // 是否啟動 login 功能
+        jwt: false // 是否儲存 token、檢查 token、使用 token 登入
+    },
+    backend: {
+        baseUrl: "http://localhost:8081" // 登入功能的後端前綴網址 (Raccoon)
     }
 }
 ```

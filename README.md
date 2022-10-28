@@ -19,7 +19,7 @@
 #### Test OS
 - Windows 10 64bits
 #### requirement
-- [**MongoDB**](https://www.mongodb.com/try/download/community) > 5.0
+- [**MongoDB**](https://www.mongodb.com/try/download/community) >= 4.0
 - **Anaconda** (Optional)
 - **GDCM environment in Anaconda** (Required when you use Anaconda)
 - **[imagemagick](https://imagemagick.org/script/download.php)**
@@ -39,7 +39,7 @@ pip install -r requirements.txt #Install Python Dependencies
 #### Test OS
 - Ubuntu v21.10
 #### requirement
-- [**MongoDB**](https://www.mongodb.com/try/download/community) > 4.0
+- [**MongoDB**](https://www.mongodb.com/try/download/community) >= 4.0
 - **GDCM**
 >```bash
 >sudo apt-get install python3-gdcm libgdcm3.0
@@ -131,6 +131,13 @@ var envConfig = {
         port : '9090' , 
         api : 'api/fhir' , 
         http : "http"
+    },
+    login: {
+        enable: false, // enable login or not
+        jwt: false // enable for storing token, checking token from backend, and login by token
+    },
+    backend: {
+        baseUrl: "http://localhost:8081" // The base url of login backend (Raccoon)
     }
 }
 ```

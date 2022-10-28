@@ -18,8 +18,8 @@ var envConfig = {
         http: "http"
     },
     login: {
-        enable: true,
-        jwt: true //*If true, get token from localStorage and add headers for every requests
+        enable: false,
+        jwt: false //*If true, get token from localStorage and add headers for every requests
     },
     backend: {
         baseUrl: "http://localhost:8081"

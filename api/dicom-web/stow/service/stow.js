@@ -526,9 +526,10 @@ async function stow(req, filename, originalFilename) {
             httpStatusCode: 400
         };
     }
+
+    let uidObj = getUidObj(dicomJson);
     try {
         let dicomJsonAndBigTags = detachBigValuesDicomJson(dicomJson);
-        let uidObj = getUidObj(dicomJson);
         let retrieveUrlObj = getRetrieveUrlObj(req, uidObj);
         
         // Check upload DICOM file's Study Instance UID same to request params
@@ -560,7 +561,7 @@ async function stow(req, filename, originalFilename) {
         storeMetadataToDisk(dicomJsonAndBigTags, metadataFullStorePath);
 
 
-        // 2. if not conflict study UID or no exception when convert to DICOM then save DICOM file
+        //* 2. if not conflict study UID or no exception when convert to DICOM then save DICOM file
         let storedDICOMObject = await saveDICOMFile(
             filename,
             originalFilename,
@@ -664,10 +665,14 @@ async function stow(req, filename, originalFilename) {
             `[STOW-RS] [Store ImagingStudy, ID: ${imagingStudyMergeData.id}]`
         );
         if (!updateImagingStudyResult.status) {
-            return sendServerWrongMessage(
-                res,
-                `The server have exception with file:${uploadedFiles[i].name} , error : can not store object to database`
-            );
+            return {
+                isFailure: true,
+                statusCode: 272,
+                message: `The server have exception with file:${originalFilename} , error : can not store object to database`,
+                uidObj: uidObj,
+                retrieveUrlObj: retrieveUrlObj,
+                httpStatusCode: 500
+            };
         }
 
         //* 7. Calc all modalitiesInStudy and update to mongodb
@@ -712,11 +717,10 @@ async function dicomEndpoint2MongoDB(data) {
     });
 }
 
-async function dicomPatient2MongoDB(data) {
+async function dicomPatient2MongoDB(patient) {
     return new Promise(async (resolve) => {
         let port = process.env.FHIRSERVER_PORT || "";
         port = port ? `:${port}` : "";
-        let patient = dcm2Patient.dcmJson2Patient(data);
         let insertPatientOptions = {
             url: `${process.env.FHIRSERVER_HTTP}://${process.env.FHIRSERVER_HOST}${port}/api/fhir/Patient/${patient.id}`,
             method: "PUT",

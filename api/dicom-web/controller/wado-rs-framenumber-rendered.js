@@ -153,7 +153,7 @@ module.exports = async function (req , res) {
                 "series.instance.dicomJson.00280008": 1
             });
             let dataSeries = dicomJson.series;
-            let hitSeries = _.find(dataSeries, "uid", req.params.seriesID);
+            let hitSeries = _.find(dataSeries, ["uid", req.params.seriesID]);
             let hitSeriesInstance = hitSeries.instance;
             let hitInstance = _.find(hitSeriesInstance, { uid: req.params.instanceID });
             let dicomNumberOfFrames = _.get(hitInstance, "00280008.Value.0") || 1;

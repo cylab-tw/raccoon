@@ -580,9 +580,7 @@ async function stow(req, filename, originalFilename) {
             };
         }
         storedFilesPath.push({
-            relativeStorePath, 
-            fullStorePath, 
-            metadataFullStorePath
+            storeFullPath: storedDICOMObject.storeFullPath
         });
 
         // Pre-Process for generating Jpeg of DICOM first

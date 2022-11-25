@@ -194,15 +194,15 @@ function detachBigValuesDicomJson(dicomJson) {
  * @param {Object} dicomJson
  */
 function getStoreDest(dicomJson) {
-    let started_date = "";
-    started_date =
+    let startedDate = "";
+    startedDate =
         dcm2jsonV8.dcmString(dicomJson, "00080020") +
         dcm2jsonV8.dcmString(dicomJson, "00080030");
-    if (!started_date) started_date = Date.now();
-    started_date = moment(started_date, "YYYYMMDDhhmmss").toISOString();
-    let started_date_split = started_date.split("-");
-    let year = started_date_split[0];
-    let month = started_date_split[1];
+    if (!startedDate) startedDate = Date.now();
+    startedDate = moment(startedDate, "YYYYMMDDhhmmss").toISOString();
+    let startedDateSplit = startedDate.split("-");
+    let year = startedDateSplit[0];
+    let month = startedDateSplit[1];
     let uid = dcm2jsonV8.dcmString(dicomJson, "0020000E");
     let shortUID = sh.unique(uid);
     let relativeStorePath = `files/${year}/${month}/${shortUID}/`;
@@ -528,6 +528,7 @@ async function stow(req, filename, originalFilename) {
     }
 
     let uidObj = getUidObj(dicomJson);
+    let storedFilesPath = [];
     try {
         let dicomJsonAndBigTags = detachBigValuesDicomJson(dicomJson);
         let retrieveUrlObj = getRetrieveUrlObj(req, uidObj);
@@ -557,7 +558,7 @@ async function stow(req, filename, originalFilename) {
 
         let { relativeStorePath, fullStorePath, metadataFullStorePath } =
             getStoreDest(dicomJsonAndBigTags.dicomJson);
-        mkdirp.sync(fullStorePath, 0755);
+        mkdirp.sync(fullStorePath, 0x755);
         storeMetadataToDisk(dicomJsonAndBigTags, metadataFullStorePath);
 
 
@@ -578,6 +579,11 @@ async function stow(req, filename, originalFilename) {
                 httpStatusCode: 500
             };
         }
+        storedFilesPath.push({
+            relativeStorePath, 
+            fullStorePath, 
+            metadataFullStorePath
+        });
 
         // Pre-Process for generating Jpeg of DICOM first
         // Many useful for WSI
@@ -684,7 +690,8 @@ async function stow(req, filename, originalFilename) {
             message: `Store DICOM instance successful`,
             uidObj: uidObj,
             retrieveUrlObj: retrieveUrlObj,
-            httpStatusCode: 200
+            httpStatusCode: 200,
+            storedFilesPath
         };
     } catch (e) {
         console.error(e);

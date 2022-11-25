@@ -74,12 +74,13 @@ function updateFailureMessage(stowMessage, sopSeq, iStoreInstanceResult) {
             vr: "US",
             Value: [iStoreInstanceResult.statusCode]
         }
-    }
+    };
+
     Object.assign(sopSeq, failureMessage);
     stowMessage["00081198"].Value.push(sopSeq);
 }
 
-module.exports = async (req, res) => {
+module.exports = async (req, res, next) => {
     //store the successFiles;
     let successFiles = [];
     let successFHIR = [];
@@ -115,6 +116,8 @@ module.exports = async (req, res) => {
         } else {
             let fileField = Object.keys(files).pop();
             let uploadedFiles = files[fileField];
+            let storeInstanceResultList = [];
+
             if (!_.isArray(uploadedFiles)) uploadedFiles = [uploadedFiles];
             try {
                 for (let i = 0; i < uploadedFiles.length; i++) {
@@ -175,6 +178,7 @@ module.exports = async (req, res) => {
                         let baseFileName = path.basename(uploadedFiles[i].name);
                         successFHIR.push(baseFileName);
                         successFiles.push(baseFileName);
+                        storeInstanceResultList.push(storeInstanceResult);
                         
                     }
                 }
@@ -190,11 +194,14 @@ module.exports = async (req, res) => {
                 logger.info(
                     `[STOW-RS] [Finished STOW-RS, elapsed time: ${elapsedTime} ms]`
                 );
+                res.locals.storeInstanceResultList = storeInstanceResultList;
+                next();
                 return res.status(retCode).send(resMessage);
             } catch (err) {
                 let errMsg = err.message || err;
                 console.error('/dicom-web/studies "STOW Api" err, ', errMsg);
                 console.log(successFiles);
+                next();
                 return res.status(500).send(errMsg);
             }
         }

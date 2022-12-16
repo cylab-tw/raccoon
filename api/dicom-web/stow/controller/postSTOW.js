@@ -6,8 +6,10 @@ const {
     sendServerWrongMessage
 } = require("../../../../models/DICOMWeb/httpMessage");
 const uuid = require("uuid");
+const jp = require("jsonpath");
 const { logger } = require("../../../../utils/log");
 const { stow } = require("../service/stow");
+const { pluginsConfig } = require("../../../../plugins/config.js");
 
 //browserify
 //https://github.com/node-formidable/formidable/blob/6baefeec3df6f38e34c018c9e978329ae68b4c78/src/Formidable.js#L496
@@ -195,8 +197,24 @@ module.exports = async (req, res, next) => {
                     `[STOW-RS] [Finished STOW-RS, elapsed time: ${elapsedTime} ms]`
                 );
                 res.locals.storeInstanceResultList = storeInstanceResultList;
-                next();
-                return res.status(retCode).send(resMessage);
+
+                let stowPluginsNodes = jp.nodes(pluginsConfig, `$..routers[?(@.path=="/${process.env.DICOMWEB_API}/studies" || @.path=="/${process.env.DICOMWEB_API}/studies/:studyID")]`).map( v => v.path.slice(1, v.path.length - 2).join(".") );
+                stowPluginsNodes = _.uniq(stowPluginsNodes);
+                
+                let enableStowPluginsName = _.compact(
+                    stowPluginsNodes.map( v => {
+                        if(pluginsConfig[v].enable) {
+                            return v;
+                        }
+                    })
+                );
+
+                // call next if any STOW-RS plugins are available
+                if (enableStowPluginsName.length > 0) {
+                    next();
+                }
+                
+                res.status(retCode).send(resMessage);
             } catch (err) {
                 let errMsg = err.message || err;
                 console.error('/dicom-web/studies "STOW Api" err, ', errMsg);

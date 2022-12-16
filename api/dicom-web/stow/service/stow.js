@@ -194,15 +194,15 @@ function detachBigValuesDicomJson(dicomJson) {
  * @param {Object} dicomJson
  */
 function getStoreDest(dicomJson) {
-    let started_date = "";
-    started_date =
+    let startedDate = "";
+    startedDate =
         dcm2jsonV8.dcmString(dicomJson, "00080020") +
         dcm2jsonV8.dcmString(dicomJson, "00080030");
-    if (!started_date) started_date = Date.now();
-    started_date = moment(started_date, "YYYYMMDDhhmmss").toISOString();
-    let started_date_split = started_date.split("-");
-    let year = started_date_split[0];
-    let month = started_date_split[1];
+    if (!startedDate) startedDate = Date.now();
+    startedDate = moment(startedDate, "YYYYMMDDhhmmss").toISOString();
+    let startedDateSplit = startedDate.split("-");
+    let year = startedDateSplit[0];
+    let month = startedDateSplit[1];
     let uid = dcm2jsonV8.dcmString(dicomJson, "0020000E");
     let shortUID = sh.unique(uid);
     let relativeStorePath = `files/${year}/${month}/${shortUID}/`;
@@ -526,9 +526,11 @@ async function stow(req, filename, originalFilename) {
             httpStatusCode: 400
         };
     }
+
+    let uidObj = getUidObj(dicomJson);
+    let storedFilesPath = [];
     try {
         let dicomJsonAndBigTags = detachBigValuesDicomJson(dicomJson);
-        let uidObj = getUidObj(dicomJson);
         let retrieveUrlObj = getRetrieveUrlObj(req, uidObj);
         
         // Check upload DICOM file's Study Instance UID same to request params
@@ -556,11 +558,11 @@ async function stow(req, filename, originalFilename) {
 
         let { relativeStorePath, fullStorePath, metadataFullStorePath } =
             getStoreDest(dicomJsonAndBigTags.dicomJson);
-        mkdirp.sync(fullStorePath, 0755);
+        mkdirp.sync(fullStorePath, 0x755);
         storeMetadataToDisk(dicomJsonAndBigTags, metadataFullStorePath);
 
 
-        // 2. if not conflict study UID or no exception when convert to DICOM then save DICOM file
+        //* 2. if not conflict study UID or no exception when convert to DICOM then save DICOM file
         let storedDICOMObject = await saveDICOMFile(
             filename,
             originalFilename,
@@ -577,6 +579,9 @@ async function stow(req, filename, originalFilename) {
                 httpStatusCode: 500
             };
         }
+        storedFilesPath.push({
+            storeFullPath: storedDICOMObject.storeFullPath
+        });
 
         // Pre-Process for generating Jpeg of DICOM first
         // Many useful for WSI
@@ -664,10 +669,14 @@ async function stow(req, filename, originalFilename) {
             `[STOW-RS] [Store ImagingStudy, ID: ${imagingStudyMergeData.id}]`
         );
         if (!updateImagingStudyResult.status) {
-            return sendServerWrongMessage(
-                res,
-                `The server have exception with file:${uploadedFiles[i].name} , error : can not store object to database`
-            );
+            return {
+                isFailure: true,
+                statusCode: 272,
+                message: `The server have exception with file:${originalFilename} , error : can not store object to database`,
+                uidObj: uidObj,
+                retrieveUrlObj: retrieveUrlObj,
+                httpStatusCode: 500
+            };
         }
 
         //* 7. Calc all modalitiesInStudy and update to mongodb
@@ -679,7 +688,8 @@ async function stow(req, filename, originalFilename) {
             message: `Store DICOM instance successful`,
             uidObj: uidObj,
             retrieveUrlObj: retrieveUrlObj,
-            httpStatusCode: 200
+            httpStatusCode: 200,
+            storedFilesPath
         };
     } catch (e) {
         console.error(e);
@@ -712,11 +722,10 @@ async function dicomEndpoint2MongoDB(data) {
     });
 }
 
-async function dicomPatient2MongoDB(data) {
+async function dicomPatient2MongoDB(patient) {
     return new Promise(async (resolve) => {
         let port = process.env.FHIRSERVER_PORT || "";
         port = port ? `:${port}` : "";
-        let patient = dcm2Patient.dcmJson2Patient(data);
         let insertPatientOptions = {
             url: `${process.env.FHIRSERVER_HTTP}://${process.env.FHIRSERVER_HOST}${port}/api/fhir/Patient/${patient.id}`,
             method: "PUT",

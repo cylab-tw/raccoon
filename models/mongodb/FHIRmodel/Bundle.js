@@ -29,7 +29,7 @@ class BundleLink {
 
 module.exports = {
     Bundle: Bundle,
-    entry: BundleLink,
-    link: BundleEntry
+    entry: BundleEntry,
+    link: BundleLink
 };
 

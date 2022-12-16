@@ -126,8 +126,7 @@ async function sleep(ms = 1) {
             $("body").css("overflow", "auto");
         },
         getPort: (iPort) => {
-            let port = iPort == "443" || iPort == "80" ? "" : `:${iPort}`;
-            return port;
+            return `:${iPort}`;
         },
         setLang: (lang) => {
             angular.element(document.body).scope().setLang(lang);

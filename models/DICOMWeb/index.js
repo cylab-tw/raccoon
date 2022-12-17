@@ -6,7 +6,6 @@ const dicomParser = require('dicom-parser');
 const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 function getBasicURL () {
     let port = `:${process.env.DICOMWEB_PORT}`;
-    if (port == ":443" || port == ":80") port = "";
     let url = `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}`;
     return url;
 }

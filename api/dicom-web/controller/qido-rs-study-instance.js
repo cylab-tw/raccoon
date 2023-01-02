@@ -8,7 +8,7 @@ const { logger } = require('../../../utils/log');
 
 module.exports = async function (req , res) {
     logger.info(`[QIDO-RS] [Path: /studies/${req.params.studyID}/instances, Retrieve all of instances from study UID ${req.params.studyID} in the database] [Request query: ${JSON.stringify(req.query)}]`);
-    let limit = req.query.limit || 1000 ;
+    let limit = req.query.limit || 100 ;
     let skip = req.query.offset || 0;
     delete req.query["limit"];
     delete req.query["offset"];

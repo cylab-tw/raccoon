@@ -21,7 +21,8 @@ module.exports = async(req, res) =>
         if (!oriPath) {
             return dicomWebHandleError.sendNotFoundMessage(req , res);
         }
-        let storePath = `${disk}${oriPath}`;
+
+        let storePath = path.join(disk, oriPath);
         if (!fs.existsSync(storePath)) {
             return dicomWebHandleError.sendNotFoundMessage(req , res);
         }

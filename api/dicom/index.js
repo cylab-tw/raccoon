@@ -49,11 +49,11 @@ function validateRegionInQuery (v, helper) {
 
 function validateWadoUriQuery(req, res, next) {
     return validateParams({
-        requestType : joi.string().required().allow('WADO') ,
-        studyUID : joi.any().required() ,
-        seriesUID : joi.any().required() ,
-        objectUID : joi.any().required() ,
-        contentType : joi.string() ,
+        requestType : joi.string().required().allow("WADO"),
+        studyUID : joi.any().required(),
+        seriesUID : joi.any().required(),
+        objectUID : joi.any().required(),
+        contentType : joi.string().valid("image/jpeg", "application/dicom").default("image/jpeg"),
         frameNumber : joi.number().integer().min(1),
         imageQuality: joi.number().integer().min(1).max(100),
         region: joi.string().custom( validateRegionInQuery),

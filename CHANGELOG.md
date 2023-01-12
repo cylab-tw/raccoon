@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.6.0](https://github.com/cylab-tw/raccoon/compare/v1.5.0...v1.6.0) (2023-01-12)
+
+
+### Features
+
+* **backend:** remain 80 and 443 in 00081180 ([96139d6](https://github.com/cylab-tw/raccoon/commit/96139d6741731500ae41b3e3fb8b9a9291b12940))
+* remove overwrite 80 and 443 port to empty ([f02a28a](https://github.com/cylab-tw/raccoon/commit/f02a28af14ae2cb5ffdf3fb63b85e4413c9bc35b))
+* store STOW result in variable for next usage ([df6646d](https://github.com/cylab-tw/raccoon/commit/df6646d8bb99876591e991956e138b1ed937bf0a))
+
+
+### Bug Fixes
+
+* can not get correct series ([035bb7e](https://github.com/cylab-tw/raccoon/commit/035bb7e9f2f088023b757261b0e250ffa5899350))
+* **docker:** can not install libc6 ([fa53f2f](https://github.com/cylab-tw/raccoon/commit/fa53f2f33c387494799c851396acee1f585996ac))
+* incorrect export mapping ([c2f91f5](https://github.com/cylab-tw/raccoon/commit/c2f91f5a0ee295628735066a7d21ae7f6a6faf0c))
+* incorrect Patient, undefined object ([559af61](https://github.com/cylab-tw/raccoon/commit/559af61df6ba6ebda000da6ae4db7b007a11f640))
+* set header after they are sent in STOW-RS ([b663747](https://github.com/cylab-tw/raccoon/commit/b6637477cec3b434b737c8d4b9f22a511f18149c))
+* the store file path cannot use for next ([7339a47](https://github.com/cylab-tw/raccoon/commit/7339a4798a739dabb51446e3eb5e3ee627d9921b))
+* WADO-URI's `storeParh` incorrect ([8a5cf54](https://github.com/cylab-tw/raccoon/commit/8a5cf545be78d3f4286bdf53fa7137aac690f93c))
+
+
+### Build
+
+* **ci:** sync repo to private gitlab ([94c99fa](https://github.com/cylab-tw/raccoon/commit/94c99fa69f319415239288dd218d88a0efef44e0))
+
 ## [1.5.0](https://github.com/cylab-tw/raccoon/compare/v1.4.0...v1.5.0) (2022-10-28)
 
 

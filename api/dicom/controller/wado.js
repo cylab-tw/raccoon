@@ -14,21 +14,15 @@ module.exports = async(req, res) =>
     try {
         let param = req.query;
         param = await apiFunc.refreshParam(param);
-        if (!param.contentType) {
-            param.contentType = 'image/jpeg';
-        }
-        if (param.requestType != "WADO") {
-            return dicomWebHandleError.sendBadRequestMessage(res , "Parameter error : requestType only allow WADO");
-        } else if (param.contentType!= "image/jpeg" && param.contentType != "application/dicom") {
-            return dicomWebHandleError.sendBadRequestMessage(res , "Parameter error : contentType only allow image/jpeg or application/dicom");
-        }
+
         res.setHeader('Content-Type' , param.contentType);
         let disk = process.env.DICOM_STORE_ROOTPATH;
         let oriPath = await getInstanceStorePath(param);
         if (!oriPath) {
             return dicomWebHandleError.sendNotFoundMessage(req , res);
         }
-        let storePath = `${disk}${oriPath}`;
+
+        let storePath = path.join(disk, oriPath);
         if (!fs.existsSync(storePath)) {
             return dicomWebHandleError.sendNotFoundMessage(req , res);
         }

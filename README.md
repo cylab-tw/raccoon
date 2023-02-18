@@ -6,8 +6,8 @@
 [English](README.md) | [繁體中文](README.zh-TW.md)
 
 ---
-**Raccoon** is a noSQL-based medical image archive designed for managing DICOM images, utilizing MongoDB to store and manage the images while providing RESTful APIs that support both FHIR ImagingStudy and [DICOMweb](https://www.dicomstandard.org/dicomweb/") protocols for querying, retrieving, and managing DICOM images. Built on top of the Burni FHIR Server, Raccoon manages FHIR resources related to medical images.<br><br>
-This project is maintained by DICOM experts from whole world and primarily managed by the [Imaging Informatics Lab](https://cylab.dicom.tw).
+**Raccoon** is a noSQL-based medical image archive designed for managing DICOM images, utilizing MongoDB to store and manage the images while providing RESTful APIs that support both FHIR ImagingStudy and [DICOMweb](https://www.dicomstandard.org/dicomweb/") protocols for querying, retrieving, and managing DICOM images. Built on top of the <a href="[https://github.com/cylab-tw/bluelight/](https://github.com/Chinlinlee/Burni)">Burni</a>, Raccoon manages FHIR resources related to medical images.<br><br>
+This project is maintained by DICOM experts from wholeworld and primarily managed by the [Imaging Informatics Lab](https://cylab.dicom.tw).
 ---
 
 ## Installation

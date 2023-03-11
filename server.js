@@ -1,4 +1,5 @@
 'use strict';
+RegExp.prototype.toJSON = RegExp.prototype.toString;
 
 const debug = require('debug')('DICOM Server');
 const express = require('express');

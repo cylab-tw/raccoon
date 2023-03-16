@@ -94,7 +94,7 @@ function dcm2json(filename) {
 const dcm2jsonC = require('dicom-to-json');
 const dcm2jsonV8 = {
     exec : function (dcmfile) {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             try {
                 dcm2jsonC.dcm2json(dcmfile , function (data) {
                     data = data.replace(/,\\u0000/g, '');
@@ -103,8 +103,7 @@ const dcm2jsonV8 = {
                     return resolve(obj);
                 });
             } catch (e) {
-                console.error(e);
-                return resolve(false);
+                return reject(new Error(e));
             }
         });
     } , 

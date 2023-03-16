@@ -31,6 +31,8 @@ const jsonPath = require("jsonpath");
 const {
     updateImagingStudy
 } = require("../../../FHIR/ImagingStudy/controller/putImagingStudy");
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const { DcmConv } = require("../../../../models/dcmtk/dcmconv/dcmconv.class");
 
 /**
  *
@@ -518,13 +520,35 @@ async function stow(req, filename, originalFilename) {
     try {
         dicomJson = await dcm2jsonV8.exec(filename);
     } catch (e) {
-        console.error(e);
-        return {
-            isFailure: true,
-            statusCode: 273,
-            message: "Could not convert DICOM to JSON",
-            httpStatusCode: 400
-        };
+        
+        /**
+         * EXITCODE_CANNOT_CONVERT_TO_UNICODE is usually due to dicom file missing (0008,0005)
+         * To fix this error, we use dcmconv to convert DICOM file to UTF-8 (ISO_IR 192)
+         */
+        if (e.message.includes("EXITCODE_CANNOT_CONVERT_TO_UNICODE")) {
+            let dcmConv = new DcmConv();
+            try {
+                await dcmConv.exec(filename);
+                dicomJson = await dcm2jsonV8.exec(filename);
+            } catch(e) {
+                console.error(e);
+                return {
+                    isFailure: true,
+                    statusCode: 273,
+                    message: "Could not convert DICOM to JSON",
+                    httpStatusCode: 400
+                };
+            }
+        } else {
+            console.error(e);
+            return {
+                isFailure: true,
+                statusCode: 273,
+                message: "Could not convert DICOM to JSON",
+                httpStatusCode: 400
+            };
+        }
+
     }
 
     let uidObj = getUidObj(dicomJson);

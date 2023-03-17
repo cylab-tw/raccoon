@@ -7,29 +7,31 @@ const fetch = require('node-fetch');
 const AdmZip = require('adm-zip'); //eslint-disable-line @typescript-eslint/naming-convention
 const mkdirp = require('mkdirp');
 let envText = `
-MONGODB_NAME="dbName"
-MONGODB_HOSTS=["localhost"]
+MONGODB_NAME="raccoon"
+MONGODB_HOSTS=["mongodb"]
 MONGODB_PORTS=[27017]
-MONGODB_USER="user"
-MONGODB_PASSWORD="password"
+MONGODB_USER="root"
+MONGODB_PASSWORD="Raccoon#Admin2Mongo"
 MONGODB_SLAVEMODE=false
 
-SERVER_HOST="localhost"
-SERVER_PORT=80
+SERVER_HOST="0.0.0.0"
+SERVER_PORT=8081
 
-DICOM_STORE_ROOTPATH='C:/'
+DICOM_STORE_ROOTPATH='/dicomFiles'
+DICOMWEB_PROTOCOL="http"
 DICOMWEB_HOST="localhost"
-DICOMWEB_PORT=80
+DICOMWEB_PORT=8081
 DICOMWEB_API="dicom-web"
 
 FHIRSERVER_HTTP="http"
 FHIRSERVER_APIPATH="api/fhir"
 FHIRSERVER_HOST="localhost"
-FHIRSERVER_PORT=80
+FHIRSERVER_PORT=8081
 FHIR_NEED_PARSE_PATIENT=true
 
+USE_CONDA=false
 CONDA_PATH="path/conda.exe"
-CONDA_GDCM_ENV_NAME ="gdcm"
+CONDA_GDCM_ENV_NAME="gdcm"
 
 USE_DCM2JPEG_PYTHONAPI=true
 DCM2JPEG_PYTHONAPI_HOST="127.0.0.1"
@@ -88,32 +90,34 @@ const osFunc = {
                     }
                     if (files.length > 0 ) {
                         envText = `
-MONGODB_NAME="dbName"
+MONGODB_NAME="raccoon"
 MONGODB_HOSTS=["mongodb"]
 MONGODB_PORTS=[27017]
-MONGODB_USER="user"
-MONGODB_PASSWORD="password"
+MONGODB_USER="root"
+MONGODB_PASSWORD="Raccoon#Admin2Mongo"
 MONGODB_SLAVEMODE=false
 
-SERVER_HOST="localhost"
+SERVER_HOST="0.0.0.0"
 SERVER_PORT=8081
 
 DICOM_STORE_ROOTPATH='/dicomFiles'
+DICOMWEB_PROTOCOL="http"
 DICOMWEB_HOST="localhost"
 DICOMWEB_PORT=8081
 DICOMWEB_API="dicom-web"
-DCMTK_ROOT_PATH="${(path.resolve(path.dirname(files[0]))).replace(/\\/g , '/')}"
 
+FHIRSERVER_HTTP="http"
 FHIRSERVER_APIPATH="api/fhir"
 FHIRSERVER_HOST="localhost"
 FHIRSERVER_PORT=8081
-FHIR_NEED_PARSE_PATIENT = true
+FHIR_NEED_PARSE_PATIENT=true
 
+USE_CONDA=false
 CONDA_PATH="path/conda.exe"
 CONDA_GDCM_ENV_NAME="gdcm"
 
-
 USE_DCM2JPEG_PYTHONAPI=true
+DCM2JPEG_PYTHONAPI_HOST="127.0.0.1"
 DCM2JPEG_PYTHONAPI_PORT=5000
 
 `;

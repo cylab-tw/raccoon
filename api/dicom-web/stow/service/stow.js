@@ -123,12 +123,17 @@ async function storeBinaryDataAndReplaceToUri(req, uidObj, dicomJson) {
             process.env.DICOM_STORE_ROOTPATH,
             relativeFilename
         );
+
+        let oldMask = process.umask(0);
         mkdirp.sync(
             path.join(
                 process.env.DICOM_STORE_ROOTPATH,
                 `files/bulkData/${shortInstanceUID}`
-            )
+            ),
+            "0755"
         );
+        process.umask(oldMask);
+
         logger.info(`[STOW-RS] [Store binary data to ${filename}]`);
         fs.writeFileSync(filename, Buffer.from(binaryData, "base64"));
 
@@ -582,7 +587,11 @@ async function stow(req, filename, originalFilename) {
 
         let { relativeStorePath, fullStorePath, metadataFullStorePath } =
             getStoreDest(dicomJsonAndBigTags.dicomJson);
-        mkdirp.sync(fullStorePath, 0x755);
+
+        let oldMask = process.umask(0);
+        mkdirp.sync(fullStorePath, "0755");
+        process.umask(oldMask);
+
         storeMetadataToDisk(dicomJsonAndBigTags, metadataFullStorePath);
 
 

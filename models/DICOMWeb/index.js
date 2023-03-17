@@ -6,11 +6,12 @@ const dicomParser = require('dicom-parser');
 const urlObj = require("url");
 const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 function getBasicURL () {
+    let protocol = process.env.DICOMWEB_PROTOCOL || "http";
     let port = process.env.DICOMWEB_PORT;
     let hostnameSplit = _.compact(process.env.DICOMWEB_HOST.split("/"));
     let hostname = hostnameSplit.shift();
     let pathname = hostnameSplit.join("/");
-    let basicUrlObj = new urlObj.URL(`http://${hostname}`);
+    let basicUrlObj = new urlObj.URL(`${protocol}://${hostname}`);
     basicUrlObj.port = port;
     basicUrlObj.pathname = pathname;
 

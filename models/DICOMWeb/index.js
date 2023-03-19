@@ -10,7 +10,7 @@ function getBasicURL () {
     let port = process.env.DICOMWEB_PORT;
     let hostnameSplit = _.compact(process.env.DICOMWEB_HOST.split("/"));
     let hostname = hostnameSplit.shift();
-    let pathname = hostnameSplit.join("/");
+    let pathname = [...hostnameSplit, ...process.env.DICOMWEB_API.split("/")].join("/");
     let basicUrlObj = new urlObj.URL(`${protocol}://${hostname}`);
     basicUrlObj.port = port;
     basicUrlObj.pathname = pathname;

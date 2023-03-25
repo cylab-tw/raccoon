@@ -2,6 +2,8 @@ const childProcess = require('child_process');
 const path = require("path");
 const iconv = require('iconv-lite');
 const os = require("os");
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const { DcmModify } = require('../dcmodify/dcmodifyclass');
 
 const CONVERT_TO_UTF8_OPTION = "--convert-to-utf8";
 const DISCARD_ILLEGAL_OPTION = "--discard-illegal";
@@ -19,6 +21,8 @@ class DcmConv {
     }
 
     async exec(inputFile, options=[]) {
+        let dcmModify = new DcmModify();
+        await dcmModify.exec(inputFile, options);
         return this.handler.exec(inputFile, options);
     }
 }
@@ -36,21 +40,21 @@ class DcmConvWindowsHandler {
             let dcmconvExecBinary = path.resolve(`models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmconv.exe`);
             let execOption = [inputFile, inputFile, CONVERT_TO_UTF8_OPTION, DISCARD_ILLEGAL_OPTION, ...options];
 
-            let dcmcovSpawn = childProcess.spawn(dcmconvExecBinary, execOption, {
+            let dcmconvSpawn = childProcess.spawn(dcmconvExecBinary, execOption, {
                 cwd: process.cwd(),
                 shell: true
             });
 
-            dcmcovSpawn.stdout.on("data" , function (data) {
+            dcmconvSpawn.stdout.on("data" , function (data) {
                 if (data) console.log(data);
                 resolve(data);
             });
 
-            dcmcovSpawn.on("close", function() {
+            dcmconvSpawn.on("close", function() {
                 resolve(true);
             });
 
-            dcmcovSpawn.stderr.on("data", function (stderr) {
+            dcmconvSpawn.stderr.on("data", function (stderr) {
                 stderr = iconv.decode(stderr, 'cp950');
                 reject(new Error(stderr));
             });
@@ -72,21 +76,21 @@ class DcmConvBasicHandler {
             let dcmconvExecBinary = `dcmconv`;
             let execOption = [inputFile, inputFile, CONVERT_TO_UTF8_OPTION, DISCARD_ILLEGAL_OPTION, ...options];
 
-            let dcmcovSpawn = childProcess.spawn(dcmconvExecBinary, execOption, {
+            let dcmconvSpawn = childProcess.spawn(dcmconvExecBinary, execOption, {
                 cwd: process.cwd(),
                 shell: true
             });
 
-            dcmcovSpawn.stdout.on("data" , function (data) {
+            dcmconvSpawn.stdout.on("data" , function (data) {
                 if (data) console.log(data);
                 resolve(data);
             });
 
-            dcmcovSpawn.on("close", function() {
+            dcmconvSpawn.on("close", function() {
                 resolve(true);
             });
 
-            dcmcovSpawn.stderr.on("data", function (stderr) {
+            dcmconvSpawn.stderr.on("data", function (stderr) {
                 stderr = iconv.decode(stderr, 'cp950');
                 reject(new Error(stderr));
             });

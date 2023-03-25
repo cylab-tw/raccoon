@@ -1,5 +1,5 @@
 const path = require("path");
-process.chdir(path.join(__dirname,"../"));
+process.chdir(path.join(__dirname, "../"));
 require("rootpath")();
 require("dotenv").config();
 const fs = require("fs");
@@ -10,6 +10,7 @@ const request = require('request-compose').extend({
         multipart: require('request-multipart')
     }
 }).client;
+const { program } = require("commander");
 
 let osPlatform = os.platform().toLocaleLowerCase();
 if (osPlatform.includes("linux")) {
@@ -18,12 +19,15 @@ if (osPlatform.includes("linux")) {
     process.env.ENV = "windows";
 }
 
-let filePath = process.argv[2];
-const STOW_URL = "http://127.0.0.1:8081/dicom-web/studies";
+program.requiredOption("-d, --dir <string>", "The directory path contains DICOM files that need to upload")
+    .requiredOption("-u, --url <string>", "STOW-RS URL");
+program.parse();
+
+const options = program.opts();
 
 async function storeInstance(filename, stowUrl) {
     let stream = fs.createReadStream(filename);
-    
+
     let response = await request({
         method: "POST",
         url: stowUrl,
@@ -42,25 +46,36 @@ async function storeInstance(filename, stowUrl) {
     return response;
 }
 async function main() {
-    console.log(filePath);
+    let inputDir = options.dir;
+    const STOW_URL = options.url;
+    console.log(`Input Directory: ${inputDir}`);
+
     let successFiles = [];
-    glob("**/*.dcm", { cwd: filePath }, async function (err, matches) {
+    let errorFiles = [];
+    glob("**/*.dcm", { cwd: inputDir }, async function (err, matches) {
         for (let file of matches) {
-            let fullFilename = path.join(filePath, file);
+            let fullFilename = path.join(inputDir, file);
             try {
                 let response = await storeInstance(fullFilename, STOW_URL);
                 let statusCode = response.res.statusCode;
                 if (statusCode === 200) {
                     console.log("success: " + fullFilename);
+                    successFiles.push(fullFilename);
                 } else {
                     console.error("error: " + response.body.result);
-                    fs.appendFile("upload-error.txt", `error file: ${fullFilename}\r\n`);
+                    errorFiles.push(fullFilename);
                 }
-                
+
             } catch (e) {
                 console.error(e);
             }
         }
+
+        fs.writeFileSync(path.join(__dirname, "local-upload-wado-log.json"), JSON.stringify({
+            successFiles,
+            errorFiles
+        }, null, 4));
+
     });
 }
 (async () => {

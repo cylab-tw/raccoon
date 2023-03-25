@@ -4,8 +4,9 @@ require("rootpath")();
 require("dotenv").config();
 const fs = require("fs");
 const glob = require("glob");
-const { stow } = require("./api/dicom-web/stow/service/stow");
+const { stow } = require("../api/dicom-web/stow/service/stow");
 const os = require("os");
+const { program } = require("commander");
 
 let osPlatform = os.platform().toLocaleLowerCase();
 if (osPlatform.includes("linux")) {
@@ -14,14 +15,21 @@ if (osPlatform.includes("linux")) {
     process.env.ENV = "windows";
 }
 
-let filePath = process.argv[2];
+program.requiredOption("-d, --dir <string>", "The directory path contains DICOM files that need to upload")
+       .requiredOption("-u, --url <string>", "STOW-RS URL");
+program.parse();
+
+const options = program.opts();
+
 function main() {
-    console.log(filePath);
+    let inputDir = options.dir;
+    console.log(`Input Directory: ${inputDir}`);
+
     let successFiles = [];
     let errorFiles = [];
-    glob("**/*.dcm", { cwd: filePath }, async function (err, matches) {
+    glob("**/*.dcm", { cwd: inputDir }, async function (err, matches) {
         for (let file of matches) {
-            let fullFilename = path.join(filePath, file);
+            let fullFilename = path.join(inputDir, file);
             let storeInstanceResult = await stow(
                 {
                     headers: {
@@ -38,7 +46,7 @@ function main() {
             }
         }
 
-        fs.writeFileSync("local-upload-log.json", JSON.stringify({
+        fs.writeFileSync(path.join(__dirname, "local-upload-log.json"), JSON.stringify({
             successFiles,
             errorFiles
         }, null, 4));

@@ -1,8 +1,9 @@
+const path = require("path");
+process.chdir(path.join(__dirname,"../"));
 require("rootpath")();
 require("dotenv").config();
 const fs = require("fs");
 const glob = require("glob");
-const path = require("path");
 const os = require("os");
 const request = require('request-compose').extend({
     Request: {
@@ -18,7 +19,7 @@ if (osPlatform.includes("linux")) {
 }
 
 let filePath = process.argv[2];
-const STOW_URL = "http://localhost:8081/dicom-web/studies";
+const STOW_URL = "http://127.0.0.1:8081/dicom-web/studies";
 
 async function storeInstance(filename, stowUrl) {
     let stream = fs.createReadStream(filename);

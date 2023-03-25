@@ -1,8 +1,9 @@
+const path = require("path");
+process.chdir(path.join(__dirname,"../"));
 require("rootpath")();
 require("dotenv").config();
 const fs = require("fs");
 const glob = require("glob");
-const path = require("path");
 const { stow } = require("./api/dicom-web/stow/service/stow");
 const os = require("os");
 
@@ -17,6 +18,7 @@ let filePath = process.argv[2];
 function main() {
     console.log(filePath);
     let successFiles = [];
+    let errorFiles = [];
     glob("**/*.dcm", { cwd: filePath }, async function (err, matches) {
         for (let file of matches) {
             let fullFilename = path.join(filePath, file);
@@ -31,9 +33,16 @@ function main() {
             );
             if (!storeInstanceResult.isFailure) {
                 successFiles.push(fullFilename);
+            } else {
+                errorFiles.push(fullFilename);
             }
         }
-        console.log(successFiles);
+
+        fs.writeFileSync("local-upload-log.json", JSON.stringify({
+            successFiles,
+            errorFiles
+        }, null, 4));
+        
     });
 }
 

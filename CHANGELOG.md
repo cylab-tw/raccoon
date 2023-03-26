@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.7.0](https://github.com/cylab-tw/raccoon/compare/v1.6.0...v1.7.0) (2023-03-26)
+
+
+### Features
+
+* `DICOMWEB_PROTOCOL` for QIDO 00081190 ([212991e](https://github.com/cylab-tw/raccoon/commit/212991ebb396a9ba618d686d30252c0cc138d105))
+* add single file uploader ([182e4b5](https://github.com/cylab-tw/raccoon/commit/182e4b513505fa6b7c32652cf30bd1b81f73027a))
+* correct dicom missing 00080005 when STOW ([45ea880](https://github.com/cylab-tw/raccoon/commit/45ea8805b1c323e81e09ac05fd4aaf71ab7932c3))
+* dcmodify correct 0008,0005 before dcmconv ([4ad7c42](https://github.com/cylab-tw/raccoon/commit/4ad7c4219779bfdc8ef0f725e7cb11dff976ffe9))
+* store transfer syntax UID(00020010) in mongo ([68f8929](https://github.com/cylab-tw/raccoon/commit/68f89291307ffd6c316ab8fd085d870e6d3cf430))
+* support log `RegExp` ([91e3d84](https://github.com/cylab-tw/raccoon/commit/91e3d848d9dcd165aa07f6760d3c205bcd4d12fe))
+* use commander, write result to file ([fb6bb1a](https://github.com/cylab-tw/raccoon/commit/fb6bb1a30454c94595fc60d3ad474b69e126c02d))
+
+
+### Bug Fixes
+
+* 00081190 missing `DICOMWEB_API` ([54d8d5a](https://github.com/cylab-tw/raccoon/commit/54d8d5a350ad2ea72775fceab0d3556afd9e8be5))
+* cannot perform `storeDest` (split undefined) ([92161d5](https://github.com/cylab-tw/raccoon/commit/92161d5b07871bac23e7687e3feaa2c80b780f34))
+* permission denied when mkdirp ([2110324](https://github.com/cylab-tw/raccoon/commit/2110324de407186089a9aec7c1f2943d82afd0c2))
+* WADO-RS' `imageFullPath` incorrect ([5b2c163](https://github.com/cylab-tw/raccoon/commit/5b2c1637850807fcaa155518129c4d3881dd7a41))
+* wrong baseURL when hostname have pathname ([cf3d46a](https://github.com/cylab-tw/raccoon/commit/cf3d46a10b3e9d81f9e5d314fc76037343ebff2c))
+
+
+### Build
+
+* .env.template corresponds to docker-compose ([532dad4](https://github.com/cylab-tw/raccoon/commit/532dad4c1540a7d5365f1f92d25c195dd11d1357))
+* **ci:** sync repo to private gitlab ([94c99fa](https://github.com/cylab-tw/raccoon/commit/94c99fa69f319415239288dd218d88a0efef44e0))
+* copy template config files when build ([9dcf102](https://github.com/cylab-tw/raccoon/commit/9dcf10295c8020a08b22a18872db46a8b5d01e65))
+
+### Refactor
+
+* move local uploader into `local` folder ([6196cd0](https://github.com/cylab-tw/raccoon/commit/6196cd0f6e7f2dce810e079aa49f7f4adaf61b6f))
+* use reject not return false ([cf2bbeb](https://github.com/cylab-tw/raccoon/commit/cf2bbebd03774a29d2e04fb2e46b97414f3d44e1))
+
+## [1.5.0](https://github.com/cylab-tw/raccoon/compare/v1.4.0...v1.5.0) (2022-10-28)
+
 ## [1.6.0](https://github.com/cylab-tw/raccoon/compare/v1.5.0...v1.6.0) (2023-01-12)
 
 

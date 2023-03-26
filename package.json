@@ -69,6 +69,7 @@
     "bindings": "^1.5.0",
     "body-parser": "^1.18.3",
     "busboy": "^0.2.14",
+    "commander": "^10.0.0",
     "compression": "^1.7.3",
     "connect-flash": "^0.1.1",
     "connect-mongo": "^3.2.0",
@@ -110,6 +111,7 @@
     "rootpath": "^0.1.2",
     "sharp": "^0.30.2",
     "shorthash": "0.0.2",
+    "simple-get": "^4.0.1",
     "stream-to-array": "^2.3.0",
     "uuid": "^8.3.2"
   },

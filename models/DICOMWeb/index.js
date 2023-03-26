@@ -3,11 +3,19 @@ const {dcm2jpeg, dcm2jpegCustomCmd} = require('../dcmtk');
 const uuid = require('uuid');
 const fs = require('fs');
 const dicomParser = require('dicom-parser');
+const urlObj = require("url");
 const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 function getBasicURL () {
-    let port = `:${process.env.DICOMWEB_PORT}`;
-    let url = `http://${process.env.DICOMWEB_HOST}${port}/${process.env.DICOMWEB_API}`;
-    return url;
+    let protocol = process.env.DICOMWEB_PROTOCOL || "http";
+    let port = process.env.DICOMWEB_PORT;
+    let hostnameSplit = _.compact(process.env.DICOMWEB_HOST.split("/"));
+    let hostname = hostnameSplit.shift();
+    let pathname = [...hostnameSplit, ...process.env.DICOMWEB_API.split("/")].join("/");
+    let basicUrlObj = new urlObj.URL(`${protocol}://${hostname}`);
+    basicUrlObj.port = port;
+    basicUrlObj.pathname = pathname;
+
+    return basicUrlObj.href;
 }
 
 /**

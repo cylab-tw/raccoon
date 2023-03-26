@@ -31,6 +31,8 @@ const jsonPath = require("jsonpath");
 const {
     updateImagingStudy
 } = require("../../../FHIR/ImagingStudy/controller/putImagingStudy");
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const { DcmConv } = require("../../../../models/dcmtk/dcmconv/dcmconv.class");
 
 /**
  *
@@ -121,12 +123,17 @@ async function storeBinaryDataAndReplaceToUri(req, uidObj, dicomJson) {
             process.env.DICOM_STORE_ROOTPATH,
             relativeFilename
         );
+
+        let oldMask = process.umask(0);
         mkdirp.sync(
             path.join(
                 process.env.DICOM_STORE_ROOTPATH,
                 `files/bulkData/${shortInstanceUID}`
-            )
+            ),
+            "0755"
         );
+        process.umask(oldMask);
+
         logger.info(`[STOW-RS] [Store binary data to ${filename}]`);
         fs.writeFileSync(filename, Buffer.from(binaryData, "base64"));
 
@@ -194,18 +201,20 @@ function detachBigValuesDicomJson(dicomJson) {
  * @param {Object} dicomJson
  */
 function getStoreDest(dicomJson) {
-    let startedDate = "";
-    startedDate =
-        dcm2jsonV8.dcmString(dicomJson, "00080020") +
-        dcm2jsonV8.dcmString(dicomJson, "00080030");
-    if (!startedDate) startedDate = Date.now();
-    startedDate = moment(startedDate, "YYYYMMDDhhmmss").toISOString();
-    let startedDateSplit = startedDate.split("-");
-    let year = startedDateSplit[0];
-    let month = startedDateSplit[1];
-    let uid = dcm2jsonV8.dcmString(dicomJson, "0020000E");
-    let shortUID = sh.unique(uid);
-    let relativeStorePath = `files/${year}/${month}/${shortUID}/`;
+    let studyDate = dcm2jsonV8.dcmString(dicomJson, "00080020");
+    let studyDateString;
+    if (!studyDate) {
+        studyDateString = moment().format("YYYY-MM-DD");
+    } else {
+        studyDateString = moment(studyDate, "YYYYMMDD").format("YYYY-MM-DD");
+    }
+    let studyDateSplit = studyDateString.split("-");
+    let year = studyDateSplit[0];
+    let month = studyDateSplit[1];
+    let seriesUID = dcm2jsonV8.dcmString(dicomJson, "0020000E");
+    let shortSeriesUID = sh.unique(seriesUID);
+
+    let relativeStorePath = `files/${year}/${month}/${shortSeriesUID}/`;
     let fullStorePath = path.join(
         process.env.DICOM_STORE_ROOTPATH,
         relativeStorePath
@@ -518,13 +527,35 @@ async function stow(req, filename, originalFilename) {
     try {
         dicomJson = await dcm2jsonV8.exec(filename);
     } catch (e) {
-        console.error(e);
-        return {
-            isFailure: true,
-            statusCode: 273,
-            message: "Could not convert DICOM to JSON",
-            httpStatusCode: 400
-        };
+        
+        /**
+         * EXITCODE_CANNOT_CONVERT_TO_UNICODE is usually due to dicom file missing (0008,0005)
+         * To fix this error, we use dcmconv to convert DICOM file to UTF-8 (ISO_IR 192)
+         */
+        if (e.message.includes("EXITCODE_CANNOT_CONVERT_TO_UNICODE")) {
+            let dcmConv = new DcmConv();
+            try {
+                await dcmConv.exec(filename);
+                dicomJson = await dcm2jsonV8.exec(filename);
+            } catch(e) {
+                console.error(e);
+                return {
+                    isFailure: true,
+                    statusCode: 273,
+                    message: "Could not convert DICOM to JSON",
+                    httpStatusCode: 400
+                };
+            }
+        } else {
+            console.error(e);
+            return {
+                isFailure: true,
+                statusCode: 273,
+                message: "Could not convert DICOM to JSON",
+                httpStatusCode: 400
+            };
+        }
+
     }
 
     let uidObj = getUidObj(dicomJson);
@@ -558,7 +589,11 @@ async function stow(req, filename, originalFilename) {
 
         let { relativeStorePath, fullStorePath, metadataFullStorePath } =
             getStoreDest(dicomJsonAndBigTags.dicomJson);
-        mkdirp.sync(fullStorePath, 0x755);
+
+        let oldMask = process.umask(0);
+        mkdirp.sync(fullStorePath, "0755");
+        process.umask(oldMask);
+
         storeMetadataToDisk(dicomJsonAndBigTags, metadataFullStorePath);
 
 

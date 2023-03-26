@@ -107,8 +107,8 @@ class MultipartWriter {
             if (this.pathsOfImages) {
                 this.setHeaderMultipartRelatedContentType(type);
                 for (let i = 0; i < this.pathsOfImages.length; i++) {
-                    console.log(`${DICOM_STORE_ROOTPATH}${this.pathsOfImages[i]}`);
-                    let fileBuffer = await streamToBuffer(fs.createReadStream(`${DICOM_STORE_ROOTPATH}${this.pathsOfImages[i]}`));
+                    let imageFullPath = path.join(DICOM_STORE_ROOTPATH, this.pathsOfImages[i]);
+                    let fileBuffer = await streamToBuffer(fs.createReadStream(imageFullPath));
                     this.writeBoundary(i === 0);
                     this.writeContentType(type);
                     this.writeContentLength(fileBuffer.length);

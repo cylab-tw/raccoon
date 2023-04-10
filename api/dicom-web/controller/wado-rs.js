@@ -198,7 +198,8 @@ class WADOZip {
                 }
                 for (let i = 0; i < folders.length; i++) {
                     let folderName = path.basename(folders[i]);
-                    archive.directory(`${process.env.DICOM_STORE_ROOTPATH}${folders[i]}`, folderName);
+                    let folderAbsPath = path.join(process.env.DICOM_STORE_ROOTPATH, folders[i]);
+                    archive.directory(folderAbsPath, folderName);
                 }
                 await archive.finalize();
                 resolve({
@@ -235,7 +236,8 @@ class WADOZip {
                 for (let i = 0; i < imagesPath.length; i++) {
                     let pathSplit = imagesPath[i].split('/');
                     let storeName = pathSplit[pathSplit.length - 1];
-                    archive.file(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`, { name: storeName });
+                    let archiveFilename = path.join(process.env.DICOM_STORE_ROOTPATH, imagesPath[i]);
+                    archive.file(archiveFilename, { name: storeName });
                 }
                 await archive.finalize();
                 return resolve({
@@ -268,7 +270,8 @@ class WADOZip {
                     });
                 });
                 archive.pipe(this.res);
-                archive.file(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[0]}`, { name: path.basename(imagesPath[0]) });
+                let archiveFilename = path.join(process.env.DICOM_STORE_ROOTPATH, imagesPath[0]);
+                archive.file(archiveFilename, { name: path.basename(imagesPath[0]) });
                 await archive.finalize();
                 resolve({
                     status: true,

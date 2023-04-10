@@ -19,9 +19,9 @@ const dcmtkSupportTransferSyntax = [
     "1.2.840.10008.1.2.5"
 ];
 function dcm2json(filename) {
-    function readGenJson (outFilename) {
+    function readGenJson(outFilename) {
         try {
-            let jsonFile  = fs.readFileSync(outFilename , 'utf-8');
+            let jsonFile = fs.readFileSync(outFilename, 'utf-8');
             //清除dcm2json轉出來的json內的NUL (\0)
             jsonFile = jsonFile.replace(/,\0/g, '');
             jsonFile = jsonFile.replace(/\0/g, '');
@@ -37,7 +37,7 @@ function dcm2json(filename) {
     }
     return new Promise((resolve, reject) => {
         let baseName = path.basename(filename);
-        let outFile = filename.replace(baseName , `${new Date().getTime()}$&.json`);
+        let outFile = filename.replace(baseName, `${new Date().getTime()}$&.json`);
         if (process.env.ENV == "windows") {
             childProcess.execFile(
                 "models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcm2json.exe",
@@ -93,10 +93,10 @@ function dcm2json(filename) {
 
 const dcm2jsonC = require('dicom-to-json');
 const dcm2jsonV8 = {
-    exec : function (dcmfile) {
+    exec: function (dcmfile) {
         return new Promise((resolve, reject) => {
             try {
-                dcm2jsonC.dcm2json(dcmfile , function (data) {
+                dcm2jsonC.dcm2json(dcmfile, function (data) {
                     data = data.replace(/,\\u0000/g, '');
                     data = data.replace(/\\u0000/g, '');
                     let obj = JSON.parse(data);
@@ -106,8 +106,8 @@ const dcm2jsonV8 = {
                 return reject(new Error(e));
             }
         });
-    } , 
-    dcmString : function (json , tag) {
+    },
+    dcmString: function (json, tag) {
         let data = _.get(json, tag);
         //console.log("d" , data);
         let value = _.get(data, "Value.0");
@@ -116,16 +116,16 @@ const dcm2jsonV8 = {
     }
 };
 
-async function dcm2jpeg (dicomFile) {
-    return new Promise((resolve , reject)=> {
+async function dcm2jpeg(dicomFile) {
+    return new Promise((resolve, reject) => {
         let execCmd = "";
-        let jpegFile = dicomFile.replace('.dcm' ,'.jpg');
+        let jpegFile = dicomFile.replace('.dcm', '.jpg');
         if (process.env.ENV == "windows") {
             execCmd = `models/dcmtk/dcmtk-3.6.5-win64-dynamic/bin/dcmj2pnm.exe --write-jpeg "${dicomFile}" "${jpegFile}"`;
         } else if (process.env.ENV == "linux") {
             execCmd = `dcmj2pnm --write-jpeg "${dicomFile}" "${jpegFile}"`;
         }
-        let [dcmtk , ...cmd] = execCmd.split(" ");
+        let [dcmtk, ...cmd] = execCmd.split(" ");
         if (process.env.ENV == "windows") dcmtk = path.resolve(dcmtk);
         let dcm2jpegSpawn = childProcess.spawn(dcmtk, cmd, {
             cwd: process.cwd(),
@@ -140,22 +140,22 @@ async function dcm2jpeg (dicomFile) {
             console.error(stderr);
             reject(new Error(stderr));
         });
-    }); 
+    });
 }
 
-async function dcm2jpegCustomCmd (execCmd) {
-    return new Promise((resolve , reject)=> {
+async function dcm2jpegCustomCmd(execCmd) {
+    return new Promise((resolve, reject) => {
         let [dcmtk, ...cmd] = execCmd.split(" ");
         if (process.env.ENV == "windows") dcmtk = path.resolve(dcmtk);
         let dcm2jpegSpawn = childProcess.spawn(dcmtk, cmd, {
             cwd: process.cwd(),
             shell: true
         });
-        dcm2jpegSpawn.stdout.on("data" , function (data) {
+        dcm2jpegSpawn.stdout.on("data", function (data) {
             if (data) console.log(data);
             resolve(data);
         });
-        dcm2jpegSpawn.on("close", function() {
+        dcm2jpegSpawn.on("close", function () {
             resolve(true);
         });
         dcm2jpegSpawn.stderr.on("data", function (stderr) {
@@ -163,11 +163,11 @@ async function dcm2jpegCustomCmd (execCmd) {
             console.error(stderr);
             reject(new Error(stderr));
         });
-    }); 
+    });
 }
 
-async function jpeg2dcmFromDataset (filename , dcmFilename , outputFilename) {
-    return new Promise((resolve , reject)=> {
+async function jpeg2dcmFromDataset(filename, dcmFilename, outputFilename) {
+    return new Promise((resolve, reject) => {
         let execCmd = "";
         filename = path.normalize(filename);
         outputFilename = path.normalize(outputFilename);
@@ -176,7 +176,7 @@ async function jpeg2dcmFromDataset (filename , dcmFilename , outputFilename) {
         } else if (process.env.ENV == "linux") {
             execCmd = `img2dcm ${filename} ${outputFilename} -df ${dcmFilename}`;
         }
-        let [dcmtk , ...cmd] = execCmd.split(" ");
+        let [dcmtk, ...cmd] = execCmd.split(" ");
         childProcess.execFile(
             dcmtk,
             cmd,
@@ -197,9 +197,9 @@ async function jpeg2dcmFromDataset (filename , dcmFilename , outputFilename) {
     });
 }
 
-async function xml2dcm (filename , outputFilename) {
-    return new Promise((resolve , reject)=> {
-        let execCmd= "";
+async function xml2dcm(filename, outputFilename) {
+    return new Promise((resolve, reject) => {
+        let execCmd = "";
         filename = path.normalize(filename);
         outputFilename = path.normalize(outputFilename);
         if (process.env.ENV == "windows") {
@@ -207,7 +207,7 @@ async function xml2dcm (filename , outputFilename) {
         } else if (process.env.ENV == "linux") {
             execCmd = `xml2dcm ${filename} ${outputFilename}`;
         }
-        let [dcmtk , ...cmd] = execCmd.split(" ");
+        let [dcmtk, ...cmd] = execCmd.split(" ");
         childProcess.execFile(
             dcmtk,
             cmd,
@@ -235,15 +235,15 @@ async function xml2dcm (filename , outputFilename) {
  * @param {Array<String>}otherOptions
  */
 
-async function getFrameImage (imagesPath , frameNumber ,otherOptions=[]) {
+async function getFrameImage(imagesPath, frameNumber, otherOptions = []) {
     let execCmd = "";
-    let images = `${process.env.DICOM_STORE_ROOTPATH}${imagesPath}`;
-    let jpegFile = images.replace(/\.dcm\b/gi , `.${frameNumber-1}.jpg`);
+    let images = path.join(process.env.DICOM_STORE_ROOTPATH, imagesPath);
+    let jpegFile = images.replace(/\.dcm\b/gi, `.${frameNumber - 1}.jpg`);
     if (fs.existsSync(jpegFile)) {
         let rs = fs.createReadStream(jpegFile);
         return {
-            status : true , 
-            imageStream : rs,
+            status: true,
+            imageStream: rs,
             imagePath: jpegFile
         };
     }
@@ -257,16 +257,16 @@ async function getFrameImage (imagesPath , frameNumber ,otherOptions=[]) {
         if (dcm2jpegStatus) {
             let rs = fs.createReadStream(jpegFile);
             return {
-                status : true , 
-                imageStream : rs,
+                status: true,
+                imageStream: rs,
                 imagePath: jpegFile
             };
         }
-    } catch(e) {
+    } catch (e) {
         console.error(e);
         return {
-            status : false ,
-            imageStream : e,
+            status: false,
+            imageStream: e,
             imagePath: jpegFile
         };
     }
@@ -274,12 +274,12 @@ async function getFrameImage (imagesPath , frameNumber ,otherOptions=[]) {
 }
 
 module.exports = {
-    dcm2json: dcm2json , 
-    dcm2jsonV8 : dcm2jsonV8 ,
-    dcm2jpeg : dcm2jpeg , 
-    dcm2jpegCustomCmd : dcm2jpegCustomCmd ,
-    jpeg2dcmFromDataset : jpeg2dcmFromDataset ,
-    xml2dcm : xml2dcm , 
-    getFrameImage : getFrameImage,
+    dcm2json: dcm2json,
+    dcm2jsonV8: dcm2jsonV8,
+    dcm2jpeg: dcm2jpeg,
+    dcm2jpegCustomCmd: dcm2jpegCustomCmd,
+    jpeg2dcmFromDataset: jpeg2dcmFromDataset,
+    xml2dcm: xml2dcm,
+    getFrameImage: getFrameImage,
     dcmtkSupportTransferSyntax: dcmtkSupportTransferSyntax
 };

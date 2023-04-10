@@ -154,7 +154,7 @@ async function handleFrameNumber (param , res , dicomFile) {
             return dicomWebHandleError.sendBadRequestMessage(res, "Parameter error : contentType only support image/jpeg with frameNumber");
         }
         let imageRelativePath = dicomFile.replace(process.env.DICOM_STORE_ROOTPATH,"");
-        let images = `${process.env.DICOM_STORE_ROOTPATH}${imageRelativePath}`;
+        let images = path.join(process.env.DICOM_STORE_ROOTPATH, imageRelativePath);
         let jpegFile = images.replace(/\.dcm\b/gi , `.${param.frameNumber-1}.jpg`);
         let finalJpegFile = "";
         if(fs.existsSync(jpegFile)) {

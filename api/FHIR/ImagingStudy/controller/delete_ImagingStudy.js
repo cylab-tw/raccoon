@@ -1,6 +1,7 @@
 const mongodb = require('models/mongodb');
 const mongoFunc = require('models/mongodb/func');
 const fs = require('fs');
+const path = require("path");
 
 var errorMessage = "";
 module.exports = async function (req , res) {
@@ -8,18 +9,18 @@ module.exports = async function (req , res) {
     let keysLen = Object.keys(params).length;
     let deleteImageFileFunc = [deleteStudyImage , deleteSeriesImage , deleteInstanceImage];
     
-    let deleteFileStatu = await deleteImageFileFunc[keysLen-1](params);
+    let deleteFileStatus = await deleteImageFileFunc[keysLen-1](params);
     let deleteFunc = [deleteStudy , deleteSeries , deleteInstance];
-    let deleteDataStatu = await deleteFunc[keysLen-1](params);
+    let deleteDataStatus = await deleteFunc[keysLen-1](params);
     //檢查刪除mognodb資料
-    if (deleteDataStatu) {
-        let success = {deleteDataStatu : "Delete data successfully"};
+    if (deleteDataStatus) {
+        let success = {deleteDataStatus : "Delete data successfully"};
         //檢查刪除檔案
-        if (deleteFileStatu) {
-            success["deleteFileStatu"] = "delete file success";
+        if (deleteFileStatus) {
+            success["deleteFileStatus"] = "delete file success";
             return res.status(204).json(success);
         }
-        success["deleteFileStatu"] = "delete file failure , maybe have data but not have file";
+        success["deleteFileStatus"] = "delete file failure , maybe have data but not have file";
         return res.status(204).json(success);
     } else {
         return res.status(500).end();
@@ -32,7 +33,8 @@ async function deleteStudyImage (iParams) {
         if (imagesPath) {
             for (let i = 0 ; i < imagesPath.length ; i++) {
                 try {
-                    fs.unlinkSync(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`);
+                    let absPath = path.join(process.env.DICOM_STORE_ROOTPATH, imagesPath[i]);
+                    fs.unlinkSync(absPath);
                 } catch (err) {
                     console.log(err);
                     return resolve(false);
@@ -49,7 +51,8 @@ async function deleteSeriesImage (iParams) {
         if (imagesPath) {
             for (let i = 0 ; i < imagesPath.length ; i++) {
                 try {
-                    fs.unlinkSync(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`);
+                    let absPath = path.join(process.env.DICOM_STORE_ROOTPATH, imagesPath[i]);
+                    fs.unlinkSync(absPath);
                 } catch (err) {
                     console.log(err);
                     return resolve(false);
@@ -66,7 +69,8 @@ async function deleteInstanceImage (iParams) {
         if (imagesPath) {
             for (let i = 0 ; i < imagesPath.length ; i++) {
                 try {
-                    fs.unlinkSync(`${process.env.DICOM_STORE_ROOTPATH}${imagesPath[i]}`);
+                    let absPath = path.join(process.env.DICOM_STORE_ROOTPATH, imagesPath[i]);
+                    fs.unlinkSync(absPath);
                 } catch (err) {
                     console.log(err);
                     return resolve(false);

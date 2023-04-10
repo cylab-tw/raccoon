@@ -2,6 +2,7 @@ const mongodb = require("../../../models/mongodb");
 const _ = require("lodash"); // eslint-disable-line @typescript-eslint/naming-convention
 const uuid = require('uuid');
 const fs = require('fs');
+const path = require("path");
 
 /**
  * 
@@ -30,7 +31,10 @@ module.exports = async function (req , res) {
             }
         ]
     });
-    let bulkData = fs.readFileSync(`${process.env.DICOM_STORE_ROOTPATH}${metadata._doc.filename}`);
+
+    let metadataAbsFilename = path.join(process.env.DICOM_STORE_ROOTPATH, metadata._doc.filename);
+
+    let bulkData = fs.readFileSync(metadataAbsFilename);
 
     const BOUNDARY = `${uuid.v4()}-${uuid.v4()}`;
     res.set("Content-Type" , `multipart/related; type=application/octet-stream; boundary=${BOUNDARY}`);

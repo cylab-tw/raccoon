@@ -37,7 +37,7 @@ async function storeInstance(filename, stowUrl) {
         multipart: [
             {
                 "Content-Type": "application/dicom",
-                "Content-Disposition": `attachment; filename="${filename}"`,
+                "Content-Disposition": `attachment; filename="${path.basename(filename)}"`,
                 body: stream
             }
         ],

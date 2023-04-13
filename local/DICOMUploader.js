@@ -37,7 +37,7 @@ function main() {
                     }
                 },
                 fullFilename,
-                file
+                path.basename(file)
             );
             if (!storeInstanceResult.isFailure) {
                 successFiles.push(fullFilename);

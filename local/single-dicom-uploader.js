@@ -28,7 +28,7 @@ async function main() {
                 host: "localhost:8081"
             }
         },
-        filePath
+        path.basename(filePath)
     );
 
     if (storeInstanceResult.isFailure) {

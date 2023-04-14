@@ -45,4 +45,4 @@ tempScript
 /config/log4js.json
 
 /local/local-upload-log.json
-/local/local-upload-log-wado.json
+/local/local-upload-wado-log.json

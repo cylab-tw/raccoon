@@ -19,11 +19,13 @@ module.exports = async(req, res) =>
         let disk = process.env.DICOM_STORE_ROOTPATH;
         let oriPath = await getInstanceStorePath(param);
         if (!oriPath) {
+            res.set('content-type' , 'application/json');
             return dicomWebHandleError.sendNotFoundMessage(req , res);
         }
 
         let storeAbsPath = path.join(disk, oriPath);
         if (!fs.existsSync(storeAbsPath)) {
+            res.set('content-type' , 'application/json');
             return dicomWebHandleError.sendNotFoundMessage(req , res);
         }
 
@@ -157,6 +159,12 @@ async function handleFrameNumber (param , res , dicomFile) {
         let finalJpegFile = "";
 
         let dicomJson = await getDICOMJson(param);
+
+        let isValidFrameNumber = checkIsValidFrameNumber(dicomJson, param.frameNumber);
+        if (!isValidFrameNumber.status) {
+            return dicomWebHandleError.sendBadRequestMessage(res, `invalid frame number: ${param.frameNumber}, but data's frame number is ${isValidFrameNumber.dataFrameNumber}`);
+        }
+
         let transferSyntax = _.get(dicomJson ,"00020010.Value.0");
         if (!dcmtkSupportTransferSyntax.includes(transferSyntax)) {
             let pythonDICOM2JPEGStatus = await getJpeg[process.env.ENV]['getJpegByPydicom'](images);
@@ -179,6 +187,7 @@ async function handleFrameNumber (param , res , dicomFile) {
         } else {
             frame = await getFrameImage(imageRelativePath, param.frameNumber);
         }
+
         if (frame.status) {
             finalJpegFile = frame.imagePath;
         } else {
@@ -200,6 +209,28 @@ async function handleFrameNumber (param , res , dicomFile) {
         res.set('content-type' , 'application/json');
         return dicomWebHandleError.sendServerWrongMessage(res , `${e.toString()}`);
     }
+}
+
+/**
+ * 
+ * @param {*} dicomJson 
+ * @param {number} frameNumber 
+ */
+function checkIsValidFrameNumber(dicomJson, frameNumber) {
+    let dataFrameNumber = _.get(dicomJson, "00280008.Value.0") | 1;
+    dataFrameNumber = parseInt(dataFrameNumber);
+
+    if (dataFrameNumber < frameNumber) {
+        return {
+            status: false,
+            dataFrameNumber
+        };
+    }
+
+    return {
+        status: true,
+        dataFrameNumber
+    };
 }
 
 async function getInstanceStorePath(iParam)

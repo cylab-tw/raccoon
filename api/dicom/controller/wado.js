@@ -22,25 +22,23 @@ module.exports = async(req, res) =>
             return dicomWebHandleError.sendNotFoundMessage(req , res);
         }
 
-        let storePath = path.join(disk, oriPath);
-        if (!fs.existsSync(storePath)) {
+        let storeAbsPath = path.join(disk, oriPath);
+        if (!fs.existsSync(storeAbsPath)) {
             return dicomWebHandleError.sendNotFoundMessage(req , res);
         }
 
         if (param.contentType == 'image/jpeg') {
-            if (param.frameNumber) {
-                return await handleFrameNumber(param , res , storePath);
+            if (!param.frameNumber) { //when user get DICOM without frame number, default return first frame image
+                param.frameNumber = 1;
             }
-            //when user get DICOM without frame number, default return first frame image
-            param.frameNumber = 1;
-            return await handleFrameNumber(param , res , storePath);
+            return await handleFrameNumber(param , res , storeAbsPath);
         } else {
             res.writeHead(200 , 
             {
                 'Content-Type' : param.contentType ,
-                'Content-Disposition' :'attachment; filename=' + path.basename(storePath)
+                'Content-Disposition' :'attachment; filename=' + path.basename(storeAbsPath)
             });
-            return fs.createReadStream(storePath).pipe(res);
+            return fs.createReadStream(storeAbsPath).pipe(res);
         }
     } catch (e) {
         console.error(e);
@@ -153,7 +151,7 @@ async function handleFrameNumber (param , res , dicomFile) {
         if (param.contentType != "image/jpeg") {
             return dicomWebHandleError.sendBadRequestMessage(res, "Parameter error : contentType only support image/jpeg with frameNumber");
         }
-        let imageRelativePath = dicomFile.replace(process.env.DICOM_STORE_ROOTPATH,"");
+        let imageRelativePath = path.relative(process.env.DICOM_STORE_ROOTPATH, dicomFile);
         let images = path.join(process.env.DICOM_STORE_ROOTPATH, imageRelativePath);
         let jpegFile = images.replace(/\.dcm\b/gi , `.${param.frameNumber-1}.jpg`);
         let finalJpegFile = "";

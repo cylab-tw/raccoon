@@ -155,27 +155,37 @@ async function handleFrameNumber (param , res , dicomFile) {
         let images = path.join(process.env.DICOM_STORE_ROOTPATH, imageRelativePath);
         let jpegFile = images.replace(/\.dcm\b/gi , `.${param.frameNumber-1}.jpg`);
         let finalJpegFile = "";
-        if(fs.existsSync(jpegFile)) {
-            finalJpegFile = jpegFile;
-        } else {
-            let dicomJson = await getDICOMJson(param);
-            let transferSyntax = _.get(dicomJson ,"00020010.Value.0");
-            if (!dcmtkSupportTransferSyntax.includes(transferSyntax)) {
-                let pythonDICOM2JPEGStatus = await getJpeg[process.env.ENV]['getJpegByPydicom'](images);
-                if (pythonDICOM2JPEGStatus) {
-                    return fs.createReadStream(jpegFile).pipe(res);
-                }
-                res.set('content-type' , 'application/json');
-                return dicomWebHandleError.sendServerWrongMessage(res , `can't not convert dicom to jpeg with transfer syntax: ${transferSyntax}`); 
+
+        let dicomJson = await getDICOMJson(param);
+        let transferSyntax = _.get(dicomJson ,"00020010.Value.0");
+        if (!dcmtkSupportTransferSyntax.includes(transferSyntax)) {
+            let pythonDICOM2JPEGStatus = await getJpeg[process.env.ENV]['getJpegByPydicom'](images);
+            if (pythonDICOM2JPEGStatus) {
+                return fs.createReadStream(jpegFile).pipe(res);
             }
-            let frame = await getFrameImage(imageRelativePath, param.frameNumber);
-            if (frame.status) {
-                finalJpegFile = frame.imagePath;
-            } else {
-                res.set('content-type' , 'application/json');
-                return dicomWebHandleError.sendServerWrongMessage(res , `dcmtk Convert frame error ${frame.imageStream}`);
-            }
+            res.set('content-type' , 'application/json');
+            return dicomWebHandleError.sendServerWrongMessage(res , `can't not convert dicom to jpeg with transfer syntax: ${transferSyntax}`); 
         }
+
+        let windowCenter = _.get(dicomJson, "00281050.Value.0");
+        let windowWidth = _.get(dicomJson, "00281051.Value.0");
+        let frame;
+        if (windowCenter && windowWidth) {
+            frame = await getFrameImage(imageRelativePath, param.frameNumber, [
+                "+Ww",
+                windowCenter,
+                windowWidth
+            ]);
+        } else {
+            frame = await getFrameImage(imageRelativePath, param.frameNumber);
+        }
+        if (frame.status) {
+            finalJpegFile = frame.imagePath;
+        } else {
+            res.set('content-type' , 'application/json');
+            return dicomWebHandleError.sendServerWrongMessage(res , `dcmtk Convert frame error ${frame.imageStream}`);
+        }
+        
         let imageSharp = sharp(finalJpegFile);
         let magick = new Magick(finalJpegFile);
         handleImageQuality(param, magick);

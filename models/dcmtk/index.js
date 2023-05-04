@@ -239,7 +239,7 @@ async function getFrameImage(imagesPath, frameNumber, otherOptions = []) {
     let execCmd = "";
     let images = path.join(process.env.DICOM_STORE_ROOTPATH, imagesPath);
     let jpegFile = images.replace(/\.dcm\b/gi, `.${frameNumber - 1}.jpg`);
-    if (fs.existsSync(jpegFile)) {
+    if (fs.existsSync(jpegFile) && otherOptions.length == 0) {
         let rs = fs.createReadStream(jpegFile);
         return {
             status: true,

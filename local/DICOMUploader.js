@@ -16,7 +16,8 @@ if (osPlatform.includes("linux")) {
 }
 
 program.requiredOption("-d, --dir <string>", "The directory path contains DICOM files that need to upload")
-       .requiredOption("-u, --url <string>", "STOW-RS URL");
+.option("--resume <string>", "Resume from log file");
+
 program.parse();
 
 const options = program.opts();
@@ -24,12 +25,28 @@ const options = program.opts();
 function main() {
     let inputDir = options.dir;
     console.log(`Input Directory: ${inputDir}`);
-
+    
+    let resumeFile = options.resume;
+    let logUploadedFiles = [];
     let successFiles = [];
     let errorFiles = [];
+
+    if (resumeFile && !fs.existsSync(resumeFile)) {
+        console.error("resume file not exist");
+        process.exit(1);
+    } else if (fs.existsSync(resumeFile)){
+        let logInfo = JSON.parse(fs.readFileSync(resumeFile, "utf-8"));
+        logUploadedFiles = logInfo.successFiles;
+        successFiles = [...logUploadedFiles];
+    }
+
     glob("**/*.dcm", { cwd: inputDir }, async function (err, matches) {
         for (let file of matches) {
             let fullFilename = path.join(inputDir, file);
+
+            if (logUploadedFiles.includes(fullFilename))
+                continue;
+
             let storeInstanceResult = await stow(
                 {
                     headers: {
@@ -37,7 +54,7 @@ function main() {
                     }
                 },
                 fullFilename,
-                file
+                path.basename(file)
             );
             if (!storeInstanceResult.isFailure) {
                 successFiles.push(fullFilename);

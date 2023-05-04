@@ -20,7 +20,8 @@ if (osPlatform.includes("linux")) {
 }
 
 program.requiredOption("-d, --dir <string>", "The directory path contains DICOM files that need to upload")
-    .requiredOption("-u, --url <string>", "STOW-RS URL");
+    .requiredOption("-u, --url <string>", "STOW-RS URL", "http://127.0.0.1:8081/dicom-web/studies")
+    .option("--resume <string>", "Resume from log file");
 program.parse();
 
 const options = program.opts();
@@ -37,7 +38,7 @@ async function storeInstance(filename, stowUrl) {
         multipart: [
             {
                 "Content-Type": "application/dicom",
-                "Content-Disposition": `attachment; filename="${filename}"`,
+                "Content-Disposition": `attachment; filename="${path.basename(filename)}"`,
                 body: stream
             }
         ],
@@ -50,11 +51,27 @@ async function main() {
     const STOW_URL = options.url;
     console.log(`Input Directory: ${inputDir}`);
 
+    let resumeFile = options.resume;
+    let logUploadedFiles = [];
     let successFiles = [];
     let errorFiles = [];
+
+    if (resumeFile && !fs.existsSync(resumeFile)) {
+        console.error("resume file not exist");
+        process.exit(1);
+    } else if (fs.existsSync(resumeFile)){
+        let logInfo = JSON.parse(fs.readFileSync(resumeFile, "utf-8"));
+        logUploadedFiles = logInfo.successFiles;
+        successFiles = [...logUploadedFiles];
+    }
+
     glob("**/*.dcm", { cwd: inputDir }, async function (err, matches) {
         for (let file of matches) {
             let fullFilename = path.join(inputDir, file);
+
+            if (logUploadedFiles.includes(fullFilename))
+                continue;
+            
             try {
                 let response = await storeInstance(fullFilename, STOW_URL);
                 let statusCode = response.res.statusCode;

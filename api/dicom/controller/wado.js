@@ -19,28 +19,28 @@ module.exports = async(req, res) =>
         let disk = process.env.DICOM_STORE_ROOTPATH;
         let oriPath = await getInstanceStorePath(param);
         if (!oriPath) {
+            res.set('content-type' , 'application/json');
             return dicomWebHandleError.sendNotFoundMessage(req , res);
         }
 
-        let storePath = path.join(disk, oriPath);
-        if (!fs.existsSync(storePath)) {
+        let storeAbsPath = path.join(disk, oriPath);
+        if (!fs.existsSync(storeAbsPath)) {
+            res.set('content-type' , 'application/json');
             return dicomWebHandleError.sendNotFoundMessage(req , res);
         }
 
         if (param.contentType == 'image/jpeg') {
-            if (param.frameNumber) {
-                return await handleFrameNumber(param , res , storePath);
+            if (!param.frameNumber) { //when user get DICOM without frame number, default return first frame image
+                param.frameNumber = 1;
             }
-            //when user get DICOM without frame number, default return first frame image
-            param.frameNumber = 1;
-            return await handleFrameNumber(param , res , storePath);
+            return await handleFrameNumber(param , res , storeAbsPath);
         } else {
             res.writeHead(200 , 
             {
                 'Content-Type' : param.contentType ,
-                'Content-Disposition' :'attachment; filename=' + path.basename(storePath)
+                'Content-Disposition' :'attachment; filename=' + path.basename(storeAbsPath)
             });
-            return fs.createReadStream(storePath).pipe(res);
+            return fs.createReadStream(storeAbsPath).pipe(res);
         }
     } catch (e) {
         console.error(e);
@@ -153,31 +153,48 @@ async function handleFrameNumber (param , res , dicomFile) {
         if (param.contentType != "image/jpeg") {
             return dicomWebHandleError.sendBadRequestMessage(res, "Parameter error : contentType only support image/jpeg with frameNumber");
         }
-        let imageRelativePath = dicomFile.replace(process.env.DICOM_STORE_ROOTPATH,"");
+        let imageRelativePath = path.relative(process.env.DICOM_STORE_ROOTPATH, dicomFile);
         let images = path.join(process.env.DICOM_STORE_ROOTPATH, imageRelativePath);
         let jpegFile = images.replace(/\.dcm\b/gi , `.${param.frameNumber-1}.jpg`);
         let finalJpegFile = "";
-        if(fs.existsSync(jpegFile)) {
-            finalJpegFile = jpegFile;
-        } else {
-            let dicomJson = await getDICOMJson(param);
-            let transferSyntax = _.get(dicomJson ,"00020010.Value.0");
-            if (!dcmtkSupportTransferSyntax.includes(transferSyntax)) {
-                let pythonDICOM2JPEGStatus = await getJpeg[process.env.ENV]['getJpegByPydicom'](images);
-                if (pythonDICOM2JPEGStatus) {
-                    return fs.createReadStream(jpegFile).pipe(res);
-                }
-                res.set('content-type' , 'application/json');
-                return dicomWebHandleError.sendServerWrongMessage(res , `can't not convert dicom to jpeg with transfer syntax: ${transferSyntax}`); 
-            }
-            let frame = await getFrameImage(imageRelativePath, param.frameNumber);
-            if (frame.status) {
-                finalJpegFile = frame.imagePath;
-            } else {
-                res.set('content-type' , 'application/json');
-                return dicomWebHandleError.sendServerWrongMessage(res , `dcmtk Convert frame error ${frame.imageStream}`);
-            }
+
+        let dicomJson = await getDICOMJson(param);
+
+        let isValidFrameNumber = checkIsValidFrameNumber(dicomJson, param.frameNumber);
+        if (!isValidFrameNumber.status) {
+            return dicomWebHandleError.sendBadRequestMessage(res, `invalid frame number: ${param.frameNumber}, but data's frame number is ${isValidFrameNumber.dataFrameNumber}`);
         }
+
+        let transferSyntax = _.get(dicomJson ,"00020010.Value.0");
+        if (!dcmtkSupportTransferSyntax.includes(transferSyntax)) {
+            let pythonDICOM2JPEGStatus = await getJpeg[process.env.ENV]['getJpegByPydicom'](images);
+            if (pythonDICOM2JPEGStatus) {
+                return fs.createReadStream(jpegFile).pipe(res);
+            }
+            res.set('content-type' , 'application/json');
+            return dicomWebHandleError.sendServerWrongMessage(res , `can't not convert dicom to jpeg with transfer syntax: ${transferSyntax}`); 
+        }
+
+        let windowCenter = _.get(dicomJson, "00281050.Value.0");
+        let windowWidth = _.get(dicomJson, "00281051.Value.0");
+        let frame;
+        if (windowCenter && windowWidth) {
+            frame = await getFrameImage(imageRelativePath, param.frameNumber, [
+                "+Ww",
+                windowCenter,
+                windowWidth
+            ]);
+        } else {
+            frame = await getFrameImage(imageRelativePath, param.frameNumber);
+        }
+
+        if (frame.status) {
+            finalJpegFile = frame.imagePath;
+        } else {
+            res.set('content-type' , 'application/json');
+            return dicomWebHandleError.sendServerWrongMessage(res , `dcmtk Convert frame error ${frame.imageStream}`);
+        }
+        
         let imageSharp = sharp(finalJpegFile);
         let magick = new Magick(finalJpegFile);
         handleImageQuality(param, magick);
@@ -192,6 +209,28 @@ async function handleFrameNumber (param , res , dicomFile) {
         res.set('content-type' , 'application/json');
         return dicomWebHandleError.sendServerWrongMessage(res , `${e.toString()}`);
     }
+}
+
+/**
+ * 
+ * @param {*} dicomJson 
+ * @param {number} frameNumber 
+ */
+function checkIsValidFrameNumber(dicomJson, frameNumber) {
+    let dataFrameNumber = _.get(dicomJson, "00280008.Value.0") | 1;
+    dataFrameNumber = parseInt(dataFrameNumber);
+
+    if (dataFrameNumber < frameNumber) {
+        return {
+            status: false,
+            dataFrameNumber
+        };
+    }
+
+    return {
+        status: true,
+        dataFrameNumber
+    };
 }
 
 async function getInstanceStorePath(iParam)

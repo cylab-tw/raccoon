@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.8.0](https://github.com/cylab-tw/raccoon/compare/v1.7.1...v1.8.0) (2023-05-04)
+
+
+### Features
+
+* local uploader support resume from log ([ba092eb](https://github.com/cylab-tw/raccoon/commit/ba092eb6df9aeb5431238b25b04900d5da540139))
+
+
+### Bug Fixes
+
+* wado-uri not apply window level of image ([5de5e19](https://github.com/cylab-tw/raccoon/commit/5de5e19abdaf2c5bd8974ff66fada367ecffc565))
+* **wado-uri:** crash when invalid frame number ([b4ca0b9](https://github.com/cylab-tw/raccoon/commit/b4ca0b9f18ef5c0f87259cbc2f7b06d48bc402cc))
+* **wado-uri:** wrong relative path of image ([0eae01f](https://github.com/cylab-tw/raccoon/commit/0eae01f6a7846f594bcc3c3c86fa387e1c5260b9))
+* wrong store path when using local single file uploader ([5f042b8](https://github.com/cylab-tw/raccoon/commit/5f042b853a98c5abd1d90e2430bcd7718bd64106))
+* wrong store path when using local uploader ([c42032e](https://github.com/cylab-tw/raccoon/commit/c42032e2336830f0400227ea31b410062c9c50d3))
+
 ### [1.7.1](https://github.com/cylab-tw/raccoon/compare/v1.7.0...v1.7.1) (2023-04-10)
 
 

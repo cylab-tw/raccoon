@@ -1,6 +1,6 @@
 {
   "name": "Raccoon",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "description": "DICOMWeb&FHIR server",
   "main": "server.js",
   "scripts": {

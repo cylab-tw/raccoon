@@ -13,8 +13,8 @@ module.exports = exports = function (config) {
     const hosts = JSON.parse(config.MONGODB_HOSTS);
     const ports = JSON.parse(config.MONGODB_PORTS);
     const dbName = config.MONGODB_NAME;
-    const slave = config.MONGODB_SLAVEMODE;
     const collection = {};
+    const connectionOptions = config.MONGODB_OPTIONS;
     let databaseUrl = "";
 
     hosts.forEach((host, index) => {
@@ -24,8 +24,13 @@ module.exports = exports = function (config) {
             databaseUrl += `,${host}:${ports[index]}`;
         }
     });
+
     databaseUrl += `/${dbName}`;
 
+    if (connectionOptions) {
+        databaseUrl += `?${connectionOptions}`;
+    }
+    
     console.log(databaseUrl);
     mongoose.connect(databaseUrl, {
         // The following parameters are no longer supported by mongoose 6.x
